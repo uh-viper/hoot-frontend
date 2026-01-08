@@ -43,9 +43,10 @@
 .logo {
   height: auto;
   width: auto;
-  max-height: 50px;
-  transform: scale(1.2);
+  max-height: 65px;
+  transform: scale(1.8);
   transform-origin: left center;
+  object-fit: contain;
 }
 
 .header-nav {
