@@ -1,5 +1,5 @@
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+@import "tailwindcss";
 
 :root {
   --background: #0d0d0d;
