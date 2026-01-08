@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Hoot - TikTok Automation Platform",
   description: "Automate and grow your TikTok presence with powerful tools",
+  icons: {
+    icon: '/hootblack.png',
+  },
 };
 
 export default function RootLayout({
@@ -29,6 +32,7 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://fonts.googleapis.com/icon?family=Material+Icons"
         />
+        <link rel="icon" href="/hootblack.png" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
