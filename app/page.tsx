@@ -71,7 +71,7 @@ export default function Home() {
       {/* The Problem Section */}
       <section className="problem-section">
         <div className="section-container">
-          <h2 className="section-title">The Old Way vs. <span className="gold-text">The Hoot Way</span></h2>
+          <h2 className="section-title">The Old Way vs. <span className="gold-text">Our Way</span></h2>
           <div className="comparison-table">
             <div className="comparison-header">
               <div className="comparison-col old-way">
@@ -80,7 +80,7 @@ export default function Home() {
               </div>
               <div className="comparison-col hoot-way">
                 <span className="material-icons">flash_on</span>
-                The Hoot Way
+                Our Way
               </div>
             </div>
             <div className="comparison-row">
@@ -130,7 +130,7 @@ export default function Home() {
       {/* High-Octane Features */}
       <section className="features-section">
         <div className="section-container">
-          <h2 className="section-title">High-Octane <span className="gold-text">Features</span></h2>
+          <h2 className="section-title">Our <span className="gold-text">Features</span></h2>
           <div className="features-grid">
             <div className="feature-card">
               <div className="feature-icon-wrapper">
@@ -165,7 +165,7 @@ export default function Home() {
               </div>
               <h3 className="feature-name">The 5 Minute Guarantee</h3>
               <p className="feature-desc">
-                From "Submit" to "Live" faster than you can make a cup of coffee.
+                From "Deploy" to "Live" faster than you can make a cup of coffee.
               </p>
             </div>
           </div>
