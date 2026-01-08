@@ -16,7 +16,12 @@ export const metadata: Metadata = {
   title: "Hoot - TikTok Automation Platform",
   description: "Automate and grow your TikTok presence with powerful tools",
   icons: {
-    icon: '/hootlogo.png',
+    icon: [
+      { url: '/hootlogo.png', type: 'image/png' },
+      { url: '/favicon.ico', type: 'image/x-icon' },
+    ],
+    shortcut: '/hootlogo.png',
+    apple: '/hootlogo.png',
   },
 };
 
@@ -32,7 +37,6 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://fonts.googleapis.com/icon?family=Material+Icons"
         />
-        <link rel="icon" href="/hootlogo.png" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
