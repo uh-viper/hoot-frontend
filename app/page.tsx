@@ -43,8 +43,7 @@ export default function Home() {
             No manual setup, no delays, no limits. Built for high-volume advertisers who can't afford to get throttled.
           </p>
           <Link href="/signup" className="hero-cta">
-            Deploy Now
-            <span className="material-icons">arrow_forward</span>
+            Start Now
           </Link>
         </div>
       </section>
@@ -52,12 +51,19 @@ export default function Home() {
       {/* Counter Section */}
       <section className="counter-section">
         <div className="section-container">
+          <h2 className="counter-section-title">Business Centers <span className="gold-text">Generated</span></h2>
           <div className="counter-content">
-            <span className="counter-label">Total BCs Generated:</span>
-            <span className="counter-value">
-              <Counter target={1247} />
-            </span>
-            <span className="counter-pulse"></span>
+            <div className="counter-main">
+              <span className="counter-value">
+                <Counter target={1247} />
+              </span>
+              <span className="counter-plus">+</span>
+            </div>
+            <p className="counter-subtitle">And growing every minute</p>
+            <div className="counter-pulse-container">
+              <span className="counter-pulse"></span>
+              <span className="counter-pulse-ring"></span>
+            </div>
           </div>
         </div>
       </section>
@@ -185,7 +191,7 @@ export default function Home() {
             <div className="workflow-step">
               <div className="step-number">2</div>
               <div className="step-icon-wrapper">
-                <span className="material-icons">vault</span>
+                <span className="material-icons">account_balance</span>
               </div>
               <h3 className="step-title">Stored in Vault</h3>
               <p className="step-desc">
@@ -213,31 +219,6 @@ export default function Home() {
               <p className="step-desc">
                 We offer VA support and integration to create VA sub-accounts seamlessly.
               </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Status Dashboard Mockup */}
-      <section className="dashboard-section">
-        <div className="section-container">
-          <h2 className="section-title">Real-Time <span className="gold-text">Control</span></h2>
-          <div className="dashboard-mockup">
-            <div className="dashboard-header">
-              <span className="status-indicator active"></span>
-              <span className="dashboard-title">Active Business Centers</span>
-            </div>
-            <div className="dashboard-grid">
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
-                <div key={item} className="dashboard-item">
-                  <div className="bc-status active">
-                    <span className="status-dot"></span>
-                    Active
-                  </div>
-                  <div className="bc-id">BC-{String(item).padStart(4, '0')}</div>
-                  <div className="bc-region">US-East</div>
-                </div>
-              ))}
             </div>
           </div>
         </div>
@@ -279,8 +260,8 @@ export default function Home() {
               <div className="proof-icon">
                 <span className="material-icons">groups</span>
               </div>
-              <h3 className="proof-title">Top-Tier TikTok Agencies</h3>
-              <p className="proof-desc">Trusted by leading agencies worldwide</p>
+              <h3 className="proof-title">Top-Tier TikTok Affiliates</h3>
+              <p className="proof-desc">Trusted by leading affiliates worldwide</p>
             </div>
             <div className="proof-item">
               <div className="proof-icon">
@@ -308,8 +289,7 @@ export default function Home() {
             Join the agencies that refuse to be throttled by manual processes.
           </p>
           <Link href="/signup" className="hero-cta large">
-            Deploy Now
-            <span className="material-icons">arrow_forward</span>
+            Start Now
           </Link>
         </div>
       </section>
