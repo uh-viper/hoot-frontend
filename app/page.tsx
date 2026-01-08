@@ -31,32 +31,34 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Live Feed Counter */}
-      <div className="live-counter">
-        <div className="counter-container">
-          <span className="counter-label">Total BCs Generated:</span>
-          <span className="counter-value">
-            <Counter target={1247} />
-          </span>
-          <span className="counter-pulse"></span>
-        </div>
-      </div>
-
       {/* Hero Section */}
       <section className="hero">
         <div className="hero-content">
           <h1 className="hero-title">
-            Stop Waiting. <span className="gold-text">Start Scaling.</span>
+            <span className="title-line">Stop Waiting.</span>
+            <span className="title-line gold-text">Start Scaling.</span>
           </h1>
           <p className="hero-subtitle">
-            Generate as many TikTok Business Centers in under 3 minutes as you need. 
-            Any region, any currency. No manual setup, no delays, no limits. Built for 
-            high-volume advertisers who can't afford to get throttled.
+            Generate as many TikTok Business Centers as you need. Any region, any currency. 
+            No manual setup, no delays, no limits. Built for high-volume advertisers who can't afford to get throttled.
           </p>
           <Link href="/signup" className="hero-cta">
-            Start Now
+            Deploy Now
             <span className="material-icons">arrow_forward</span>
           </Link>
+        </div>
+      </section>
+
+      {/* Counter Section */}
+      <section className="counter-section">
+        <div className="section-container">
+          <div className="counter-content">
+            <span className="counter-label">Total BCs Generated:</span>
+            <span className="counter-value">
+              <Counter target={1247} />
+            </span>
+            <span className="counter-pulse"></span>
+          </div>
         </div>
       </section>
 
@@ -66,23 +68,29 @@ export default function Home() {
           <h2 className="section-title">The Old Way vs. <span className="gold-text">The Hoot Way</span></h2>
           <div className="comparison-table">
             <div className="comparison-header">
-              <div className="comparison-col old-way">The Old Way</div>
-              <div className="comparison-col hoot-way">The Hoot Way</div>
+              <div className="comparison-col old-way">
+                <span className="material-icons">hourglass_empty</span>
+                The Old Way
+              </div>
+              <div className="comparison-col hoot-way">
+                <span className="material-icons">flash_on</span>
+                The Hoot Way
+              </div>
             </div>
             <div className="comparison-row">
               <div className="comparison-col old-way">
                 <span className="material-icons">schedule</span>
-                20+ minutes of manual clicking
+                Takes 10+ Minutes to Make one BC
               </div>
               <div className="comparison-col hoot-way">
-                <span className="material-icons">flash_on</span>
-                One-click deployment
+                <span className="material-icons">bolt</span>
+                Deploy multiple BCs in minutes
               </div>
             </div>
             <div className="comparison-row">
               <div className="comparison-col old-way">
                 <span className="material-icons">warning</span>
-                Risk of fingerprinting & shadowbans
+                Risk of fingerprint & bans/disapprovals
               </div>
               <div className="comparison-col hoot-way">
                 <span className="material-icons">verified</span>
@@ -96,17 +104,17 @@ export default function Home() {
               </div>
               <div className="comparison-col hoot-way">
                 <span className="material-icons">rocket_launch</span>
-                Scales to 100+ BCs in minutes
+                Scales to 100+ BCs instantly
               </div>
             </div>
             <div className="comparison-row">
               <div className="comparison-col old-way">
-                <span className="material-icons">block</span>
-                "Business Center creation limit reached"
+                <span className="material-icons">attach_money</span>
+                Expensive to delegate
               </div>
               <div className="comparison-col hoot-way">
-                <span className="material-icons">all_inclusive</span>
-                Infinite overhead for your ads
+                <span className="material-icons">savings</span>
+                Cost-effective automation
               </div>
             </div>
           </div>
@@ -119,31 +127,91 @@ export default function Home() {
           <h2 className="section-title">High-Octane <span className="gold-text">Features</span></h2>
           <div className="features-grid">
             <div className="feature-card">
-              <div className="feature-icon">⚡</div>
+              <div className="feature-icon-wrapper">
+                <span className="material-icons">flash_on</span>
+              </div>
               <h3 className="feature-name">Flash-Batching</h3>
               <p className="feature-desc">
                 Why create one when you can create fifty? Spin up entire fleets of BCs simultaneously.
               </p>
             </div>
             <div className="feature-card">
-              <div className="feature-icon">🛡️</div>
+              <div className="feature-icon-wrapper">
+                <span className="material-icons">shield</span>
+              </div>
               <h3 className="feature-name">Anti-Fingerprint Architecture</h3>
               <p className="feature-desc">
                 Each BC is generated with unique parameters to ensure maximum longevity and reduced linkage.
               </p>
             </div>
             <div className="feature-card">
-              <div className="feature-icon">🤖</div>
+              <div className="feature-icon-wrapper">
+                <span className="material-icons">api</span>
+              </div>
               <h3 className="feature-name">Set & Forget API</h3>
               <p className="feature-desc">
                 Integrate directly into your existing workflow so you never have to see the TikTok dashboard until it's time to run ads.
               </p>
             </div>
             <div className="feature-card">
-              <div className="feature-icon">⏱️</div>
-              <h3 className="feature-name">The 120-Second Guarantee</h3>
+              <div className="feature-icon-wrapper">
+                <span className="material-icons">timer</span>
+              </div>
+              <h3 className="feature-name">The 5 Minute Guarantee</h3>
               <p className="feature-desc">
                 From "Submit" to "Live" faster than you can make a cup of coffee.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="how-it-works-section">
+        <div className="section-container">
+          <h2 className="section-title">How <span className="gold-text">It Works</span></h2>
+          <div className="workflow-grid">
+            <div className="workflow-step">
+              <div className="step-number">1</div>
+              <div className="step-icon-wrapper">
+                <span className="material-icons">add_circle</span>
+              </div>
+              <h3 className="step-title">Generate BC</h3>
+              <p className="step-desc">
+                Deploy as many Business Centers as you need. Any region, any currency.
+              </p>
+            </div>
+            <div className="workflow-connector"></div>
+            <div className="workflow-step">
+              <div className="step-number">2</div>
+              <div className="step-icon-wrapper">
+                <span className="material-icons">vault</span>
+              </div>
+              <h3 className="step-title">Stored in Vault</h3>
+              <p className="step-desc">
+                Each BC sits securely in your account vault, ready to use when needed.
+              </p>
+            </div>
+            <div className="workflow-connector"></div>
+            <div className="workflow-step">
+              <div className="step-number">3</div>
+              <div className="step-icon-wrapper">
+                <span className="material-icons">dashboard</span>
+              </div>
+              <h3 className="step-title">Sign In & Manage</h3>
+              <p className="step-desc">
+                Access via dashboard. Get verification codes, close BCs, and manage everything from one place.
+              </p>
+            </div>
+            <div className="workflow-connector"></div>
+            <div className="workflow-step">
+              <div className="step-number">4</div>
+              <div className="step-icon-wrapper">
+                <span className="material-icons">support_agent</span>
+              </div>
+              <h3 className="step-title">VA Support & Integration</h3>
+              <p className="step-desc">
+                We offer VA support and integration to create VA sub-accounts seamlessly.
               </p>
             </div>
           </div>
@@ -240,7 +308,7 @@ export default function Home() {
             Join the agencies that refuse to be throttled by manual processes.
           </p>
           <Link href="/signup" className="hero-cta large">
-            Start Now
+            Deploy Now
             <span className="material-icons">arrow_forward</span>
           </Link>
         </div>
