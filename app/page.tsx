@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Image from "next/image";
-import Counter from "./components/Counter";
 import "./page.css";
 
 export default function Home() {
@@ -45,26 +44,6 @@ export default function Home() {
           <Link href="/signup" className="hero-cta">
             Start Now
           </Link>
-        </div>
-      </section>
-
-      {/* Counter Section */}
-      <section className="counter-section">
-        <div className="section-container">
-          <h2 className="counter-section-title">Business Centers <span className="gold-text">Generated</span></h2>
-          <div className="counter-content">
-            <div className="counter-main">
-              <span className="counter-value">
-                <Counter target={1247} />
-              </span>
-              <span className="counter-plus">+</span>
-            </div>
-            <p className="counter-subtitle">And growing every minute</p>
-            <div className="counter-pulse-container">
-              <span className="counter-pulse"></span>
-              <span className="counter-pulse-ring"></span>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -286,7 +265,7 @@ export default function Home() {
         <div className="section-container">
           <h2 className="cta-title">Ready to Scale at <span className="gold-text">Light Speed?</span></h2>
           <p className="cta-subtitle">
-            Join the agencies that refuse to be throttled by manual processes.
+            Join other affiliates that refuse to be slowed down by manual processes.
           </p>
           <Link href="/signup" className="hero-cta large">
             Start Now
