@@ -18,16 +18,20 @@
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   z-index: 1000;
-  padding: 1rem 0;
+  height: 70px;
+  display: flex;
+  align-items: center;
 }
 
 .header-container {
   max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
   padding: 0 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  height: 100%;
 }
 
 .logo-link {
@@ -39,9 +43,8 @@
 .logo {
   height: auto;
   width: auto;
-  max-height: 100px;
-  min-height: 70px;
-  transform: scale(1.4);
+  max-height: 50px;
+  transform: scale(1.2);
   transform-origin: left center;
 }
 
@@ -142,10 +145,13 @@
     font-size: 0.9rem;
   }
 
+  .header {
+    height: 60px;
+  }
+
   .logo {
-    max-height: 70px;
-    min-height: 60px;
-    transform: scale(1.2);
+    max-height: 45px;
+    transform: scale(1.1);
   }
 
   .hero {
