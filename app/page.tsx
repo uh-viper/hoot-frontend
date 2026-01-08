@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import Counter from "./components/Counter";
 import "./page.css";
 
 export default function Home() {
@@ -30,19 +31,220 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <div className="landing-container">
-        <section className="hero">
-          <div className="hero-content">
-            <h1 className="hero-title">
-              Automation, <span className="gold-text">Simplified.</span>
-            </h1>
-            <p className="hero-subtitle">
-              Powerful automation tools to help you scale, engage, and dominate TikTok.
-            </p>
-          </div>
-        </section>
+      {/* Live Feed Counter */}
+      <div className="live-counter">
+        <div className="counter-container">
+          <span className="counter-label">Total BCs Generated:</span>
+          <span className="counter-value">
+            <Counter target={1247} />
+          </span>
+          <span className="counter-pulse"></span>
+        </div>
       </div>
+
+      {/* Hero Section */}
+      <section className="hero">
+        <div className="hero-content">
+          <h1 className="hero-title">
+            Stop Waiting. <span className="gold-text">Start Scaling.</span>
+          </h1>
+          <p className="hero-subtitle">
+            Generate as many TikTok Business Centers in under 3 minutes as you need. 
+            Any region, any currency. No manual setup, no delays, no limits. Built for 
+            high-volume advertisers who can't afford to get throttled.
+          </p>
+          <Link href="/signup" className="hero-cta">
+            Start Now
+            <span className="material-icons">arrow_forward</span>
+          </Link>
+        </div>
+      </section>
+
+      {/* The Problem Section */}
+      <section className="problem-section">
+        <div className="section-container">
+          <h2 className="section-title">The Old Way vs. <span className="gold-text">The Hoot Way</span></h2>
+          <div className="comparison-table">
+            <div className="comparison-header">
+              <div className="comparison-col old-way">The Old Way</div>
+              <div className="comparison-col hoot-way">The Hoot Way</div>
+            </div>
+            <div className="comparison-row">
+              <div className="comparison-col old-way">
+                <span className="material-icons">schedule</span>
+                20+ minutes of manual clicking
+              </div>
+              <div className="comparison-col hoot-way">
+                <span className="material-icons">flash_on</span>
+                One-click deployment
+              </div>
+            </div>
+            <div className="comparison-row">
+              <div className="comparison-col old-way">
+                <span className="material-icons">warning</span>
+                Risk of fingerprinting & shadowbans
+              </div>
+              <div className="comparison-col hoot-way">
+                <span className="material-icons">verified</span>
+                Clean, isolated BC generation
+              </div>
+            </div>
+            <div className="comparison-row">
+              <div className="comparison-col old-way">
+                <span className="material-icons">speed</span>
+                Limited by human speed
+              </div>
+              <div className="comparison-col hoot-way">
+                <span className="material-icons">rocket_launch</span>
+                Scales to 100+ BCs in minutes
+              </div>
+            </div>
+            <div className="comparison-row">
+              <div className="comparison-col old-way">
+                <span className="material-icons">block</span>
+                "Business Center creation limit reached"
+              </div>
+              <div className="comparison-col hoot-way">
+                <span className="material-icons">all_inclusive</span>
+                Infinite overhead for your ads
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* High-Octane Features */}
+      <section className="features-section">
+        <div className="section-container">
+          <h2 className="section-title">High-Octane <span className="gold-text">Features</span></h2>
+          <div className="features-grid">
+            <div className="feature-card">
+              <div className="feature-icon">⚡</div>
+              <h3 className="feature-name">Flash-Batching</h3>
+              <p className="feature-desc">
+                Why create one when you can create fifty? Spin up entire fleets of BCs simultaneously.
+              </p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">🛡️</div>
+              <h3 className="feature-name">Anti-Fingerprint Architecture</h3>
+              <p className="feature-desc">
+                Each BC is generated with unique parameters to ensure maximum longevity and reduced linkage.
+              </p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">🤖</div>
+              <h3 className="feature-name">Set & Forget API</h3>
+              <p className="feature-desc">
+                Integrate directly into your existing workflow so you never have to see the TikTok dashboard until it's time to run ads.
+              </p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">⏱️</div>
+              <h3 className="feature-name">The 120-Second Guarantee</h3>
+              <p className="feature-desc">
+                From "Submit" to "Live" faster than you can make a cup of coffee.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Status Dashboard Mockup */}
+      <section className="dashboard-section">
+        <div className="section-container">
+          <h2 className="section-title">Real-Time <span className="gold-text">Control</span></h2>
+          <div className="dashboard-mockup">
+            <div className="dashboard-header">
+              <span className="status-indicator active"></span>
+              <span className="dashboard-title">Active Business Centers</span>
+            </div>
+            <div className="dashboard-grid">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
+                <div key={item} className="dashboard-item">
+                  <div className="bc-status active">
+                    <span className="status-dot"></span>
+                    Active
+                  </div>
+                  <div className="bc-id">BC-{String(item).padStart(4, '0')}</div>
+                  <div className="bc-region">US-East</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Why It Matters Section */}
+      <section className="why-section">
+        <div className="section-container">
+          <h2 className="section-title">Why It <span className="gold-text">Matters</span></h2>
+          <div className="why-content">
+            <p className="why-text">
+              In the time it took your competitor to set up one ad account, you just deployed 
+              ten Business Centers and launched fifty campaigns. Who do you think wins the auction?
+            </p>
+            <div className="why-stats">
+              <div className="stat-item">
+                <div className="stat-number">10x</div>
+                <div className="stat-label">Faster Setup</div>
+              </div>
+              <div className="stat-item">
+                <div className="stat-number">100+</div>
+                <div className="stat-label">BCs Per Minute</div>
+              </div>
+              <div className="stat-item">
+                <div className="stat-number">∞</div>
+                <div className="stat-label">No Limits</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Social Proof Section */}
+      <section className="social-proof-section">
+        <div className="section-container">
+          <h2 className="section-title">Trusted by <span className="gold-text">Industry Leaders</span></h2>
+          <div className="proof-grid">
+            <div className="proof-item">
+              <div className="proof-icon">
+                <span className="material-icons">groups</span>
+              </div>
+              <h3 className="proof-title">Top-Tier TikTok Agencies</h3>
+              <p className="proof-desc">Trusted by leading agencies worldwide</p>
+            </div>
+            <div className="proof-item">
+              <div className="proof-icon">
+                <span className="material-icons">attach_money</span>
+              </div>
+              <h3 className="proof-title">$1M+ Monthly Ad Spend</h3>
+              <p className="proof-desc">Powering massive advertising operations</p>
+            </div>
+            <div className="proof-item">
+              <div className="proof-icon">
+                <span className="material-icons">check_circle</span>
+              </div>
+              <h3 className="proof-title">99.9% Success Rate</h3>
+              <p className="proof-desc">Reliable account creation every time</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA Section */}
+      <section className="final-cta-section">
+        <div className="section-container">
+          <h2 className="cta-title">Ready to Scale at <span className="gold-text">Light Speed?</span></h2>
+          <p className="cta-subtitle">
+            Join the agencies that refuse to be throttled by manual processes.
+          </p>
+          <Link href="/signup" className="hero-cta large">
+            Start Now
+            <span className="material-icons">arrow_forward</span>
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }
