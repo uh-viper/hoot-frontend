@@ -12,8 +12,8 @@ export default function Home() {
             <Image
               src="/hootlogo.png"
               alt="Hoot Logo"
-              width={240}
-              height={80}
+              width={180}
+              height={60}
               priority
               className="logo"
             />

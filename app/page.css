@@ -39,8 +39,10 @@
 .logo {
   height: auto;
   width: auto;
-  max-height: 80px;
-  min-height: 60px;
+  max-height: 100px;
+  min-height: 70px;
+  transform: scale(1.4);
+  transform-origin: left center;
 }
 
 .header-nav {
@@ -141,8 +143,9 @@
   }
 
   .logo {
-    max-height: 60px;
-    min-height: 50px;
+    max-height: 70px;
+    min-height: 60px;
+    transform: scale(1.2);
   }
 
   .hero {

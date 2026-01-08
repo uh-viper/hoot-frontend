@@ -17,10 +17,11 @@ export const metadata: Metadata = {
   description: "Automate and grow your TikTok presence with powerful tools",
   icons: {
     icon: [
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
       { url: '/hootlogo.png', type: 'image/png' },
-      { url: '/favicon.ico', type: 'image/x-icon' },
     ],
-    shortcut: '/hootlogo.png',
+    shortcut: '/favicon-16x16.png',
     apple: '/hootlogo.png',
   },
 };
