@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { signUp } from "../actions/auth";
 import "../styles/base.css";
 import "../styles/responsive.css";
@@ -15,6 +16,7 @@ export default function SignUpPage({
 }) {
   const [showPassword, setShowPassword] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   return (
     <div className="auth-page">
@@ -58,7 +60,14 @@ export default function SignUpPage({
             
             <form action={async (formData) => {
               startTransition(async () => {
-                await signUp(formData)
+                try {
+                  await signUp(formData)
+                  // If signUp doesn't redirect, manually redirect
+                  router.push('/auth/check-email')
+                } catch (error) {
+                  // Error is handled by redirect in signUp
+                  console.error('Signup error:', error)
+                }
               })
             }} className="auth-form">
               <div className="form-group">
