@@ -23,9 +23,9 @@ function ConfirmEmailContent() {
     // If success param is present (from callback route), show success
     if (success === 'true') {
       setStatus('success');
-      setMessage('Email confirmed successfully! Redirecting to dashboard...');
+      setMessage('Your email has been successfully verified! Redirecting you to sign in...');
       setTimeout(() => {
-        router.push('/dashboard');
+        router.push('/login');
       }, 2000);
       return;
     }
@@ -41,9 +41,9 @@ function ConfirmEmailContent() {
             setMessage(result.error || 'Email confirmation failed. Please try again or request a new confirmation email.');
           } else {
             setStatus('success');
-            setMessage('Email confirmed successfully! Redirecting to dashboard...');
+            setMessage('Your email has been successfully verified! Redirecting you to sign in...');
             setTimeout(() => {
-              router.push('/dashboard');
+              router.push('/login');
             }, 2000);
           }
         } catch (error) {
@@ -112,12 +112,8 @@ function ConfirmEmailContent() {
                 </div>
                 <h1 className="confirm-title">Email <span className="gold-text">Confirmed</span></h1>
                 <p className="confirm-message success">
-                  {message}
+                  Your email has been successfully verified! Redirecting you to sign in...
                 </p>
-                <Link href="/dashboard" className="confirm-button">
-                  <span className="material-icons">dashboard</span>
-                  Go to Dashboard
-                </Link>
               </>
             )}
 
