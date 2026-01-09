@@ -55,7 +55,7 @@ export default function Home() {
             <Link href="/signup" className="hero-cta primary">
               Start Now
             </Link>
-            <Link href="#features" className="hero-cta secondary">
+            <Link href="/learn-more" className="hero-cta secondary">
               Learn More
             </Link>
           </div>
@@ -286,7 +286,7 @@ export default function Home() {
             <Link href="/signup" className="hero-cta large primary">
               Start Now
             </Link>
-            <Link href="#features" className="hero-cta large secondary">
+            <Link href="/learn-more" className="hero-cta large secondary">
               Learn More
             </Link>
           </div>
