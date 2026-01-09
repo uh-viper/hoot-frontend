@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { verifyEmail } from "../../actions/auth";
 import "../../styles/base.css";
 import "../../styles/responsive.css";
 import "./page.css";
 
-export default function ConfirmEmail() {
+function ConfirmEmailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -135,5 +135,54 @@ export default function ConfirmEmail() {
         </div>
       </section>
     </div>
+  );
+}
+
+export default function ConfirmEmail() {
+  return (
+    <Suspense fallback={
+      <div className="confirm-page">
+        <header className="header">
+          <div className="header-container">
+            <Link href="/" className="logo-link">
+              <Image
+                src="/hootlogo.png"
+                alt="Hoot Logo"
+                width={180}
+                height={60}
+                priority
+                className="logo"
+              />
+            </Link>
+            
+            <nav className="header-nav">
+              <Link href="/login" className="nav-link">
+                Sign In
+              </Link>
+              <Link href="/signup" className="nav-button">
+                Sign Up
+              </Link>
+            </nav>
+          </div>
+        </header>
+
+        <section className="confirm-section">
+          <div className="confirm-container">
+            <div className="confirm-card">
+              <div className="confirm-icon-wrapper loading">
+                <span className="material-icons">mail_outline</span>
+              </div>
+              <h1 className="confirm-title">Confirming Your <span className="gold-text">Email</span></h1>
+              <p className="confirm-message">
+                Please wait...
+              </p>
+              <div className="loading-spinner"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    }>
+      <ConfirmEmailContent />
+    </Suspense>
   );
 }
