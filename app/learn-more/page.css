@@ -212,11 +212,11 @@
 
 @media (max-width: 768px) {
   .learn-hero {
-    padding: 6rem 0 3rem;
+    padding: 5rem 0 2rem;
   }
 
   .learn-content {
-    padding: 3rem 0;
+    padding: 2rem 0 3rem;
   }
 
   .content-section.centered {
@@ -224,7 +224,7 @@
   }
 
   .content-section {
-    margin-bottom: 3rem;
+    margin-bottom: 2rem;
   }
 
   .main-content-text {
@@ -234,16 +234,49 @@
   .main-content-text p {
     font-size: 1rem;
     line-height: 1.8;
+    text-align: center;
+    padding: 0;
   }
 
   .cta-buttons {
     flex-direction: column;
     gap: 1rem;
     margin-top: 2rem;
+    width: 100%;
   }
 
   .cta-button {
     width: 100%;
-    max-width: 300px;
+    max-width: 100%;
+  }
+
+  .page-title {
+    font-size: clamp(2rem, 6vw, 2.5rem);
+    padding: 0 0.5rem;
+  }
+
+  .page-subtitle {
+    font-size: clamp(1rem, 3vw, 1.125rem);
+    padding: 0 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .learn-hero {
+    padding: 4rem 0 1.5rem;
+  }
+
+  .learn-content {
+    padding: 1.5rem 0 2rem;
+  }
+
+  .main-content-text p {
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+
+  .cta-button {
+    padding: 0.875rem 2rem;
+    font-size: 1rem;
   }
 }

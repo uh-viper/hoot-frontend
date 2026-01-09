@@ -208,11 +208,11 @@
 
 @media (max-width: 768px) {
   .contact-hero {
-    padding: 6rem 0 3rem;
+    padding: 5rem 0 2rem;
   }
 
   .contact-content {
-    padding: 3rem 0;
+    padding: 2rem 0 3rem;
   }
 
   .contact-grid {
@@ -224,12 +224,106 @@
     padding: 2rem 1.5rem;
   }
 
+  .contact-icon {
+    width: 70px;
+    height: 70px;
+    margin-bottom: 1.25rem;
+  }
+
+  .contact-icon .material-icons {
+    font-size: 2rem;
+  }
+
+  .contact-card-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.875rem;
+  }
+
+  .contact-card-text {
+    font-size: 0.95rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .contact-button {
+    padding: 0.875rem 1.75rem;
+    font-size: 0.95rem;
+  }
+
   .info-section {
     padding: 2rem 1.5rem;
+    margin: 0 1rem;
+  }
+
+  .info-title {
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    margin-bottom: 1.5rem;
   }
 
   .info-list {
     grid-template-columns: 1fr;
     gap: 1.25rem;
+  }
+
+  .info-item {
+    font-size: 1rem;
+    gap: 0.875rem;
+  }
+
+  .info-item .material-icons {
+    font-size: 1.375rem;
+  }
+
+  .page-title {
+    font-size: clamp(2rem, 6vw, 2.5rem);
+    padding: 0 0.5rem;
+  }
+
+  .page-subtitle {
+    font-size: clamp(1rem, 3vw, 1.125rem);
+    padding: 0 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .contact-hero {
+    padding: 4rem 0 1.5rem;
+  }
+
+  .contact-content {
+    padding: 1.5rem 0 2rem;
+  }
+
+  .contact-card {
+    padding: 1.75rem 1.25rem;
+  }
+
+  .contact-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .contact-icon .material-icons {
+    font-size: 1.75rem;
+  }
+
+  .contact-card-title {
+    font-size: 1.375rem;
+  }
+
+  .contact-card-text {
+    font-size: 0.9rem;
+  }
+
+  .contact-button {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  .info-section {
+    padding: 1.75rem 1.25rem;
+  }
+
+  .info-item {
+    font-size: 0.95rem;
   }
 }
