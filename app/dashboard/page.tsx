@@ -1,4 +1,5 @@
 import { getSessionUser } from '@/lib/auth/validate-session'
+import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import '../styles/dashboard.css'
 
@@ -9,11 +10,16 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
+  // Get user metadata for full name
+  const supabase = await createClient()
+  const { data: { user: userWithMetadata } } = await supabase.auth.getUser()
+  const fullName = userWithMetadata?.user_metadata?.full_name || ''
+
   return (
     <div className="dashboard-content">
       <div className="dashboard-header">
-        <h1 className="dashboard-title">To Dashboard</h1>
-        <p className="dashboard-subtitle">Here's your account overview below it</p>
+        <h1 className="dashboard-title">Dashboard</h1>
+        <p className="dashboard-subtitle">Welcome back, {fullName || user.email?.split('@')[0] || 'User'}</p>
       </div>
 
       {/* Stats Cards */}
