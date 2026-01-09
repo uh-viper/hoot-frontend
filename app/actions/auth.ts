@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { initializeUserData } from '@/lib/api/user-initialization'
+import { initializeUserData } from '@/lib/api/user-initialization'
 
 export async function signUp(formData: FormData) {
   const supabase = await createClient()
@@ -29,10 +30,20 @@ export async function signUp(formData: FormData) {
     },
   }
 
-  const { error } = await supabase.auth.signUp(data)
+  const { data: authData, error } = await supabase.auth.signUp(data)
 
   if (error) {
     return { error: error.message }
+  }
+
+  // Initialize user data (credits and stats)
+  // The trigger should handle this, but we'll ensure it here too
+  if (authData.user) {
+    // Wait a moment for the trigger to potentially fire
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    // Ensure user data is initialized (will create if trigger didn't work)
+    await initializeUserData(authData.user.id)
   }
 
   // Return success instead of redirecting

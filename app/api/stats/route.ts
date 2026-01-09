@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Validate session
-    const user = await validateSession()
+    const user = await getSessionUser()
     if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -98,7 +98,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Validate session
-    const user = await validateSession()
+    const user = await getSessionUser()
     if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },

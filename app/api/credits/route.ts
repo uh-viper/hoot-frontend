@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { validateSession } from '@/lib/auth/validate-session'
+import { getSessionUser } from '@/lib/auth/validate-session'
 import { createClient } from '@/lib/supabase/server'
 import { rateLimit } from '@/lib/api/rate-limit'
 
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Validate session
-    const user = await validateSession()
+    const user = await getSessionUser()
     if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -85,7 +85,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Validate session
-    const user = await validateSession()
+    const user = await getSessionUser()
     if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
