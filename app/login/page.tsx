@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useState, useTransition } from "react";
 import { signIn } from "../actions/auth";
 import "../styles/base.css";
 import "../styles/responsive.css";
@@ -10,6 +13,15 @@ export default function LoginPage({
 }: {
   searchParams: { error?: string };
 }) {
+  const [showPassword, setShowPassword] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  const handleSubmit = (formData: FormData) => {
+    startTransition(() => {
+      signIn(formData);
+    });
+  };
+
   return (
     <div className="auth-page">
       {/* Header */}
@@ -50,7 +62,7 @@ export default function LoginPage({
               </div>
             )}
             
-            <form action={signIn} className="auth-form">
+            <form action={handleSubmit} className="auth-form">
               <div className="form-group">
                 <label htmlFor="email">Email</label>
                 <input 
@@ -63,22 +75,32 @@ export default function LoginPage({
               </div>
               
             <div className="form-group">
-              <div className="form-group-header">
-                <label htmlFor="password">Password</label>
-                <Link href="/forgot-password" className="forgot-password-link">Forgot password?</Link>
+              <label htmlFor="password">Password</label>
+              <div className="password-input-wrapper">
+                <input 
+                  type={showPassword ? "text" : "password"}
+                  id="password" 
+                  name="password" 
+                  placeholder="Enter your password"
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  <span className="material-icons">
+                    {showPassword ? "visibility_off" : "visibility"}
+                  </span>
+                </button>
               </div>
-              <input 
-                type="password" 
-                id="password" 
-                name="password" 
-                placeholder="Enter your password"
-                required
-              />
+              <Link href="/forgot-password" className="forgot-password-link">Forgot password?</Link>
             </div>
             
-            <button type="submit" className="auth-button">
+            <button type="submit" className="auth-button" disabled={isPending}>
               <span className="material-icons">login</span>
-              Sign In
+              {isPending ? "Signing in..." : "Sign In"}
             </button>
           </form>
           
