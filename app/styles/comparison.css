@@ -1,0 +1,90 @@
+/* Problem Section */
+.problem-section {
+  padding: 8rem 0;
+  background: linear-gradient(180deg, rgba(15, 12, 8, 0.6) 0%, #000000 100%);
+  position: relative;
+  border-top: 2px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+}
+
+.problem-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.4), transparent);
+}
+
+.problem-section::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -200px;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.05) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.comparison-table {
+  background: rgba(255, 255, 255, 0.02);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  position: relative;
+}
+
+.comparison-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.comparison-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.comparison-row:last-child {
+  border-bottom: none;
+}
+
+.comparison-col {
+  padding: 1.75rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-family: var(--font-poppins);
+  font-size: 1.125rem;
+}
+
+.comparison-col.old-way {
+  color: rgba(255, 255, 255, 0.5);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.comparison-col.hoot-way {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.comparison-col .material-icons {
+  font-size: 1.75rem;
+  flex-shrink: 0;
+}
+
+.comparison-col.old-way .material-icons {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.comparison-col.hoot-way .material-icons {
+  color: #d4af37;
+}

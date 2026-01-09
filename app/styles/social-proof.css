@@ -1,0 +1,88 @@
+/* Social Proof Section */
+.social-proof-section {
+  padding: 8rem 0;
+  background: 
+    linear-gradient(180deg, #000000 0%, rgba(10, 8, 12, 0.5) 100%),
+    radial-gradient(ellipse at top, rgba(212, 175, 55, 0.04) 0%, transparent 70%);
+  border-top: 2px solid rgba(255, 255, 255, 0.08);
+  position: relative;
+}
+
+.social-proof-section::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), transparent);
+}
+
+.proof-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 3rem;
+}
+
+.proof-item {
+  text-align: center;
+  padding: 2.5rem 2rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.proof-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.05), transparent);
+  transition: left 0.5s ease;
+}
+
+.proof-item:hover {
+  transform: translateY(-6px);
+  border-color: rgba(212, 175, 55, 0.4);
+  box-shadow: 0 12px 32px rgba(212, 175, 55, 0.15);
+}
+
+.proof-item:hover::before {
+  left: 100%;
+}
+
+.proof-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 12px;
+}
+
+.proof-icon .material-icons {
+  font-size: 2rem;
+  color: #d4af37;
+}
+
+.proof-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  font-family: var(--font-outfit);
+  color: #ffffff;
+}
+
+.proof-desc {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: var(--font-poppins);
+}

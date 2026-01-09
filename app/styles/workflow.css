@@ -1,0 +1,110 @@
+/* How It Works Section */
+.how-it-works-section {
+  padding: 8rem 0;
+  background: 
+    linear-gradient(180deg, #000000 0%, rgba(12, 10, 8, 0.6) 100%),
+    radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.04) 0%, transparent 70%);
+  position: relative;
+  border-top: 2px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+}
+
+.how-it-works-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.4), transparent);
+}
+
+.workflow-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 3rem;
+  position: relative;
+}
+
+.workflow-step {
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.step-number {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0a0a0a;
+  font-family: var(--font-outfit);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+}
+
+.step-icon-wrapper {
+  width: 80px;
+  height: 80px;
+  margin: 1.5rem auto 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(212, 175, 55, 0.1);
+  border: 2px solid rgba(212, 175, 55, 0.3);
+  border-radius: 16px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.step-icon-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.workflow-step:hover .step-icon-wrapper {
+  transform: scale(1.1);
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.3);
+}
+
+.workflow-step:hover .step-icon-wrapper::before {
+  opacity: 1;
+}
+
+.step-icon-wrapper .material-icons {
+  font-size: 2.5rem;
+  color: #d4af37;
+}
+
+.step-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  font-family: var(--font-outfit);
+  color: #ffffff;
+}
+
+.step-desc {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: var(--font-poppins);
+}
+
+.workflow-connector {
+  display: none;
+}

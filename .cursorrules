@@ -1,0 +1,39 @@
+# Hoot Frontend Development Rules
+
+## File Size Limit
+- NO file can exceed 500 lines of code
+- Files longer than 500 lines MUST be broken down and refactored
+- Split large files by logical sections/components
+
+## Code Organization
+- Each page should have its own folder with its own CSS file
+- Shared styles should be in separate CSS modules
+- Components should be in their own files/folders
+
+## Design Principles
+- Matte black background (#000000) with subtle variations per section
+- Gold accent color (#d4af37) used strategically
+- Professional, modern, sleek design
+- Fully responsive - must look good on all screen sizes
+- Mobile-first approach where possible
+
+## Typography
+- Body text: Poppins
+- Headings: Outfit
+- Material Icons for all icons (no emojis)
+
+## Responsive Design
+- All sections must be fully responsive
+- Mobile layouts should be compact and well-organized
+- Touch targets should be appropriately sized
+- Text should be readable without zooming
+- Spacing should be optimized for small screens
+
+## Component Structure
+- Each major section should be a separate component if reusable
+- CSS should be organized by section/component
+- Use CSS modules or separate CSS files per component
+
+## Git Workflow
+- Commit frequently with descriptive messages
+- Push to main branch for auto-deployment to Vercel

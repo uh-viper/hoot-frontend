@@ -1,0 +1,63 @@
+/* Why Section */
+.why-section {
+  padding: 8rem 0;
+  background: rgba(8, 8, 12, 0.6);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative;
+}
+
+.why-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.06) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.why-content {
+  text-align: center;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.why-text {
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 3rem;
+  font-family: var(--font-poppins);
+  font-weight: 400;
+}
+
+.why-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3rem;
+  margin-top: 3rem;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-number {
+  font-size: clamp(3rem, 6vw, 5rem);
+  font-weight: 700;
+  font-family: var(--font-outfit);
+  background: linear-gradient(135deg, #d4af37 0%, #f4e4bc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  font-size: 1.125rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: var(--font-poppins);
+}

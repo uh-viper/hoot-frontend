@@ -1,0 +1,108 @@
+/* Features Section */
+.features-section {
+  padding: 8rem 0;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(212, 175, 55, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 50%, rgba(212, 175, 55, 0.03) 0%, transparent 50%),
+    rgba(8, 8, 12, 0.5);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative;
+}
+
+.features-section::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), transparent);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.feature-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #d4af37, transparent);
+  transform: scaleX(0);
+  transition: transform 0.4s ease;
+}
+
+.feature-card::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(212, 175, 55, 0.4);
+  box-shadow: 
+    0 12px 32px rgba(212, 175, 55, 0.2),
+    0 0 0 1px rgba(212, 175, 55, 0.1) inset;
+}
+
+.feature-card:hover::before {
+  transform: scaleX(1);
+}
+
+.feature-card:hover::after {
+  opacity: 1;
+}
+
+.feature-icon-wrapper {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.feature-icon-wrapper .material-icons {
+  font-size: 2rem;
+  color: #d4af37;
+}
+
+.feature-name {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  font-family: var(--font-outfit);
+  color: #ffffff;
+}
+
+.feature-desc {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: var(--font-poppins);
+}

@@ -1,6 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
-import "./page.css";
+import "./styles/base.css";
+import "./styles/hero.css";
+import "./styles/comparison.css";
+import "./styles/features.css";
+import "./styles/workflow.css";
+import "./styles/why.css";
+import "./styles/social-proof.css";
+import "./styles/cta.css";
+import "./styles/responsive.css";
 
 export default function Home() {
   return (

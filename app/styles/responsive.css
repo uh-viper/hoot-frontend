@@ -1,0 +1,312 @@
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .section-container {
+    padding: 0 1rem;
+  }
+
+  .header-container {
+    padding: 0 1rem;
+  }
+
+  .header-nav {
+    gap: 0.75rem;
+  }
+
+  .nav-link {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.875rem;
+  }
+
+  .nav-button {
+    padding: 0.5rem 1.125rem;
+    font-size: 0.875rem;
+  }
+
+  .header {
+    height: 60px;
+  }
+
+  .logo {
+    max-height: 55px;
+    transform: scale(1.5);
+  }
+
+  /* Hero */
+  .hero {
+    padding: 4rem 0 3rem;
+  }
+
+  .hero-title {
+    font-size: clamp(2.25rem, 8vw, 3rem);
+    margin-bottom: 1.25rem;
+    padding: 0.4rem 0.5rem;
+    line-height: 1.3;
+    gap: 0.15rem;
+  }
+
+  .hero-subtitle {
+    font-size: clamp(0.95rem, 4vw, 1.125rem);
+    margin-bottom: 2rem;
+    padding: 0 0.5rem;
+    line-height: 1.6;
+  }
+
+  .hero-cta-group {
+    flex-direction: column;
+    gap: 0.875rem;
+    width: 100%;
+    padding: 0 1rem;
+  }
+
+  .hero-cta {
+    padding: 0.875rem 2rem;
+    font-size: 1rem;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .hero-cta.large {
+    width: 100%;
+    max-width: 100%;
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+  }
+
+  /* Sections */
+  .problem-section,
+  .features-section,
+  .how-it-works-section,
+  .why-section,
+  .social-proof-section,
+  .final-cta-section {
+    padding: 3rem 0;
+  }
+
+  .section-title {
+    font-size: clamp(1.75rem, 6vw, 2.25rem);
+    margin-bottom: 2rem;
+    padding: 0 0.5rem;
+    line-height: 1.2;
+  }
+
+  /* Comparison Table */
+  .comparison-table {
+    border-radius: 16px;
+    border-width: 1px;
+  }
+
+  .comparison-header {
+    grid-template-columns: 1fr;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .comparison-header .comparison-col {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1.25rem 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    justify-content: center;
+  }
+
+  .comparison-header .comparison-col:last-child {
+    border-bottom: none;
+  }
+
+  .comparison-row {
+    grid-template-columns: 1fr;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .comparison-row:last-child {
+    border-bottom: none;
+  }
+
+  .comparison-col {
+    padding: 1.25rem 1rem;
+    font-size: 0.9rem;
+    flex-wrap: wrap;
+    gap: 0.625rem;
+    line-height: 1.5;
+  }
+
+  .comparison-col.old-way {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 1rem;
+  }
+
+  .comparison-col.hoot-way {
+    padding-top: 1rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .comparison-col .material-icons {
+    font-size: 1.375rem;
+  }
+
+  /* Features */
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .feature-card {
+    padding: 1.75rem 1.25rem;
+  }
+
+  .feature-icon-wrapper {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 1.125rem;
+  }
+
+  .feature-icon-wrapper .material-icons {
+    font-size: 1.75rem;
+  }
+
+  .feature-name {
+    font-size: 1.125rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .feature-desc {
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  /* Workflow */
+  .workflow-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .workflow-step {
+    margin-bottom: 1.5rem;
+  }
+
+  .step-number {
+    width: 36px;
+    height: 36px;
+    font-size: 1.125rem;
+    top: -8px;
+  }
+
+  .step-icon-wrapper {
+    width: 70px;
+    height: 70px;
+    margin: 1.125rem auto 1.125rem;
+  }
+
+  .step-icon-wrapper .material-icons {
+    font-size: 2rem;
+  }
+
+  .step-title {
+    font-size: 1.125rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .step-desc {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    padding: 0 0.5rem;
+  }
+
+  .workflow-connector {
+    display: none;
+  }
+
+  /* Why Section */
+  .why-text {
+    font-size: clamp(1rem, 4vw, 1.25rem);
+    padding: 0 0.5rem;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+  }
+
+  .why-stats {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .stat-number {
+    font-size: clamp(2.25rem, 8vw, 3.5rem);
+  }
+
+  .stat-label {
+    font-size: 0.95rem;
+  }
+
+  /* Social Proof */
+  .proof-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .proof-item {
+    padding: 1.75rem 1.25rem;
+  }
+
+  .proof-icon {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 1.125rem;
+  }
+
+  .proof-icon .material-icons {
+    font-size: 1.75rem;
+  }
+
+  .proof-title {
+    font-size: 1.25rem;
+    margin-bottom: 0.625rem;
+  }
+
+  .proof-desc {
+    font-size: 0.9rem;
+  }
+
+  /* CTA */
+  .cta-title {
+    font-size: clamp(1.75rem, 6vw, 2.5rem);
+    padding: 0 0.5rem;
+    margin-bottom: 1.25rem;
+    line-height: 1.2;
+  }
+
+  .cta-subtitle {
+    font-size: 1.125rem;
+    padding: 0 0.5rem;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: clamp(2rem, 10vw, 2.75rem);
+    padding: 0.3rem 0.75rem;
+  }
+
+  .hero-subtitle {
+    font-size: clamp(0.875rem, 4.5vw, 1rem);
+    padding: 0 0.75rem;
+  }
+
+  .section-title {
+    font-size: clamp(1.5rem, 7vw, 2rem);
+    padding: 0 0.75rem;
+  }
+
+  .comparison-col {
+    font-size: 0.875rem;
+    padding: 1rem 0.875rem;
+  }
+
+  .feature-card,
+  .proof-item {
+    padding: 1.5rem 1rem;
+  }
+}
