@@ -7,8 +7,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "../contexts/ToastContext";
 import { signIn } from "../actions/auth";
 import LoginFallback from "../components/LoginFallback";
-import "../styles/base.css";
-import "../styles/responsive.css";
 import "./page.css";
 
 function LoginPageContent() {

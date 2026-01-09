@@ -2,9 +2,7 @@ import { Metadata } from 'next'
 import Link from "next/link";
 import Image from "next/image";
 import Footer from "../components/Footer";
-import "../styles/base.css";
 import "../styles/footer.css";
-import "../styles/responsive.css";
 import "./page.css";
 
 export const metadata: Metadata = {

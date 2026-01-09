@@ -7,8 +7,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "../contexts/ToastContext";
 import { signUp } from "../actions/auth";
 import SignUpFallback from "../components/SignUpFallback";
-import "../styles/base.css";
-import "../styles/responsive.css";
 import "./page.css";
 
 function SignUpPageContent() {

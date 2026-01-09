@@ -13,6 +13,10 @@ const nextConfig: NextConfig = {
   },
   // Reduce aggressive prefetching that causes CSS preload warnings
   poweredByHeader: false,
+  // Disable CSS preloading to prevent console warnings
+  async headers() {
+    return [];
+  },
 };
 
 export default nextConfig;

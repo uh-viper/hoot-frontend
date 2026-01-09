@@ -3,7 +3,6 @@ import Link from "next/link";
 import Image from "next/image";
 import Footer from "./components/Footer";
 import EmailCodeHandler from "./components/EmailCodeHandler";
-import "./styles/base.css";
 import "./styles/hero.css";
 import "./styles/comparison.css";
 import "./styles/features.css";
@@ -12,7 +11,6 @@ import "./styles/why.css";
 import "./styles/social-proof.css";
 import "./styles/cta.css";
 import "./styles/footer.css";
-import "./styles/responsive.css";
 
 export const metadata: Metadata = {
   title: 'Hoot - Home',

@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import "../../styles/base.css";
-import "../../styles/responsive.css";
 import "./page.css";
 
 export default function CheckEmail() {

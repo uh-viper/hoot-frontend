@@ -5,8 +5,6 @@ import Image from "next/image";
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { verifyEmail } from "../../actions/auth";
-import "../../styles/base.css";
-import "../../styles/responsive.css";
 import "./page.css";
 
 function ConfirmEmailContent() {
