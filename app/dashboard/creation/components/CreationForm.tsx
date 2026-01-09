@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
+import { useToast } from '../../../contexts/ToastContext';
 
 interface Country {
   code: string;
@@ -70,6 +71,7 @@ const countries: Country[] = [
 const regions = ['North America', 'South America', 'Europe', 'Asia', 'Middle East', 'Africa', 'Oceania'];
 
 export default function CreationForm() {
+  const { showError } = useToast();
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
   const [selectedCurrency, setSelectedCurrency] = useState<string>('');
   const [bcsAmount, setBcsAmount] = useState<number>(5);
@@ -127,9 +129,37 @@ export default function CreationForm() {
       )
     : allCurrencies;
 
+  const handleBcsChange = (value: number, isBlur = false) => {
+    if (isNaN(value) || value === 0) {
+      setBcsAmount(value);
+      return;
+    }
+    
+    if (value < 5) {
+      setBcsAmount(5);
+      showError('Business Centers must be at least 5. Value set to 5.');
+    } else if (value > 25) {
+      setBcsAmount(25);
+      showError('Business Centers cannot exceed 25. Value set to 25.');
+    } else {
+      setBcsAmount(value);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedCountry || !selectedCurrency || !bcsAmount || bcsAmount <= 0) {
+    if (!selectedCountry || !selectedCurrency || !bcsAmount || bcsAmount < 5 || bcsAmount > 25) {
+      if (!bcsAmount || bcsAmount < 5 || bcsAmount > 25) {
+        if (bcsAmount < 5) {
+          setBcsAmount(5);
+          showError('Business Centers must be at least 5. Value set to 5.');
+        } else if (bcsAmount > 25) {
+          setBcsAmount(25);
+          showError('Business Centers cannot exceed 25. Value set to 25.');
+        } else {
+          showError('Please enter a valid Business Centers amount (5-25).');
+        }
+      }
       return;
     }
     // TODO: Handle form submission
@@ -253,11 +283,25 @@ export default function CreationForm() {
             id="bcs-amount"
             value={bcsAmount}
             onChange={(e) => {
+              const inputValue = e.target.value;
+              if (inputValue === '') {
+                setBcsAmount(0);
+                return;
+              }
+              const value = parseInt(inputValue) || 0;
+              handleBcsChange(value, false);
+            }}
+            onBlur={(e) => {
               const value = parseInt(e.target.value) || 0;
-              setBcsAmount(value);
+              if (value === 0) {
+                setBcsAmount(5);
+                showError('Business Centers must be at least 5. Value set to 5.');
+              } else {
+                handleBcsChange(value, true);
+              }
             }}
             className="bcs-input-simple"
-            placeholder="Enter amount"
+            placeholder="Enter amount (5-25)"
           />
         </div>
 
@@ -266,7 +310,7 @@ export default function CreationForm() {
           <button
             type="submit"
             className="deployment-button"
-            disabled={!selectedCountry || !selectedCurrency || !bcsAmount || bcsAmount <= 0}
+            disabled={!selectedCountry || !selectedCurrency || !bcsAmount || bcsAmount < 5 || bcsAmount > 25}
           >
             <span className="material-icons">rocket_launch</span>
             Start Deployment
