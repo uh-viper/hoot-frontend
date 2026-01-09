@@ -20,6 +20,7 @@ export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user: userWithMetadata } } = await supabase.auth.getUser()
   const fullName = userWithMetadata?.user_metadata?.full_name || ''
+  const firstName = fullName ? fullName.split(' ')[0] : ''
 
   // Fetch user stats from database, creating if they don't exist
   let { data: statsData } = await supabase
@@ -61,7 +62,7 @@ export default async function DashboardPage() {
     <div className="dashboard-content">
       <div className="dashboard-header">
         <h1 className="dashboard-title">Dashboard</h1>
-        <p className="dashboard-subtitle">Welcome back, {fullName || user.email?.split('@')[0] || 'User'}</p>
+        <p className="dashboard-subtitle">Welcome back, {firstName || user.email?.split('@')[0] || 'User'}</p>
       </div>
 
       {/* Stats Cards */}
