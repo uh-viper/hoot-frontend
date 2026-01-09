@@ -97,7 +97,6 @@ export default function CreationForm() {
 
   const handleCountrySelect = (country: Country) => {
     setSelectedCountry(country);
-    setSelectedCurrency(country.currency);
     setIsCountryOpen(false);
     setSearchTerm('');
   };
@@ -114,9 +113,8 @@ export default function CreationForm() {
       )
     : countries;
 
-  const availableCurrencies = selectedCountry
-    ? [selectedCountry.currency]
-    : [...new Set(countries.map(c => c.currency))].sort();
+  // All available currencies from all countries
+  const availableCurrencies = [...new Set(countries.map(c => c.currency))].sort();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,7 +198,6 @@ export default function CreationForm() {
                 setIsCurrencyOpen(!isCurrencyOpen);
                 setIsCountryOpen(false);
               }}
-              disabled={!selectedCountry}
             >
               <span>{selectedCurrency || 'Select Currency'}</span>
               <span className="material-icons">{isCurrencyOpen ? 'expand_less' : 'expand_more'}</span>
@@ -263,14 +260,16 @@ export default function CreationForm() {
         </div>
 
         {/* Submit Button */}
-        <button
-          type="submit"
-          className="deployment-button"
-          disabled={!selectedCountry || !selectedCurrency || bcsAmount < 5 || bcsAmount > 25}
-        >
-          <span className="material-icons">rocket_launch</span>
-          Start Deployment
-        </button>
+        <div className="form-field form-field-submit">
+          <button
+            type="submit"
+            className="deployment-button"
+            disabled={!selectedCountry || !selectedCurrency || bcsAmount < 5 || bcsAmount > 25}
+          >
+            <span className="material-icons">rocket_launch</span>
+            Start Deployment
+          </button>
+        </div>
       </form>
     </div>
   );
