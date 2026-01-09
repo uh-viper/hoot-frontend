@@ -18,25 +18,25 @@ export default function LoginPage() {
   const { showError } = useToast();
 
   // Show error from URL params
-  if (searchParams.error) {
-    const decodedError = decodeURIComponent(searchParams.error);
-    // Common error messages
-    let errorMessage = decodedError;
-    if (decodedError.includes('Invalid login credentials')) {
-      errorMessage = 'Invalid email or password. Please try again.';
-    } else if (decodedError.includes('Email not confirmed')) {
-      errorMessage = 'Please confirm your email before signing in.';
-    } else if (decodedError.includes('Too many requests')) {
-      errorMessage = 'Too many login attempts. Please try again later.';
-    }
-    
-    // Show error toast once on mount
-    useState(() => {
+  useEffect(() => {
+    const error = searchParams?.get('error');
+    if (error) {
+      const decodedError = decodeURIComponent(error);
+      // Common error messages
+      let errorMessage = decodedError;
+      if (decodedError.includes('Invalid login credentials')) {
+        errorMessage = 'Invalid email or password. Please try again.';
+      } else if (decodedError.includes('Email not confirmed')) {
+        errorMessage = 'Please confirm your email before signing in.';
+      } else if (decodedError.includes('Too many requests')) {
+        errorMessage = 'Too many login attempts. Please try again later.';
+      }
+      
       showError(errorMessage);
       // Clean URL
       router.replace('/login');
-    });
-  }
+    }
+  }, [searchParams, router, showError]);
 
   const handleSubmit = async (formData: FormData) => {
     startTransition(async () => {
@@ -81,12 +81,6 @@ export default function LoginPage() {
           <div className="auth-card">
             <h1 className="auth-title">Sign <span className="gold-text">In</span></h1>
             <p className="auth-subtitle">Welcome back to Hoot</p>
-            
-            {searchParams.error && (
-              <div className="error-message">
-                {searchParams.error}
-              </div>
-            )}
             
             <form action={handleSubmit} className="auth-form">
               <div className="form-group">
