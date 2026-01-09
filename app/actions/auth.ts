@@ -52,3 +52,19 @@ export async function signOut() {
   revalidatePath('/', 'layout')
   redirect('/login')
 }
+
+export async function verifyEmail(token_hash: string, type: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase.auth.verifyOtp({
+    type: type as any,
+    token_hash,
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath('/', 'layout')
+  return { success: true }
+}
