@@ -39,7 +39,7 @@ export default function Home() {
           </h1>
           <p className="hero-subtitle">
             Generate as many TikTok Business Centers as you need. Any region, any currency. 
-            No manual setup, no delays, no limits. Built for high-volume advertisers who can't afford to get throttled.
+            No manual setup, no delays. Built for advertisers who can't afford to be slowed down.
           </p>
           <div className="hero-cta-group">
             <Link href="/signup" className="hero-cta primary">
