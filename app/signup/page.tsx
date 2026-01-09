@@ -6,6 +6,7 @@ import { useState, useTransition, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "../contexts/ToastContext";
 import { signUp } from "../actions/auth";
+import SignUpFallback from "../components/SignUpFallback";
 import "../styles/base.css";
 import "../styles/responsive.css";
 import "./page.css";
@@ -167,39 +168,6 @@ function SignUpPageContent() {
             <div className="auth-footer">
               <p>Already have an account? <Link href="/login" className="auth-link">Sign in</Link></p>
             </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-function SignUpFallback() {
-  return (
-    <div className="auth-page">
-      <header className="header">
-        <div className="header-container">
-          <Link href="/" className="logo-link">
-            <Image
-              src="/hootlogo.png"
-              alt="Hoot Logo"
-              width={180}
-              height={60}
-              priority
-              className="logo"
-            />
-          </Link>
-          <nav className="header-nav">
-            <Link href="/login" className="nav-link">Sign In</Link>
-            <Link href="/signup" className="nav-button">Sign Up</Link>
-          </nav>
-        </div>
-      </header>
-      <section className="auth-section">
-        <div className="auth-container">
-          <div className="auth-card">
-            <h1 className="auth-title">Create <span className="gold-text">Account</span></h1>
-            <p className="auth-subtitle">Automation starts here</p>
           </div>
         </div>
       </section>
