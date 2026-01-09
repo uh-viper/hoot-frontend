@@ -156,6 +156,8 @@
 
 .dashboard-header {
   margin-bottom: 2.5rem;
+  display: flex;
+  flex-direction: column;
 }
 
 .dashboard-title {
