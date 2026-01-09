@@ -172,7 +172,7 @@
   font-size: clamp(2rem, 5vw, 2.75rem);
   font-weight: 700;
   color: #ffffff;
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.25rem;
   font-family: var(--font-outfit);
   letter-spacing: -0.02em;
 }
