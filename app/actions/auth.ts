@@ -61,7 +61,15 @@ export async function signIn(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword(data)
 
   if (error) {
-    redirect(`/login?error=${encodeURIComponent(error.message)}`)
+    const errorMessage = error.message.includes('Invalid login credentials') 
+      ? 'Invalid email or password. Please try again.'
+      : error.message.includes('Email not confirmed')
+      ? 'Please confirm your email before signing in.'
+      : error.message.includes('Too many requests')
+      ? 'Too many login attempts. Please try again later.'
+      : error.message
+    
+    redirect(`/login?error=${encodeURIComponent(errorMessage)}`)
   }
 
   revalidatePath('/', 'layout')

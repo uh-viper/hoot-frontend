@@ -16,34 +16,36 @@ function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showError } = useToast();
+  const [errorShown, setErrorShown] = useState(false);
 
-  // Show error from URL params
+  // Show error from URL params (only once)
   useEffect(() => {
     const error = searchParams?.get('error');
-    if (error) {
+    if (error && !errorShown) {
       const decodedError = decodeURIComponent(error);
-      // Common error messages
-      let errorMessage = decodedError;
-      if (decodedError.includes('Invalid login credentials')) {
-        errorMessage = 'Invalid email or password. Please try again.';
-      } else if (decodedError.includes('Email not confirmed')) {
-        errorMessage = 'Please confirm your email before signing in.';
-      } else if (decodedError.includes('Too many requests')) {
-        errorMessage = 'Too many login attempts. Please try again later.';
-      }
-      
-      showError(errorMessage);
-      // Clean URL
-      router.replace('/login');
+      showError(decodedError);
+      setErrorShown(true);
+      // Clean URL immediately without scroll
+      router.replace('/login', { scroll: false });
     }
-  }, [searchParams, router, showError]);
+  }, [searchParams, router, showError, errorShown]);
 
   const handleSubmit = async (formData: FormData) => {
     startTransition(async () => {
+      // Reset error shown flag when submitting new form
+      setErrorShown(false);
+      // signIn will redirect on error - don't catch redirect exceptions
+      // The error will be handled via URL params and useEffect
       try {
         await signIn(formData);
       } catch (error: any) {
-        showError(error?.message || 'An error occurred. Please try again.');
+        // Only catch non-redirect errors
+        // Next.js redirect() throws a special error that should propagate
+        if (error?.message && !error.message.includes('NEXT_REDIRECT')) {
+          showError(error.message || 'An error occurred. Please try again.');
+        }
+        // Re-throw redirect errors
+        throw error;
       }
     });
   };
@@ -161,7 +163,7 @@ export default function LoginPage() {
           <div className="auth-container">
             <div className="auth-card">
               <h1 className="auth-title">Sign <span className="gold-text">In</span></h1>
-              <p className="auth-subtitle">Loading...</p>
+              <p className="auth-subtitle">Welcome back to Hoot</p>
             </div>
           </div>
         </section>
