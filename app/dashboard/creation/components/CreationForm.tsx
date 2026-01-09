@@ -152,7 +152,7 @@ export default function CreationForm() {
     } else if (numValue > 25) {
       setBcsAmount(25);
       setBcsInputValue('25');
-      showError('Business Centers must be less than 25.');
+      showError('Business Centers can\'t be more than 25.');
     } else {
       setBcsAmount(numValue);
       setBcsInputValue(numValue.toString());
@@ -175,7 +175,7 @@ export default function CreationForm() {
       validBcsAmount = 25;
       setBcsAmount(25);
       setBcsInputValue('25');
-      showError('Business Centers must be less than 25.');
+      showError('Business Centers can\'t be more than 25.');
     } else if (numValue === 0) {
       validBcsAmount = 5;
       setBcsAmount(5);
