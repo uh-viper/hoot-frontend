@@ -1,6 +1,7 @@
 import { getSessionUser } from '@/lib/auth/validate-session'
 import { redirect } from 'next/navigation'
 import { Metadata } from 'next'
+import AccountCard from './components/AccountCard'
 import '../../styles/dashboard.css'
 
 export const metadata: Metadata = {
@@ -14,11 +15,41 @@ export default async function VaultPage() {
     redirect('/login')
   }
 
+  // Test account data (will be replaced with actual data from database)
+  const testAccounts = [
+    {
+      id: 'test-1',
+      email: 'test@example.com',
+      password: 'TestPassword123!',
+    },
+  ]
+
   return (
     <div className="dashboard-content">
       <div className="dashboard-header">
         <h1 className="dashboard-title">Vault</h1>
         <p className="dashboard-subtitle">Access and manage your accounts</p>
+      </div>
+
+      <div className="vault-accounts-container">
+        {testAccounts.length === 0 ? (
+          <div className="vault-empty">
+            <span className="material-icons">account_circle</span>
+            <p>No accounts yet</p>
+            <span className="vault-empty-hint">Your ad accounts will appear here</span>
+          </div>
+        ) : (
+          <div className="vault-accounts-grid">
+            {testAccounts.map((account) => (
+              <AccountCard
+                key={account.id}
+                id={account.id}
+                email={account.email}
+                password={account.password}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
