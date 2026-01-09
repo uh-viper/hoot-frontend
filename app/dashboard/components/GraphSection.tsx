@@ -44,8 +44,9 @@ export default function GraphSection() {
           <button 
             className={`time-btn ${activePeriod === 'custom' ? 'active' : ''}`}
             onClick={() => handlePeriodChange('custom')}
+            aria-label="Custom date range"
           >
-            Custom
+            <span className="material-icons">calendar_today</span>
           </button>
         </div>
       </div>
