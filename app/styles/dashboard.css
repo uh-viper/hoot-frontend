@@ -5,6 +5,7 @@
   background: #000000;
   color: #ffffff;
   width: 100%;
+  overflow-x: hidden;
 }
 
 .dashboard-sidebar {
@@ -156,6 +157,7 @@
   padding: 2.5rem 3rem;
   width: 100%;
   text-align: left;
+  margin: 0;
 }
 
 .dashboard-header {
