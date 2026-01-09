@@ -36,12 +36,15 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // Public routes that don't require authentication
-  const publicRoutes = ['/', '/login', '/signup', '/auth', '/learn-more', '/contact']
+  const publicRoutes = ['/', '/login', '/signup', '/auth', '/learn-more', '/contact', '/terms-of-service', '/privacy-policy', '/refund-policy']
   const isPublicRoute = publicRoutes.some(route => 
     request.nextUrl.pathname === route || 
     request.nextUrl.pathname.startsWith('/auth') ||
     request.nextUrl.pathname.startsWith('/learn-more') ||
-    request.nextUrl.pathname.startsWith('/contact')
+    request.nextUrl.pathname.startsWith('/contact') ||
+    request.nextUrl.pathname.startsWith('/terms-of-service') ||
+    request.nextUrl.pathname.startsWith('/privacy-policy') ||
+    request.nextUrl.pathname.startsWith('/refund-policy')
   )
 
   // Redirect authenticated users away from login/signup to dashboard
