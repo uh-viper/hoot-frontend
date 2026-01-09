@@ -2,21 +2,41 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useTransition, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useToast } from "../contexts/ToastContext";
 import { signUp } from "../actions/auth";
 import "../styles/base.css";
 import "../styles/responsive.css";
 import "./page.css";
 
-export default function SignUpPage({
-  searchParams,
-}: {
-  searchParams: { error?: string };
-}) {
+export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { showError, showSuccess } = useToast();
+
+  // Show error from URL params
+  useEffect(() => {
+    const error = searchParams.get('error');
+    if (error) {
+      const decodedError = decodeURIComponent(error);
+      let errorMessage = decodedError;
+      
+      if (decodedError.includes('User already registered')) {
+        errorMessage = 'An account with this email already exists. Please sign in instead.';
+      } else if (decodedError.includes('Password')) {
+        errorMessage = 'Password must be at least 6 characters long.';
+      } else if (decodedError.includes('Email')) {
+        errorMessage = 'Please enter a valid email address.';
+      }
+      
+      showError(errorMessage);
+      // Clean URL
+      router.replace('/signup');
+    }
+  }, [searchParams, router, showError]);
 
   return (
     <div className="auth-page">
@@ -52,18 +72,21 @@ export default function SignUpPage({
             <h1 className="auth-title">Create <span className="gold-text">Account</span></h1>
             <p className="auth-subtitle">Automation starts here</p>
             
-            {searchParams.error && (
-              <div className="error-message">
-                {searchParams.error}
-              </div>
-            )}
-            
             <form action={async (formData) => {
               startTransition(async () => {
                 const result = await signUp(formData)
                 if (result?.error) {
-                  router.push(`/signup?error=${encodeURIComponent(result.error)}`)
+                  let errorMessage = result.error;
+                  if (result.error.includes('User already registered')) {
+                    errorMessage = 'An account with this email already exists. Please sign in instead.';
+                  } else if (result.error.includes('Password')) {
+                    errorMessage = 'Password must be at least 6 characters long.';
+                  } else if (result.error.includes('Email')) {
+                    errorMessage = 'Please enter a valid email address.';
+                  }
+                  showError(errorMessage);
                 } else if (result?.success) {
+                  showSuccess('Account created! Please check your email to confirm your account.');
                   router.push('/auth/check-email')
                 }
               })

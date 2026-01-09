@@ -2,23 +2,49 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useToast } from "../contexts/ToastContext";
 import { signIn } from "../actions/auth";
 import "../styles/base.css";
 import "../styles/responsive.css";
 import "./page.css";
 
-export default function LoginPage({
-  searchParams,
-}: {
-  searchParams: { error?: string };
-}) {
+export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { showError } = useToast();
 
-  const handleSubmit = (formData: FormData) => {
-    startTransition(() => {
-      signIn(formData);
+  // Show error from URL params
+  if (searchParams.error) {
+    const decodedError = decodeURIComponent(searchParams.error);
+    // Common error messages
+    let errorMessage = decodedError;
+    if (decodedError.includes('Invalid login credentials')) {
+      errorMessage = 'Invalid email or password. Please try again.';
+    } else if (decodedError.includes('Email not confirmed')) {
+      errorMessage = 'Please confirm your email before signing in.';
+    } else if (decodedError.includes('Too many requests')) {
+      errorMessage = 'Too many login attempts. Please try again later.';
+    }
+    
+    // Show error toast once on mount
+    useState(() => {
+      showError(errorMessage);
+      // Clean URL
+      router.replace('/login');
+    });
+  }
+
+  const handleSubmit = async (formData: FormData) => {
+    startTransition(async () => {
+      try {
+        await signIn(formData);
+      } catch (error: any) {
+        showError(error?.message || 'An error occurred. Please try again.');
+      }
     });
   };
 
