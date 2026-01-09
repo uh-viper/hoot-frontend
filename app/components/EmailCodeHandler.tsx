@@ -1,21 +1,25 @@
 "use client";
 
-import { useEffect, Suspense } from "react";
+import { useEffect, Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 function EmailCodeHandlerContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     // Handle email confirmation code if present
     const code = searchParams.get('code');
     if (code) {
-      const callbackUrl = new URL('/auth/callback', window.location.origin);
-      callbackUrl.searchParams.set('code', code);
-      router.replace(callbackUrl.toString());
+      router.replace(`/auth/callback?code=${encodeURIComponent(code)}`);
     }
-  }, [searchParams, router]);
+  }, [searchParams, router, mounted]);
 
   return null;
 }

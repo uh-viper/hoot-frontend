@@ -19,9 +19,15 @@ interface ToastContainerProps {
 
 export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
   const [mounted, setMounted] = useState(false);
+  const [mountedPortal, setMountedPortal] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    // Delay portal mounting to avoid hydration mismatch
+    const timer = setTimeout(() => {
+      setMountedPortal(true);
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -38,7 +44,7 @@ export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
     };
   }, [toasts, onRemove, mounted]);
 
-  if (!mounted || typeof window === 'undefined') return null;
+  if (!mounted || !mountedPortal || typeof window === 'undefined') return null;
 
   return createPortal(
     <div className="toast-container">
