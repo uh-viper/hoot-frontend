@@ -75,6 +75,7 @@ export default function CreationForm() {
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
   const [selectedCurrency, setSelectedCurrency] = useState<string>('');
   const [bcsAmount, setBcsAmount] = useState<number>(5);
+  const [bcsInputValue, setBcsInputValue] = useState<string>('5');
   const [isCountryOpen, setIsCountryOpen] = useState(false);
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
   const [countrySearchTerm, setCountrySearchTerm] = useState('');
@@ -129,41 +130,65 @@ export default function CreationForm() {
       )
     : allCurrencies;
 
-  const handleBcsChange = (value: number, isBlur = false) => {
-    if (isNaN(value) || value === 0) {
-      setBcsAmount(value);
-      return;
-    }
+  const handleBcsInputChange = (value: string) => {
+    // Allow empty or any input while typing (no validation, no errors)
+    setBcsInputValue(value);
     
-    if (value < 5) {
+    // Update bcsAmount for button state, but only if it's a valid number
+    const numValue = parseInt(value);
+    if (!isNaN(numValue) && numValue >= 5 && numValue <= 25) {
+      setBcsAmount(numValue);
+    }
+  };
+
+  const handleBcsBlur = () => {
+    // Validate and clamp only when user finishes typing (on blur)
+    const numValue = parseInt(bcsInputValue) || 0;
+    
+    if (numValue < 5 || numValue === 0 || bcsInputValue === '' || isNaN(numValue)) {
       setBcsAmount(5);
-      showError('Business Centers must be at least 5. Value set to 5.');
-    } else if (value > 25) {
+      setBcsInputValue('5');
+      showError('Business Centers must be at least 5.');
+    } else if (numValue > 25) {
       setBcsAmount(25);
-      showError('Business Centers cannot exceed 25. Value set to 25.');
+      setBcsInputValue('25');
+      showError('Business Centers must be less than 25.');
     } else {
-      setBcsAmount(value);
+      setBcsAmount(numValue);
+      setBcsInputValue(numValue.toString());
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedCountry || !selectedCurrency || !bcsAmount || bcsAmount < 5 || bcsAmount > 25) {
-      if (!bcsAmount || bcsAmount < 5 || bcsAmount > 25) {
-        if (bcsAmount < 5) {
-          setBcsAmount(5);
-          showError('Business Centers must be at least 5. Value set to 5.');
-        } else if (bcsAmount > 25) {
-          setBcsAmount(25);
-          showError('Business Centers cannot exceed 25. Value set to 25.');
-        } else {
-          showError('Please enter a valid Business Centers amount (5-25).');
-        }
-      }
+    
+    // Validate BCS on submit
+    const numValue = parseInt(bcsInputValue) || 0;
+    let validBcsAmount = numValue;
+    
+    if (numValue < 5) {
+      validBcsAmount = 5;
+      setBcsAmount(5);
+      setBcsInputValue('5');
+      showError('Business Centers must be at least 5.');
+    } else if (numValue > 25) {
+      validBcsAmount = 25;
+      setBcsAmount(25);
+      setBcsInputValue('25');
+      showError('Business Centers must be less than 25.');
+    } else if (numValue === 0) {
+      validBcsAmount = 5;
+      setBcsAmount(5);
+      setBcsInputValue('5');
+      showError('Business Centers must be at least 5.');
+    }
+    
+    if (!selectedCountry || !selectedCurrency || validBcsAmount < 5 || validBcsAmount > 25) {
       return;
     }
+    
     // TODO: Handle form submission
-    console.log({ country: selectedCountry, currency: selectedCurrency, bcsAmount });
+    console.log({ country: selectedCountry, currency: selectedCurrency, bcsAmount: validBcsAmount });
   };
 
   return (
@@ -281,25 +306,11 @@ export default function CreationForm() {
           <input
             type="number"
             id="bcs-amount"
-            value={bcsAmount}
+            value={bcsInputValue}
             onChange={(e) => {
-              const inputValue = e.target.value;
-              if (inputValue === '') {
-                setBcsAmount(0);
-                return;
-              }
-              const value = parseInt(inputValue) || 0;
-              handleBcsChange(value, false);
+              handleBcsInputChange(e.target.value);
             }}
-            onBlur={(e) => {
-              const value = parseInt(e.target.value) || 0;
-              if (value === 0) {
-                setBcsAmount(5);
-                showError('Business Centers must be at least 5. Value set to 5.');
-              } else {
-                handleBcsChange(value, true);
-              }
-            }}
+            onBlur={handleBcsBlur}
             className="bcs-input-simple"
             placeholder="Enter amount (5-25)"
           />
