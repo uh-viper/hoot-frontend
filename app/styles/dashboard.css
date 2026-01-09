@@ -97,7 +97,6 @@
 .sidebar-credits {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 0.75rem;
   padding: 0.75rem;
   background: rgba(255, 255, 255, 0.05);
@@ -115,6 +114,8 @@
 .credits-text {
   font-size: 0.875rem;
   color: rgba(255, 255, 255, 0.9);
+  flex: 1;
+  text-align: center;
 }
 
 .sidebar-signout {
