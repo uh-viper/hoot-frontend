@@ -120,9 +120,9 @@ export default function Home() {
               <div className="feature-icon-wrapper">
                 <span className="material-icons">flash_on</span>
               </div>
-              <h3 className="feature-name">Flash-Batching</h3>
+              <h3 className="feature-name">Mass Creation</h3>
               <p className="feature-desc">
-                Why create one when you can create fifty? Spin up entire fleets of BCs simultaneously.
+                Why spend 10 minutes setting up one business center when you can click a button and have 50 in your hands within 3 minutes?
               </p>
             </div>
             <div className="feature-card">
@@ -138,9 +138,9 @@ export default function Home() {
               <div className="feature-icon-wrapper">
                 <span className="material-icons">api</span>
               </div>
-              <h3 className="feature-name">Set & Forget API</h3>
+              <h3 className="feature-name">Create and forget</h3>
               <p className="feature-desc">
-                Integrate directly into your existing workflow so you never have to see the TikTok dashboard until it's time to run ads.
+                Our business centers integrate directly into your workflow, so you never have to see TikTok until it's time to run ads.
               </p>
             </div>
             <div className="feature-card">
@@ -149,7 +149,7 @@ export default function Home() {
               </div>
               <h3 className="feature-name">The 5 Minute Guarantee</h3>
               <p className="feature-desc">
-                From "Deploy" to "Live" faster than you can make a cup of coffee.
+                From deploying the automation to signing in, faster than you can make a cup of coffee.
               </p>
             </div>
           </div>
