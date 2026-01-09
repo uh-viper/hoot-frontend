@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import "../styles/base.css";
 import "./page.css";
 
 export default function LearnMore() {
