@@ -4,7 +4,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import "../confirm/page.css";
+import { verifyEmail } from "../../actions/auth";
+import "../../styles/base.css";
+import "../../styles/responsive.css";
+import "./page.css";
 
 export default function ConfirmEmail() {
   const searchParams = useSearchParams();
@@ -13,19 +16,8 @@ export default function ConfirmEmail() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    const success = searchParams.get('success');
     const token_hash = searchParams.get('token_hash');
     const type = searchParams.get('type');
-
-    // If success param is present, user was already verified by route handler
-    if (success === 'true') {
-      setStatus('success');
-      setMessage('Email confirmed successfully! Redirecting to dashboard...');
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 2000);
-      return;
-    }
 
     // If no token_hash, show error
     if (!token_hash || !type) {
@@ -34,25 +26,20 @@ export default function ConfirmEmail() {
       return;
     }
 
-    // Verify the email by calling the route handler
-    const verifyEmail = async () => {
+    // Verify the email using server action
+    const handleVerify = async () => {
       try {
-        const url = new URL(window.location.href);
-        url.pathname = '/auth/confirm';
+        const result = await verifyEmail(token_hash, type);
         
-        const response = await fetch(url.toString(), { 
-          method: 'GET',
-          redirect: 'manual'
-        });
-
-        // Route handler will redirect to this page with success=true on success
-        // Or redirect to login on error
-        if (response.status === 307 || response.status === 302) {
-          // Redirect is happening, let the route handler handle it
-          return;
-        } else {
+        if (result.error) {
           setStatus('error');
-          setMessage('Email confirmation failed. Please try again or request a new confirmation email.');
+          setMessage(result.error || 'Email confirmation failed. Please try again or request a new confirmation email.');
+        } else {
+          setStatus('success');
+          setMessage('Email confirmed successfully! Redirecting to dashboard...');
+          setTimeout(() => {
+            router.push('/dashboard');
+          }, 2000);
         }
       } catch (error) {
         setStatus('error');
@@ -60,7 +47,7 @@ export default function ConfirmEmail() {
       }
     };
 
-    verifyEmail();
+    handleVerify();
   }, [searchParams, router]);
 
   return (
