@@ -1,93 +1,93 @@
-import { createClient } from '@/lib/supabase/server'
+import { getSessionUser } from '@/lib/auth/validate-session'
 import { redirect } from 'next/navigation'
-import Link from "next/link";
-import Image from "next/image";
-import "../styles/base.css";
-import "../styles/responsive.css";
-import "./page.css";
+import '../styles/dashboard.css'
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getSessionUser()
 
   if (!user) {
     redirect('/login')
   }
 
   return (
-    <div className="dashboard-page">
-      {/* Header */}
-      <header className="dashboard-header">
-        <div className="header-container">
-          <Link href="/" className="logo-link">
-            <Image
-              src="/hootlogo.png"
-              alt="Hoot Logo"
-              width={180}
-              height={60}
-              priority
-              className="logo"
-            />
-          </Link>
-          
-          <nav className="header-nav">
-            <div className="user-info">
-              <span className="user-email">{user.email}</span>
-            </div>
-            <form action="/auth/signout" method="post">
-              <button type="submit" className="nav-button logout-button">
-                Sign Out
-              </button>
-            </form>
-          </nav>
-        </div>
-      </header>
+    <div className="dashboard-content">
+      <div className="dashboard-header">
+        <h1 className="dashboard-title">Welcome Back</h1>
+        <p className="dashboard-subtitle">Here's what's happening with your account</p>
+      </div>
 
-      {/* Dashboard Content */}
-      <section className="dashboard-content">
-        <div className="dashboard-container">
-          <h1 className="dashboard-title">Welcome to <span className="gold-text">Hoot</span></h1>
-          <p className="dashboard-subtitle">Your automation dashboard is ready. Let's get started!</p>
-          
-          <div className="dashboard-stats">
-            <div className="stat-card">
-              <div className="stat-icon">
-                <span className="material-icons">account_balance</span>
-              </div>
-              <div className="stat-value">0</div>
-              <div className="stat-label">Business Centers</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon">
-                <span className="material-icons">account_balance_wallet</span>
-              </div>
-              <div className="stat-value">0</div>
-              <div className="stat-label">Credits</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon">
-                <span className="material-icons">add_circle</span>
-              </div>
-              <div className="stat-value">0</div>
-              <div className="stat-label">Total Created</div>
-            </div>
+      {/* Stats Cards */}
+      <div className="dashboard-stats">
+        <div className="stat-card">
+          <div className="stat-icon">
+            <span className="material-icons">account_balance</span>
           </div>
-
-          <div className="dashboard-actions">
-            <button className="action-button primary">
-              <span className="material-icons">add_circle</span>
-              Create Business Centers
-            </button>
-            <button className="action-button secondary">
-              <span className="material-icons">account_balance_wallet</span>
-              Purchase Credits
-            </button>
+          <div className="stat-content">
+            <p className="stat-label">Business Centers</p>
+            <p className="stat-value">0</p>
           </div>
         </div>
-      </section>
+
+        <div className="stat-card">
+          <div className="stat-icon">
+            <span className="material-icons">payment</span>
+          </div>
+          <div className="stat-content">
+            <p className="stat-label">Credits</p>
+            <p className="stat-value">0</p>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon">
+            <span className="material-icons">add_circle</span>
+          </div>
+          <div className="stat-content">
+            <p className="stat-label">Created Today</p>
+            <p className="stat-value">0</p>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon">
+            <span className="material-icons">check_circle</span>
+          </div>
+          <div className="stat-content">
+            <p className="stat-label">Success Rate</p>
+            <p className="stat-value">100%</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="dashboard-section">
+        <h2 className="section-title">Quick Actions</h2>
+        <div className="dashboard-actions">
+          <button className="action-button primary">
+            <span className="material-icons">add_circle</span>
+            Create Business Center
+          </button>
+          <button className="action-button secondary">
+            <span className="material-icons">payment</span>
+            Purchase Credits
+          </button>
+          <button className="action-button secondary">
+            <span className="material-icons">account_balance</span>
+            View Vault
+          </button>
+        </div>
+      </div>
+
+      {/* Recent Activity */}
+      <div className="dashboard-section">
+        <h2 className="section-title">Recent Activity</h2>
+        <div className="activity-list">
+          <div className="activity-empty">
+            <span className="material-icons">inbox</span>
+            <p>No activity yet. Create your first Business Center to get started!</p>
+          </div>
+        </div>
+      </div>
     </div>
-  );
+  )
 }
