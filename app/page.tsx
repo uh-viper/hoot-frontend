@@ -37,10 +37,10 @@ export default function Home() {
           </Link>
           
           <nav className="header-nav">
-            <Link href="/login" className="nav-link">
+            <Link href="/login" className="nav-link" prefetch={false}>
               Sign In
             </Link>
-            <Link href="/signup" className="nav-button">
+            <Link href="/signup" className="nav-button" prefetch={false}>
               Sign Up
             </Link>
           </nav>
@@ -59,7 +59,7 @@ export default function Home() {
             No manual setup, no delays. Built for advertisers who can't afford to be slowed down.
           </p>
           <div className="hero-cta-group">
-            <Link href="/signup" className="hero-cta primary">
+            <Link href="/signup" className="hero-cta primary" prefetch={false}>
               Start Now
             </Link>
             <Link href="/learn-more" className="hero-cta secondary">
@@ -290,10 +290,10 @@ export default function Home() {
             Join other affiliates that refuse to be slowed down by manual processes.
           </p>
           <div className="hero-cta-group">
-            <Link href="/signup" className="hero-cta large primary">
+            <Link href="/signup" className="hero-cta large primary" prefetch={false}>
               Start Now
             </Link>
-            <Link href="/learn-more" className="hero-cta large secondary">
+            <Link href="/learn-more" className="hero-cta large secondary" prefetch={false}>
               Learn More
             </Link>
           </div>

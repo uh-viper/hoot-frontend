@@ -13,7 +13,7 @@ function EmailCodeHandlerContent() {
   }, []);
 
   useEffect(() => {
-    if (!mounted) return;
+    if (!mounted || typeof window === 'undefined') return;
     // Handle email confirmation code if present
     const code = searchParams.get('code');
     if (code) {
