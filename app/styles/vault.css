@@ -112,7 +112,8 @@
   padding: 0.625rem 0.875rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-sizing: border-box;
-  height: 46px;
+  min-height: 46px;
+  height: auto;
 }
 
 .account-value-group:hover {
@@ -166,7 +167,8 @@
   background: rgba(212, 175, 55, 0.1);
   border: 1px solid rgba(212, 175, 55, 0.3);
   justify-content: center;
-  height: 46px;
+  min-height: 46px;
+  height: auto;
 }
 
 .account-fetch-section .account-value-group:hover {
@@ -192,9 +194,9 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
   width: auto;
-  height: auto;
+  height: 32px;
   box-sizing: border-box;
-  line-height: 1.4;
+  line-height: 1;
   vertical-align: middle;
 }
 
