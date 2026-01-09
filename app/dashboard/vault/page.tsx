@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { Metadata } from 'next'
 import AccountCard from './components/AccountCard'
 import '../../styles/dashboard.css'
+import '../../styles/vault.css'
 
 export const metadata: Metadata = {
   title: 'Hoot - Vault',
