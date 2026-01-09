@@ -4,6 +4,7 @@
   min-height: 100vh;
   background: #000000;
   color: #ffffff;
+  width: 100%;
 }
 
 .dashboard-sidebar {
@@ -147,11 +148,12 @@
   flex: 1;
   min-height: 100vh;
   background: #000000;
+  width: calc(100% - 280px);
 }
 
 .dashboard-content {
   padding: 2.5rem 3rem;
-  max-width: 1400px;
+  width: 100%;
 }
 
 .dashboard-header {
