@@ -7,9 +7,10 @@ import "../../styles/dashboard.css";
 
 interface SidebarProps {
   userEmail?: string;
+  credits?: number;
 }
 
-export default function Sidebar({ userEmail }: SidebarProps) {
+export default function Sidebar({ userEmail, credits = 0 }: SidebarProps) {
   const pathname = usePathname();
 
   const menuItems = [
@@ -71,7 +72,7 @@ export default function Sidebar({ userEmail }: SidebarProps) {
       <div className="sidebar-footer">
         <div className="sidebar-credits">
           <span className="material-icons">payment</span>
-          <span className="credits-text">Credits:</span>
+          <span className="credits-text">{credits.toLocaleString()}</span>
         </div>
         <form action={signOut}>
           <button type="submit" className="sidebar-signout">
