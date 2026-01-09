@@ -64,9 +64,9 @@ export default function Sidebar({ userEmail }: SidebarProps) {
       </nav>
 
       <div className="sidebar-footer">
-        <div className="sidebar-user">
-          <span className="material-icons">account_circle</span>
-          <span className="sidebar-user-email">{userEmail || "User"}</span>
+        <div className="sidebar-credits">
+          <span className="material-icons">payment</span>
+          <span className="credits-text">Your Credits: <strong>0</strong></span>
         </div>
         <form action={signOut}>
           <button type="submit" className="sidebar-signout">
