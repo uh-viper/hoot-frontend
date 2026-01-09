@@ -171,6 +171,11 @@
   flex-direction: column;
   text-align: left;
   align-items: flex-start;
+  position: static;
+  background: transparent;
+  border-bottom: none;
+  height: auto;
+  z-index: auto;
 }
 
 .dashboard-title {
