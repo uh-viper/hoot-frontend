@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "../contexts/ToastContext";
 import { signIn } from "../actions/auth";
@@ -10,7 +10,7 @@ import "../styles/base.css";
 import "../styles/responsive.css";
 import "./page.css";
 
-export default function LoginPage() {
+function LoginPageContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -132,5 +132,42 @@ export default function LoginPage() {
       </section>
 
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="auth-page">
+        <header className="header">
+          <div className="header-container">
+            <Link href="/" className="logo-link">
+              <Image
+                src="/hootlogo.png"
+                alt="Hoot Logo"
+                width={180}
+                height={60}
+                priority
+                className="logo"
+              />
+            </Link>
+            <nav className="header-nav">
+              <Link href="/login" className="nav-link">Sign In</Link>
+              <Link href="/signup" className="nav-button">Sign Up</Link>
+            </nav>
+          </div>
+        </header>
+        <section className="auth-section">
+          <div className="auth-container">
+            <div className="auth-card">
+              <h1 className="auth-title">Sign <span className="gold-text">In</span></h1>
+              <p className="auth-subtitle">Loading...</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    }>
+      <LoginPageContent />
+    </Suspense>
   );
 }
