@@ -19,13 +19,15 @@ interface ToastContainerProps {
 
 export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
   useEffect(() => {
-    toasts.forEach((toast) => {
-      const timer = setTimeout(() => {
+    const timers = toasts.map((toast) => {
+      return setTimeout(() => {
         onRemove(toast.id);
       }, 5000); // Auto-remove after 5 seconds
-
-      return () => clearTimeout(timer);
     });
+
+    return () => {
+      timers.forEach(timer => clearTimeout(timer));
+    };
   }, [toasts, onRemove]);
 
   if (typeof window === 'undefined') return null;
