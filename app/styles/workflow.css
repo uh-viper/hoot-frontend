@@ -30,6 +30,10 @@
   text-align: center;
   position: relative;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 .step-number {
@@ -49,12 +53,13 @@
   color: #0a0a0a;
   font-family: var(--font-outfit);
   box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+  flex-shrink: 0;
 }
 
 .step-icon-wrapper {
   width: 80px;
   height: 80px;
-  margin: 1.5rem auto 1.5rem;
+  margin: 1.5rem auto 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -63,6 +68,7 @@
   border-radius: 16px;
   position: relative;
   transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
 .step-icon-wrapper::before {
@@ -93,9 +99,11 @@
 .step-title {
   font-size: 1.5rem;
   font-weight: 600;
-  margin-bottom: 1rem;
+  margin: 0 0 0.75rem 0;
   font-family: var(--font-outfit);
   color: #ffffff;
+  text-align: center;
+  width: 100%;
 }
 
 .step-desc {
@@ -103,6 +111,10 @@
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.7);
   font-family: var(--font-poppins);
+  text-align: center;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .workflow-connector {
