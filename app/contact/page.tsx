@@ -106,10 +106,6 @@ export default function Contact() {
               </div>
               <div className="info-item">
                 <span className="material-icons">check_circle</span>
-                <span>Discuss custom enterprise solutions</span>
-              </div>
-              <div className="info-item">
-                <span className="material-icons">check_circle</span>
                 <span>Report issues or provide feedback</span>
               </div>
               <div className="info-item">
