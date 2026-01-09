@@ -214,8 +214,8 @@ export default function Home() {
           <h2 className="section-title">Why It <span className="gold-text">Matters</span></h2>
           <div className="why-content">
             <p className="why-text">
-              In the time it took your competitor to set up one ad account, you just deployed 
-              ten Business Centers and launched fifty campaigns. Who do you think wins the auction?
+              In the time it took your competitor to set up one ad account, you just deployed ten. 
+              Who do you think wins the auction?
             </p>
             <div className="why-stats">
               <div className="stat-item">
