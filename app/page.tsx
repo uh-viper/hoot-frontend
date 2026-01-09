@@ -13,7 +13,7 @@ import "./styles/cta.css";
 import "./styles/footer.css";
 
 export const metadata: Metadata = {
-  title: 'Hoot - Home',
+  title: 'Hoot - Automation Starts Here',
 }
 
 export default function Home() {
