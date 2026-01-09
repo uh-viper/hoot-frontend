@@ -33,24 +33,30 @@ export default async function VaultPage() {
       </div>
 
       <div className="vault-accounts-container">
-        {testAccounts.length === 0 ? (
-          <div className="vault-empty">
-            <span className="material-icons">account_circle</span>
-            <p>No accounts yet</p>
-            <span className="vault-empty-hint">Your ad accounts will appear here</span>
+        <div className="vault-section-box">
+          <div className="vault-section-header">
+            <h2 className="vault-section-title">Accounts</h2>
           </div>
-        ) : (
-          <div className="vault-accounts-grid">
-            {testAccounts.map((account) => (
-              <AccountCard
-                key={account.id}
-                id={account.id}
-                email={account.email}
-                password={account.password}
-              />
-            ))}
-          </div>
-        )}
+          
+          {testAccounts.length === 0 ? (
+            <div className="vault-empty">
+              <span className="material-icons">account_circle</span>
+              <p>No accounts yet</p>
+              <span className="vault-empty-hint">Your ad accounts will appear here</span>
+            </div>
+          ) : (
+            <div className="vault-accounts-list">
+              {testAccounts.map((account) => (
+                <AccountCard
+                  key={account.id}
+                  id={account.id}
+                  email={account.email}
+                  password={account.password}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
