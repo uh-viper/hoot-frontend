@@ -75,7 +75,7 @@ export default function Contact() {
                 Send us an email for business inquiries, partnerships, or general questions.
               </p>
               <a 
-                href="mailto:support@hoot.com" 
+                href="mailto:support@hootservices.com" 
                 className="contact-button"
               >
                 Send Email
