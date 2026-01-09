@@ -151,7 +151,7 @@
   margin-left: 280px;
   flex: 1;
   min-height: 100vh;
-  background: #000000;
+  background: transparent;
   width: calc(100% - 280px);
   overflow-x: hidden;
   position: relative;
@@ -169,6 +169,8 @@
   margin-bottom: 2.5rem;
   display: flex;
   flex-direction: column;
+  text-align: left;
+  align-items: flex-start;
 }
 
 .dashboard-title {
