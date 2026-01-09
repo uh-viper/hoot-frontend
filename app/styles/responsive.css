@@ -385,10 +385,27 @@
     font-size: 0.8rem;
   }
 
-  /* Workflow - stack on very small screens */
+  /* Workflow - keep 2 columns even on very small screens */
   .workflow-grid {
-    grid-template-columns: 1fr;
-    gap: 1.25rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  .step-icon-wrapper {
+    width: 55px;
+    height: 55px;
+  }
+  
+  .step-icon-wrapper .material-icons {
+    font-size: 1.625rem;
+  }
+  
+  .step-title {
+    font-size: 0.95rem;
+  }
+  
+  .step-desc {
+    font-size: 0.8rem;
   }
 
   /* Stats - 3 columns still */
