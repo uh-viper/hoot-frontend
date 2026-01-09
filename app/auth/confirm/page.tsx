@@ -13,9 +13,21 @@ export default function ConfirmEmail() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
+    const success = searchParams.get('success');
     const token_hash = searchParams.get('token_hash');
     const type = searchParams.get('type');
 
+    // If success param is present, user was already verified by route handler
+    if (success === 'true') {
+      setStatus('success');
+      setMessage('Email confirmed successfully! Redirecting to dashboard...');
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 2000);
+      return;
+    }
+
+    // If no token_hash, show error
     if (!token_hash || !type) {
       setStatus('error');
       setMessage('Invalid confirmation link. Please check your email and try again.');
@@ -33,13 +45,11 @@ export default function ConfirmEmail() {
           redirect: 'manual'
         });
 
-        // If redirect happened, it means success
-        if (response.status === 307 || response.status === 302 || response.ok) {
-          setStatus('success');
-          setMessage('Email confirmed successfully! Redirecting to dashboard...');
-          setTimeout(() => {
-            router.push('/dashboard');
-          }, 2000);
+        // Route handler will redirect to this page with success=true on success
+        // Or redirect to login on error
+        if (response.status === 307 || response.status === 302) {
+          // Redirect is happening, let the route handler handle it
+          return;
         } else {
           setStatus('error');
           setMessage('Email confirmation failed. Please try again or request a new confirmation email.');

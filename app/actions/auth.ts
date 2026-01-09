@@ -25,7 +25,7 @@ export async function signUp(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/dashboard')
+  redirect('/auth/check-email')
 }
 
 export async function signIn(formData: FormData) {
