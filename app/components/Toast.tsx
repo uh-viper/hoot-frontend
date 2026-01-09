@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import '../styles/toast.css';
 
@@ -18,7 +18,15 @@ interface ToastContainerProps {
 }
 
 export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    
     const timers = toasts.map((toast) => {
       return setTimeout(() => {
         onRemove(toast.id);
@@ -28,9 +36,9 @@ export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
     return () => {
       timers.forEach(timer => clearTimeout(timer));
     };
-  }, [toasts, onRemove]);
+  }, [toasts, onRemove, mounted]);
 
-  if (typeof window === 'undefined') return null;
+  if (!mounted || typeof window === 'undefined') return null;
 
   return createPortal(
     <div className="toast-container">

@@ -35,9 +35,10 @@ function SignUpPageContent() {
       
       showError(errorMessage);
       // Clean URL
-      router.replace('/signup');
+      router.replace('/signup', { scroll: false });
     }
-  }, [searchParams, router, showError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams.get('error')]);
 
   return (
     <div className="auth-page">

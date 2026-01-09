@@ -25,11 +25,10 @@ function LoginPageContent() {
       const decodedError = decodeURIComponent(error);
       showError(decodedError);
       // Clean URL immediately without scroll
-      setTimeout(() => {
-        router.replace('/login', { scroll: false });
-      }, 100);
+      router.replace('/login', { scroll: false });
     }
-  }, [searchParams, router, showError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams?.get('error')]);
 
   const handleSubmit = async (formData: FormData) => {
     startTransition(async () => {
