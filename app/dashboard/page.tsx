@@ -21,6 +21,20 @@ export default async function DashboardPage() {
   const { data: { user: userWithMetadata } } = await supabase.auth.getUser()
   const fullName = userWithMetadata?.user_metadata?.full_name || ''
 
+  // Fetch user stats from database
+  const { data: statsData } = await supabase
+    .from('user_stats')
+    .select('business_centers, requested, successful, failures')
+    .eq('user_id', user.id)
+    .single()
+
+  const stats = {
+    businessCenters: statsData?.business_centers ?? 0,
+    requested: statsData?.requested ?? 0,
+    successful: statsData?.successful ?? 0,
+    failures: statsData?.failures ?? 0,
+  }
+
   return (
     <div className="dashboard-content">
       <div className="dashboard-header">
@@ -36,7 +50,7 @@ export default async function DashboardPage() {
           </div>
           <div className="stat-content">
             <p className="stat-label">Business Centers</p>
-            <p className="stat-value">0</p>
+            <p className="stat-value">{stats.businessCenters.toLocaleString()}</p>
           </div>
         </div>
 
@@ -46,7 +60,7 @@ export default async function DashboardPage() {
           </div>
           <div className="stat-content">
             <p className="stat-label">Requested</p>
-            <p className="stat-value">0</p>
+            <p className="stat-value">{stats.requested.toLocaleString()}</p>
           </div>
         </div>
 
@@ -56,7 +70,7 @@ export default async function DashboardPage() {
           </div>
           <div className="stat-content">
             <p className="stat-label">Successful</p>
-            <p className="stat-value">0</p>
+            <p className="stat-value">{stats.successful.toLocaleString()}</p>
           </div>
         </div>
 
@@ -66,7 +80,7 @@ export default async function DashboardPage() {
           </div>
           <div className="stat-content">
             <p className="stat-label">Failures</p>
-            <p className="stat-value">0</p>
+            <p className="stat-value">{stats.failures.toLocaleString()}</p>
           </div>
         </div>
       </div>
