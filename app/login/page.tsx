@@ -14,7 +14,7 @@ function LoginPageContent() {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { showError } = useToast();
+  const { showError, showSuccess } = useToast();
 
   // Show error from URL params (only once) - for backwards compatibility with old redirects
   useEffect(() => {
@@ -35,7 +35,8 @@ function LoginPageContent() {
       if (result?.error) {
         showError(result.error);
       } else if (result?.success) {
-        // Success - redirect to dashboard
+        // Success - show toast and redirect to dashboard
+        showSuccess('Successfully signed in!');
         router.push('/dashboard');
       }
     });
