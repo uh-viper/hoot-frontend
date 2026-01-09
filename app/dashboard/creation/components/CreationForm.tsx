@@ -75,7 +75,8 @@ export default function CreationForm() {
   const [bcsAmount, setBcsAmount] = useState<number>(5);
   const [isCountryOpen, setIsCountryOpen] = useState(false);
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [countrySearchTerm, setCountrySearchTerm] = useState('');
+  const [currencySearchTerm, setCurrencySearchTerm] = useState('');
   const countryDropdownRef = useRef<HTMLDivElement>(null);
   const currencyDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -84,10 +85,11 @@ export default function CreationForm() {
     const handleClickOutside = (event: MouseEvent) => {
       if (countryDropdownRef.current && !countryDropdownRef.current.contains(event.target as Node)) {
         setIsCountryOpen(false);
-        setSearchTerm('');
+        setCountrySearchTerm('');
       }
       if (currencyDropdownRef.current && !currencyDropdownRef.current.contains(event.target as Node)) {
         setIsCurrencyOpen(false);
+        setCurrencySearchTerm('');
       }
     };
 
@@ -97,28 +99,37 @@ export default function CreationForm() {
 
   const handleCountrySelect = (country: Country) => {
     setSelectedCountry(country);
+    // Auto-populate currency with country's default currency
+    setSelectedCurrency(country.currency);
     setIsCountryOpen(false);
-    setSearchTerm('');
+    setCountrySearchTerm('');
   };
 
   const handleCurrencySelect = (currency: string) => {
     setSelectedCurrency(currency);
     setIsCurrencyOpen(false);
+    setCurrencySearchTerm('');
   };
 
-  const filteredCountries = searchTerm
+  const filteredCountries = countrySearchTerm
     ? countries.filter(country =>
-        country.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        country.code.toLowerCase().includes(searchTerm.toLowerCase())
+        country.name.toLowerCase().includes(countrySearchTerm.toLowerCase()) ||
+        country.code.toLowerCase().includes(countrySearchTerm.toLowerCase())
       )
     : countries;
 
   // All available currencies from all countries
-  const availableCurrencies = [...new Set(countries.map(c => c.currency))].sort();
+  const allCurrencies = [...new Set(countries.map(c => c.currency))].sort();
+  
+  const filteredCurrencies = currencySearchTerm
+    ? allCurrencies.filter(currency =>
+        currency.toLowerCase().includes(currencySearchTerm.toLowerCase())
+      )
+    : allCurrencies;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedCountry || !selectedCurrency || bcsAmount < 5 || bcsAmount > 25) {
+    if (!selectedCountry || !selectedCurrency || !bcsAmount || bcsAmount <= 0) {
       return;
     }
     // TODO: Handle form submission
@@ -152,8 +163,8 @@ export default function CreationForm() {
                   <input
                     type="text"
                     placeholder="Search countries..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    value={countrySearchTerm}
+                    onChange={(e) => setCountrySearchTerm(e.target.value)}
                     className="dropdown-search-input"
                     autoFocus
                   />
@@ -204,8 +215,19 @@ export default function CreationForm() {
             </button>
             {isCurrencyOpen && (
               <div className="dropdown-menu">
+                <div className="dropdown-search">
+                  <span className="material-icons">search</span>
+                  <input
+                    type="text"
+                    placeholder="Search currencies..."
+                    value={currencySearchTerm}
+                    onChange={(e) => setCurrencySearchTerm(e.target.value)}
+                    className="dropdown-search-input"
+                    autoFocus
+                  />
+                </div>
                 <div className="dropdown-list">
-                  {availableCurrencies.map(currency => (
+                  {filteredCurrencies.map(currency => (
                     <button
                       key={currency}
                       type="button"
@@ -225,38 +247,18 @@ export default function CreationForm() {
         <div className="form-field">
           <label htmlFor="bcs-amount" className="form-label">
             Business Centers <span className="required">*</span>
-            <span className="form-hint">(Min: 5, Max: 25)</span>
           </label>
-          <div className="bcs-input-wrapper">
-            <button
-              type="button"
-              className="bcs-button"
-              onClick={() => setBcsAmount(Math.max(5, bcsAmount - 1))}
-              disabled={bcsAmount <= 5}
-            >
-              <span className="material-icons">remove</span>
-            </button>
-            <input
-              type="number"
-              id="bcs-amount"
-              min={5}
-              max={25}
-              value={bcsAmount}
-              onChange={(e) => {
-                const value = parseInt(e.target.value) || 5;
-                setBcsAmount(Math.min(25, Math.max(5, value)));
-              }}
-              className="bcs-input"
-            />
-            <button
-              type="button"
-              className="bcs-button"
-              onClick={() => setBcsAmount(Math.min(25, bcsAmount + 1))}
-              disabled={bcsAmount >= 25}
-            >
-              <span className="material-icons">add</span>
-            </button>
-          </div>
+          <input
+            type="number"
+            id="bcs-amount"
+            value={bcsAmount}
+            onChange={(e) => {
+              const value = parseInt(e.target.value) || 0;
+              setBcsAmount(value);
+            }}
+            className="bcs-input-simple"
+            placeholder="Enter amount"
+          />
         </div>
 
         {/* Submit Button */}
@@ -264,7 +266,7 @@ export default function CreationForm() {
           <button
             type="submit"
             className="deployment-button"
-            disabled={!selectedCountry || !selectedCurrency || bcsAmount < 5 || bcsAmount > 25}
+            disabled={!selectedCountry || !selectedCurrency || !bcsAmount || bcsAmount <= 0}
           >
             <span className="material-icons">rocket_launch</span>
             Start Deployment

@@ -444,9 +444,10 @@
   border-radius: 16px;
   padding: 2.5rem;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr 1fr 1fr auto;
   gap: 2rem;
   width: 100%;
+  align-items: end;
 }
 
 .form-field {
@@ -456,8 +457,8 @@
 }
 
 .form-field-submit {
-  grid-column: 1 / -1;
-  margin-top: 1rem;
+  display: flex;
+  align-items: flex-end;
 }
 
 .form-label {
@@ -631,76 +632,43 @@
 }
 
 /* BCS Amount Input */
-.bcs-input-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.bcs-button {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  flex-shrink: 0;
-}
-
-.bcs-button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.15);
-  transform: scale(1.05);
-}
-
-.bcs-button:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.bcs-button .material-icons {
-  font-size: 1.25rem;
-}
-
-.bcs-input {
-  flex: 1;
+.bcs-input-simple {
+  width: 100%;
   padding: 1rem 1.25rem;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   color: #ffffff;
-  font-size: 1.125rem;
-  font-weight: 600;
-  font-family: var(--font-outfit);
-  text-align: center;
+  font-size: 1rem;
+  font-weight: 500;
+  font-family: var(--font-poppins);
   outline: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
 }
 
-.bcs-input:focus {
+.bcs-input-simple::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.bcs-input-simple:focus {
   border-color: rgba(212, 175, 55, 0.5);
   background: rgba(212, 175, 55, 0.05);
 }
 
-.bcs-input::-webkit-inner-spin-button,
-.bcs-input::-webkit-outer-spin-button {
+.bcs-input-simple::-webkit-inner-spin-button,
+.bcs-input-simple::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-.bcs-input[type=number] {
+.bcs-input-simple[type=number] {
   -moz-appearance: textfield;
 }
 
 /* Deployment Button */
 .deployment-button {
-  width: 100%;
-  padding: 1.125rem 2rem;
+  padding: 1.125rem 2.5rem;
   background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
   border: none;
   border-radius: 12px;
@@ -715,6 +683,7 @@
   justify-content: center;
   gap: 0.75rem;
   box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+  white-space: nowrap;
 }
 
 .deployment-button:hover:not(:disabled) {
@@ -767,6 +736,7 @@
   .creation-form {
     padding: 1.5rem;
     grid-template-columns: 1fr;
+    align-items: stretch;
   }
 
   .creation-form-container {
@@ -774,6 +744,10 @@
   }
 
   .form-field-submit {
-    grid-column: 1;
+    justify-content: stretch;
+  }
+
+  .deployment-button {
+    width: 100%;
   }
 }
