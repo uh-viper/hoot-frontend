@@ -443,11 +443,10 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   padding: 2.5rem;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 2rem;
   width: 100%;
-  align-items: end;
 }
 
 .form-field {
@@ -459,6 +458,8 @@
 .form-field-submit {
   display: flex;
   align-items: flex-end;
+  justify-content: flex-end;
+  margin-top: 1rem;
 }
 
 .form-label {
@@ -668,6 +669,7 @@
 
 /* Deployment Button */
 .deployment-button {
+  width: auto;
   padding: 1.125rem 2.5rem;
   background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
   border: none;
