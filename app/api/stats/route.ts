@@ -7,8 +7,7 @@ import { rateLimit } from '@/lib/api/rate-limit'
 export async function GET(request: NextRequest) {
   try {
     // Rate limiting
-    const ip = request.headers.get('x-forwarded-for') || 'unknown'
-    if (!rateLimit(ip)) {
+    if (!rateLimit(request)) {
       return NextResponse.json(
         { error: 'Too many requests' },
         { status: 429 }
@@ -89,8 +88,7 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     // Rate limiting
-    const ip = request.headers.get('x-forwarded-for') || 'unknown'
-    if (!rateLimit(ip)) {
+    if (!rateLimit(request)) {
       return NextResponse.json(
         { error: 'Too many requests' },
         { status: 429 }
