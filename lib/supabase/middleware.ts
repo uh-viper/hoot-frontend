@@ -45,7 +45,7 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/terms-of-service') ||
     request.nextUrl.pathname.startsWith('/privacy-policy') ||
     request.nextUrl.pathname.startsWith('/refund-policy')
-  ) || request.nextUrl.pathname === '/auth/confirm' || request.nextUrl.pathname === '/auth/check-email'
+  ) || request.nextUrl.pathname === '/auth/confirm' || request.nextUrl.pathname === '/auth/check-email' || request.nextUrl.pathname === '/auth/callback'
 
   // Redirect authenticated users away from login/signup to dashboard
   if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup')) {

@@ -16,38 +16,49 @@ function ConfirmEmailContent() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
+    const success = searchParams.get('success');
     const token_hash = searchParams.get('token_hash');
     const type = searchParams.get('type');
 
-    // If no token_hash, show error
-    if (!token_hash || !type) {
-      setStatus('error');
-      setMessage('Invalid confirmation link. Please check your email and try again.');
+    // If success param is present (from callback route), show success
+    if (success === 'true') {
+      setStatus('success');
+      setMessage('Email confirmed successfully! Redirecting to dashboard...');
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 2000);
       return;
     }
 
-    // Verify the email using server action
-    const handleVerify = async () => {
-      try {
-        const result = await verifyEmail(token_hash, type);
-        
-        if (result.error) {
+    // Handle token_hash flow (older method)
+    if (token_hash && type) {
+      const handleVerify = async () => {
+        try {
+          const result = await verifyEmail(token_hash, type);
+          
+          if (result.error) {
+            setStatus('error');
+            setMessage(result.error || 'Email confirmation failed. Please try again or request a new confirmation email.');
+          } else {
+            setStatus('success');
+            setMessage('Email confirmed successfully! Redirecting to dashboard...');
+            setTimeout(() => {
+              router.push('/dashboard');
+            }, 2000);
+          }
+        } catch (error) {
           setStatus('error');
-          setMessage(result.error || 'Email confirmation failed. Please try again or request a new confirmation email.');
-        } else {
-          setStatus('success');
-          setMessage('Email confirmed successfully! Redirecting to dashboard...');
-          setTimeout(() => {
-            router.push('/dashboard');
-          }, 2000);
+          setMessage('An error occurred. Please try again.');
         }
-      } catch (error) {
-        setStatus('error');
-        setMessage('An error occurred. Please try again.');
-      }
-    };
+      };
 
-    handleVerify();
+      handleVerify();
+      return;
+    }
+
+    // If no valid params, show error
+    setStatus('error');
+    setMessage('Invalid confirmation link. Please check your email and try again.');
   }, [searchParams, router]);
 
   return (
