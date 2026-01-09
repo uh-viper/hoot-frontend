@@ -16,36 +16,29 @@ function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showError } = useToast();
-  const [errorShown, setErrorShown] = useState(false);
 
-  // Show error from URL params (only once)
+  // Show error from URL params (only once) - for backwards compatibility with old redirects
   useEffect(() => {
     const error = searchParams?.get('error');
-    if (error && !errorShown) {
+    if (error) {
       const decodedError = decodeURIComponent(error);
       showError(decodedError);
-      setErrorShown(true);
       // Clean URL immediately without scroll
-      router.replace('/login', { scroll: false });
+      setTimeout(() => {
+        router.replace('/login', { scroll: false });
+      }, 100);
     }
-  }, [searchParams, router, showError, errorShown]);
+  }, [searchParams, router, showError]);
 
   const handleSubmit = async (formData: FormData) => {
     startTransition(async () => {
-      // Reset error shown flag when submitting new form
-      setErrorShown(false);
-      // signIn will redirect on error - don't catch redirect exceptions
-      // The error will be handled via URL params and useEffect
-      try {
-        await signIn(formData);
-      } catch (error: any) {
-        // Only catch non-redirect errors
-        // Next.js redirect() throws a special error that should propagate
-        if (error?.message && !error.message.includes('NEXT_REDIRECT')) {
-          showError(error.message || 'An error occurred. Please try again.');
-        }
-        // Re-throw redirect errors
-        throw error;
+      const result = await signIn(formData);
+      
+      if (result?.error) {
+        showError(result.error);
+      } else {
+        // Success - redirect will happen from server action
+        router.push('/dashboard');
       }
     });
   };
@@ -137,38 +130,42 @@ function LoginPageContent() {
   );
 }
 
+function LoginFallback() {
+  return (
+    <div className="auth-page">
+      <header className="header">
+        <div className="header-container">
+          <Link href="/" className="logo-link">
+            <Image
+              src="/hootlogo.png"
+              alt="Hoot Logo"
+              width={180}
+              height={60}
+              priority
+              className="logo"
+            />
+          </Link>
+          <nav className="header-nav">
+            <Link href="/login" className="nav-link">Sign In</Link>
+            <Link href="/signup" className="nav-button">Sign Up</Link>
+          </nav>
+        </div>
+      </header>
+      <section className="auth-section">
+        <div className="auth-container">
+          <div className="auth-card">
+            <h1 className="auth-title">Sign <span className="gold-text">In</span></h1>
+            <p className="auth-subtitle">Welcome back to Hoot</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 export default function LoginPage() {
   return (
-    <Suspense fallback={
-      <div className="auth-page">
-        <header className="header">
-          <div className="header-container">
-            <Link href="/" className="logo-link">
-              <Image
-                src="/hootlogo.png"
-                alt="Hoot Logo"
-                width={180}
-                height={60}
-                priority
-                className="logo"
-              />
-            </Link>
-            <nav className="header-nav">
-              <Link href="/login" className="nav-link">Sign In</Link>
-              <Link href="/signup" className="nav-button">Sign Up</Link>
-            </nav>
-          </div>
-        </header>
-        <section className="auth-section">
-          <div className="auth-container">
-            <div className="auth-card">
-              <h1 className="auth-title">Sign <span className="gold-text">In</span></h1>
-              <p className="auth-subtitle">Welcome back to Hoot</p>
-            </div>
-          </div>
-        </section>
-      </div>
-    }>
+    <Suspense fallback={<LoginFallback />}>
       <LoginPageContent />
     </Suspense>
   );

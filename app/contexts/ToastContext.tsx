@@ -24,7 +24,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     const id = Math.random().toString(36).substring(7);
     const newToast: Toast = { id, message, type };
     
-    setToasts((prev) => [...prev, newToast]);
+    setToasts((prev) => {
+      // Prevent duplicate toasts with the same message
+      if (prev.some(t => t.message === message && t.type === type)) {
+        return prev;
+      }
+      return [...prev, newToast];
+    });
   }, []);
 
   const showError = useCallback((message: string) => {
