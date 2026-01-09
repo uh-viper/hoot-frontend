@@ -305,13 +305,13 @@ export default function Home() {
             />
           </div>
           <nav className="footer-nav">
-            <Link href="#features" className="footer-link">
+            <Link href="/learn-more" className="footer-link">
               Learn More
             </Link>
             <Link href="/contact" className="footer-link">
               Contact
             </Link>
-            <a href="https://discord.gg/hoot" target="_blank" rel="noopener noreferrer" className="footer-link">
+            <a href="https://discord.gg/6xEjW6SYxj" target="_blank" rel="noopener noreferrer" className="footer-link">
               Discord
             </a>
           </nav>
