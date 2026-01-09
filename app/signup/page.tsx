@@ -113,22 +113,22 @@ export default function SignUpPage({
                 </div>
               </div>
 
-              <div className="form-group policy-agreement">
-                <p className="policy-agreement-text">
-                  By creating an account you agree to the{" "}
-                  <Link href="/terms-of-service" className="policy-link">Terms of Service</Link>
-                  {", "}
-                  <Link href="/privacy-policy" className="policy-link">Privacy Policy</Link>
-                  {", and "}
-                  <Link href="/refund-policy" className="policy-link">Refund Policy</Link>
-                </p>
-              </div>
-              
               <button type="submit" className="auth-button" disabled={isPending}>
                 <span className="material-icons">person_add</span>
                 {isPending ? "Creating..." : "Create Account"}
               </button>
             </form>
+            
+            <div className="policy-agreement">
+              <p className="policy-agreement-text">
+                By creating an account you agree to the{" "}
+                <Link href="/terms-of-service" className="policy-link">Terms of Service</Link>
+                {", "}
+                <Link href="/privacy-policy" className="policy-link">Privacy Policy</Link>
+                {", and "}
+                <Link href="/refund-policy" className="policy-link">Refund Policy</Link>
+              </p>
+            </div>
             
             <div className="auth-footer">
               <p>Already have an account? <Link href="/login" className="auth-link">Sign in</Link></p>
