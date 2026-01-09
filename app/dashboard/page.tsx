@@ -2,6 +2,7 @@ import { getSessionUser } from '@/lib/auth/validate-session'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Metadata } from 'next'
+import { initializeUserData } from '@/lib/api/user-initialization'
 import GraphSection from './components/GraphSection'
 import '../styles/dashboard.css'
 
@@ -22,34 +23,15 @@ export default async function DashboardPage() {
   const fullName = userWithMetadata?.user_metadata?.full_name || ''
   const firstName = fullName ? fullName.split(' ')[0] : ''
 
-  // Fetch user stats from database, creating if they don't exist
-  let { data: statsData } = await supabase
+  // Ensure user stats are initialized (creates if they don't exist)
+  await initializeUserData(user.id)
+
+  // Fetch user stats from database
+  const { data: statsData } = await supabase
     .from('user_stats')
     .select('business_centers, requested, successful, failures')
     .eq('user_id', user.id)
     .single()
-
-  // If stats don't exist, create them
-  if (!statsData) {
-    await supabase
-      .from('user_stats')
-      .insert({
-        user_id: user.id,
-        business_centers: 0,
-        requested: 0,
-        successful: 0,
-        failures: 0,
-      })
-    
-    // Fetch again
-    const result = await supabase
-      .from('user_stats')
-      .select('business_centers, requested, successful, failures')
-      .eq('user_id', user.id)
-      .single()
-    
-    statsData = result.data
-  }
 
   const stats = {
     businessCenters: statsData?.business_centers ?? 0,
