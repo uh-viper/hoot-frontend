@@ -4,7 +4,6 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { initializeUserData } from '@/lib/api/user-initialization'
-import { initializeUserData } from '@/lib/api/user-initialization'
 
 export async function signUp(formData: FormData) {
   const supabase = await createClient()
