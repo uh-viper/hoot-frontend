@@ -2,12 +2,18 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { signUp } from "../actions/auth";
 import "../styles/base.css";
 import "./page.css";
 
-export default function SignUpPage() {
+export default function SignUpPage({
+  searchParams,
+}: {
+  searchParams: { error?: string };
+}) {
   const [showPassword, setShowPassword] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   return (
     <div className="auth-page">
@@ -43,7 +49,13 @@ export default function SignUpPage() {
             <h1 className="auth-title">Create <span className="gold-text">Account</span></h1>
             <p className="auth-subtitle">Start your automation now.</p>
             
-            <form className="auth-form">
+            {searchParams.error && (
+              <div className="error-message">
+                {searchParams.error}
+              </div>
+            )}
+            
+            <form action={(formData) => startTransition(() => signUp(formData))} className="auth-form">
               <div className="form-group">
                 <label htmlFor="name">Full Name</label>
                 <input 
@@ -100,9 +112,9 @@ export default function SignUpPage() {
                 </div>
               </div>
               
-              <button type="submit" className="auth-button">
+              <button type="submit" className="auth-button" disabled={isPending}>
                 <span className="material-icons">person_add</span>
-                Create Account
+                {isPending ? "Creating..." : "Create Account"}
               </button>
             </form>
             

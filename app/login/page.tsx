@@ -1,9 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
+import { signIn } from "../actions/auth";
 import "../styles/base.css";
 import "./page.css";
 
-export default function LoginPage() {
+export default function LoginPage({
+  searchParams,
+}: {
+  searchParams: { error?: string };
+}) {
   return (
     <div className="auth-page">
       {/* Header */}
@@ -38,7 +43,13 @@ export default function LoginPage() {
             <h1 className="auth-title">Sign <span className="gold-text">In</span></h1>
             <p className="auth-subtitle">Welcome back to Hoot</p>
             
-            <form className="auth-form">
+            {searchParams.error && (
+              <div className="error-message">
+                {searchParams.error}
+              </div>
+            )}
+            
+            <form action={signIn} className="auth-form">
               <div className="form-group">
                 <label htmlFor="email">Email</label>
                 <input 
