@@ -151,6 +151,7 @@
   background: #000000;
   width: calc(100% - 280px);
   overflow-x: hidden;
+  position: relative;
 }
 
 .dashboard-content {
@@ -158,6 +159,7 @@
   width: 100%;
   text-align: left;
   margin: 0;
+  box-sizing: border-box;
 }
 
 .dashboard-header {
