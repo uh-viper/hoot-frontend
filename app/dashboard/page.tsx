@@ -1,6 +1,7 @@
 import { getSessionUser } from '@/lib/auth/validate-session'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import GraphSection from './components/GraphSection'
 import '../styles/dashboard.css'
 
 export default async function DashboardPage() {
@@ -36,20 +37,10 @@ export default async function DashboardPage() {
 
         <div className="stat-card">
           <div className="stat-icon">
-            <span className="material-icons">payment</span>
+            <span className="material-icons">pending_actions</span>
           </div>
           <div className="stat-content">
-            <p className="stat-label">Credits</p>
-            <p className="stat-value">0</p>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">
-            <span className="material-icons">add_circle</span>
-          </div>
-          <div className="stat-content">
-            <p className="stat-label">Created Today</p>
+            <p className="stat-label">Requested</p>
             <p className="stat-value">0</p>
           </div>
         </div>
@@ -59,11 +50,24 @@ export default async function DashboardPage() {
             <span className="material-icons">check_circle</span>
           </div>
           <div className="stat-content">
-            <p className="stat-label">Success Rate</p>
-            <p className="stat-value">100%</p>
+            <p className="stat-label">Successful</p>
+            <p className="stat-value">0</p>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon">
+            <span className="material-icons">error</span>
+          </div>
+          <div className="stat-content">
+            <p className="stat-label">Failures</p>
+            <p className="stat-value">0</p>
           </div>
         </div>
       </div>
+
+      {/* Graph Section */}
+      <GraphSection />
 
     </div>
   )
