@@ -71,7 +71,7 @@ export default function Sidebar({ userEmail }: SidebarProps) {
       <div className="sidebar-footer">
         <div className="sidebar-credits">
           <span className="material-icons">payment</span>
-          <span className="credits-text">Your Credits: <strong>0</strong></span>
+          <span className="credits-text">Credits:</span>
         </div>
         <form action={signOut}>
           <button type="submit" className="sidebar-signout">
