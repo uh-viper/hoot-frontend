@@ -312,34 +312,7 @@
     font-size: 1rem;
   }
 
-  /* Footer */
-  .footer {
-    padding: 2.5rem 0 1.5rem;
-  }
-
-  .footer-container {
-    padding: 0 1rem;
-    gap: 1.5rem;
-  }
-
-  .footer-nav {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-    width: 100%;
-    max-width: 300px;
-  }
-
-  .footer-link {
-    font-size: 0.9rem;
-    text-align: center;
-    padding: 0.5rem;
-  }
-
-  .footer-copyright {
-    font-size: 0.8rem;
-    padding: 0 1rem;
-  }
+  /* Footer - handled in footer.css */
 }
 
 @media (max-width: 480px) {
@@ -496,24 +469,13 @@
     width: 100%;
   }
 
-  /* Footer on very small screens */
+  /* Footer on very small screens - handled in footer.css */
   .footer {
     padding: 2rem 0 1.25rem;
   }
 
   .footer-container {
     gap: 1.25rem;
-  }
-
-  .footer-nav {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
-    max-width: 280px;
-  }
-
-  .footer-link {
-    font-size: 0.85rem;
-    padding: 0.5rem;
   }
 
   .footer-logo-image {

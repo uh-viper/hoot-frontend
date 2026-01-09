@@ -49,6 +49,36 @@
   flex-wrap: wrap;
 }
 
+/* Mobile: 2 columns for footer nav */
+@media (max-width: 768px) {
+  .footer-nav {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .footer-link {
+    font-size: 0.9rem;
+    text-align: center;
+    padding: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-nav {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    max-width: 280px;
+  }
+
+  .footer-link {
+    font-size: 0.85rem;
+    padding: 0.5rem;
+  }
+}
+
 .footer-link {
   color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
