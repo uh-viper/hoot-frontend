@@ -1,3 +1,10 @@
+import { Metadata } from 'next'
+import LoginForm from './LoginForm'
+
+export const metadata: Metadata = {
+  title: 'Hoot - Sign In',
+}
+
 "use client";
 
 import Link from "next/link";

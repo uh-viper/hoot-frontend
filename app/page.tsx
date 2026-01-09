@@ -1,3 +1,4 @@
+import { Metadata } from 'next'
 import Link from "next/link";
 import Image from "next/image";
 import Footer from "./components/Footer";
@@ -12,6 +13,10 @@ import "./styles/social-proof.css";
 import "./styles/cta.css";
 import "./styles/footer.css";
 import "./styles/responsive.css";
+
+export const metadata: Metadata = {
+  title: 'Hoot - Home',
+}
 
 export default function Home() {
   return (

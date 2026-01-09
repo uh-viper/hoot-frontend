@@ -1,8 +1,13 @@
 import { getSessionUser } from '@/lib/auth/validate-session'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { Metadata } from 'next'
 import GraphSection from './components/GraphSection'
 import '../styles/dashboard.css'
+
+export const metadata: Metadata = {
+  title: 'Hoot - Dashboard',
+}
 
 export default async function DashboardPage() {
   const user = await getSessionUser()
