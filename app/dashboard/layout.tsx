@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getSessionUser } from '@/lib/auth/validate-session'
 import Sidebar from './components/Sidebar'
 import '../styles/dashboard.css'
+import '../styles/base.css'
 
 export default async function DashboardLayout({
   children,
