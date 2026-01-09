@@ -44,88 +44,16 @@ export default function LearnMore() {
       {/* Main Content */}
       <section className="learn-content">
         <div className="section-container">
-          <div className="content-section">
-            <h2 className="content-title">What is Hoot?</h2>
-            <p className="content-text">
-              Hoot is a powerful automation platform designed specifically for TikTok advertisers who need to scale their operations rapidly. 
-              We eliminate the tedious, time-consuming manual process of creating TikTok Business Centers, allowing you to deploy multiple 
-              BCs in minutes instead of hours.
-            </p>
-          </div>
-
-          <div className="content-section">
-            <h2 className="content-title">How It Works</h2>
-            <div className="feature-list">
-              <div className="feature-item">
-                <span className="material-icons">rocket_launch</span>
-                <div>
-                  <h3 className="feature-item-title">Mass Creation</h3>
-                  <p className="feature-item-text">
-                    Deploy as many Business Centers as you need with a single click. No more spending 10+ minutes on each BC setup.
-                  </p>
-                </div>
-              </div>
-              <div className="feature-item">
-                <span className="material-icons">shield</span>
-                <div>
-                  <h3 className="feature-item-title">Anti-Fingerprint Technology</h3>
-                  <p className="feature-item-text">
-                    Each BC is generated with unique parameters to ensure maximum longevity and reduced linkage between accounts.
-                  </p>
-                </div>
-              </div>
-              <div className="feature-item">
-                <span className="material-icons">api</span>
-                <div>
-                  <h3 className="feature-item-title">Seamless Integration</h3>
-                  <p className="feature-item-text">
-                    Our business centers integrate directly into your workflow, so you never have to see TikTok until it's time to run ads.
-                  </p>
-                </div>
-              </div>
-              <div className="feature-item">
-                <span className="material-icons">timer</span>
-                <div>
-                  <h3 className="feature-item-title">5 Minute Guarantee</h3>
-                  <p className="feature-item-text">
-                    From deploying the automation to signing in, faster than you can make a cup of coffee.
-                  </p>
-                </div>
-              </div>
+          <div className="content-section centered">
+            <h2 className="content-title">How <span className="gold-text">It Works</span></h2>
+            <div className="main-content-text">
+              <p>
+                Getting started with Hoot is simple and straightforward. First, you'll sign up for an account and purchase credits—these credits are your currency for creating TikTok Business Centers. You can create up to 25 Business Centers at once, with a maximum of 50 per day, giving you the flexibility to scale at your own pace. Once credits are purchased, they are non-refundable, but here's what sets us apart: we guarantee 100% delivery. This means credits are only deducted from your account after the Business Center login credentials are successfully delivered to your account vault. If a creation fails for any reason, your credits are automatically refunded—no questions asked, no manual intervention needed. Once your Business Centers are created, they're securely stored in your vault, ready whenever you need them. To access a Business Center, simply navigate to your vault, select the Business Center you want to use, and click "Log In"—you'll be provided with the email and password for that account. Need a verification code? You can fetch it directly from the same interface with a single click. Verification codes can also be retrieved here for closing accounts, managing your Business Centers, or any other administrative tasks you need to perform. Hoot eliminates the guesswork, the manual labor, and the time waste—everything you need is in one place, accessible in seconds.
+              </p>
             </div>
-          </div>
-
-          <div className="content-section">
-            <h2 className="content-title">Why Choose Hoot?</h2>
-            <p className="content-text">
-              In the time it took your competitor to set up one ad account, you just deployed ten Business Centers. 
-              Speed matters in advertising, and Hoot gives you the competitive edge you need to scale faster than ever before.
-            </p>
-            <div className="benefits-grid">
-              <div className="benefit-card">
-                <div className="benefit-number">10x</div>
-                <div className="benefit-label">Faster Setup</div>
-              </div>
-              <div className="benefit-card">
-                <div className="benefit-number">100+</div>
-                <div className="benefit-label">BCs Per Minute</div>
-              </div>
-              <div className="benefit-card">
-                <div className="benefit-number">∞</div>
-                <div className="benefit-label">No Limits</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="content-section">
-            <h2 className="content-title">Get Started</h2>
-            <p className="content-text">
-              Ready to revolutionize your TikTok advertising workflow? Join thousands of affiliates who trust Hoot for their 
-              Business Center automation needs.
-            </p>
             <div className="cta-buttons">
               <Link href="/signup" className="cta-button primary">
-                Start Now
+                Get Started
               </Link>
               <Link href="/contact" className="cta-button secondary">
                 Contact Us
