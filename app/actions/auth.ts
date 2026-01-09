@@ -7,10 +7,14 @@ import { redirect } from 'next/navigation'
 export async function signUp(formData: FormData) {
   const supabase = await createClient()
 
-  // Get the origin for redirect URL - use environment variable or default
-  const origin = process.env.NEXT_PUBLIC_SITE_URL || 
-                 process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 
-                 'http://localhost:3000'
+  // Get the origin for redirect URL
+  let origin = process.env.NEXT_PUBLIC_SITE_URL
+  if (!origin && process.env.VERCEL_URL) {
+    origin = `https://${process.env.VERCEL_URL}`
+  }
+  if (!origin) {
+    origin = 'http://localhost:3000'
+  }
 
   const data = {
     email: formData.get('email') as string,
@@ -24,12 +28,13 @@ export async function signUp(formData: FormData) {
     },
   }
 
-  const { error } = await supabase.auth.signUp(data)
+  const { error, data: signUpData } = await supabase.auth.signUp(data)
 
   if (error) {
     redirect(`/signup?error=${encodeURIComponent(error.message)}`)
   }
 
+  // Always redirect to check-email page, even if email confirmation is disabled
   revalidatePath('/', 'layout')
   redirect('/auth/check-email')
 }

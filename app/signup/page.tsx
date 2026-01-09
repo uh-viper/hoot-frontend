@@ -56,7 +56,11 @@ export default function SignUpPage({
               </div>
             )}
             
-            <form action={(formData) => startTransition(() => signUp(formData))} className="auth-form">
+            <form action={async (formData) => {
+              startTransition(async () => {
+                await signUp(formData)
+              })
+            }} className="auth-form">
               <div className="form-group">
                 <label htmlFor="name">Full Name</label>
                 <input 
