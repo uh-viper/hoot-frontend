@@ -305,6 +305,9 @@ export default function Home() {
             />
           </div>
           <nav className="footer-nav">
+            <Link href="/" className="footer-link">
+              Home
+            </Link>
             <Link href="/learn-more" className="footer-link">
               Learn More
             </Link>
