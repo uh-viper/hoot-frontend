@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useToast } from '../../../contexts/ToastContext';
+import { useConsole } from '../contexts/ConsoleContext';
 
 interface Country {
   code: string;
@@ -72,6 +73,7 @@ const regions = ['North America', 'South America', 'Europe', 'Asia', 'Middle Eas
 
 export default function CreationForm() {
   const { showError } = useToast();
+  const { addMessage, setActive, clearMessages } = useConsole();
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
   const [selectedCurrency, setSelectedCurrency] = useState<string>('');
   const [bcsAmount, setBcsAmount] = useState<number>(5);
@@ -187,7 +189,29 @@ export default function CreationForm() {
       return;
     }
     
-    // TODO: Handle form submission
+    // Start deployment and show status updates
+    clearMessages();
+    setActive(true);
+    addMessage('info', 'Initializing deployment...');
+    addMessage('info', `Country: ${selectedCountry.name} (${selectedCountry.code})`);
+    addMessage('info', `Currency: ${selectedCurrency}`);
+    addMessage('info', `Business Centers: ${validBcsAmount}`);
+    
+    // Simulate deployment process (replace with actual API call)
+    setTimeout(() => {
+      addMessage('info', 'Validating configuration...');
+    }, 1000);
+    
+    setTimeout(() => {
+      addMessage('info', 'Creating business centers...');
+    }, 2000);
+    
+    setTimeout(() => {
+      addMessage('success', 'Deployment started successfully!');
+      addMessage('info', 'Processing your request...');
+    }, 3000);
+    
+    // TODO: Handle actual form submission
     console.log({ country: selectedCountry, currency: selectedCurrency, bcsAmount: validBcsAmount });
   };
 
