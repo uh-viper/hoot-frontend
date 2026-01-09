@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
-export default function EmailCodeHandler() {
+function EmailCodeHandlerContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -18,4 +18,12 @@ export default function EmailCodeHandler() {
   }, [searchParams, router]);
 
   return null;
+}
+
+export default function EmailCodeHandler() {
+  return (
+    <Suspense fallback={null}>
+      <EmailCodeHandlerContent />
+    </Suspense>
+  );
 }
