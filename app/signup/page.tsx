@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState, useTransition } from "react";
 import { signUp } from "../actions/auth";
 import "../styles/base.css";
+import "../styles/responsive.css";
 import "./page.css";
 
 export default function SignUpPage({

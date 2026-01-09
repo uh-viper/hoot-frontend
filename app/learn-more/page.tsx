@@ -3,6 +3,7 @@ import Image from "next/image";
 import Footer from "../components/Footer";
 import "../styles/base.css";
 import "../styles/footer.css";
+import "../styles/responsive.css";
 import "./page.css";
 
 export default function LearnMore() {
