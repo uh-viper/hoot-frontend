@@ -7,10 +7,10 @@ import { redirect } from 'next/navigation'
 export async function signUp(formData: FormData) {
   const supabase = await createClient()
 
-  // Get the origin for redirect URL
-  const origin = typeof window !== 'undefined' 
-    ? window.location.origin 
-    : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+  // Get the origin for redirect URL - use environment variable or default
+  const origin = process.env.NEXT_PUBLIC_SITE_URL || 
+                 process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 
+                 'http://localhost:3000'
 
   const data = {
     email: formData.get('email') as string,
