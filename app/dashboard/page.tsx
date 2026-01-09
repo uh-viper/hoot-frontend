@@ -59,35 +59,6 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="dashboard-section">
-        <h2 className="section-title">Quick Actions</h2>
-        <div className="dashboard-actions">
-          <button className="action-button primary">
-            <span className="material-icons">add_circle</span>
-            Create Business Center
-          </button>
-          <button className="action-button secondary">
-            <span className="material-icons">payment</span>
-            Purchase Credits
-          </button>
-          <button className="action-button secondary">
-            <span className="material-icons">account_balance</span>
-            View Vault
-          </button>
-        </div>
-      </div>
-
-      {/* Recent Activity */}
-      <div className="dashboard-section">
-        <h2 className="section-title">Recent Activity</h2>
-        <div className="activity-list">
-          <div className="activity-empty">
-            <span className="material-icons">inbox</span>
-            <p>No activity yet. Create your first Business Center to get started!</p>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }
