@@ -7,9 +7,10 @@ import { rateLimit } from '@/lib/api/rate-limit'
 export async function GET(request: NextRequest) {
   try {
     // Rate limiting
-    if (!rateLimit(request)) {
+    const rateLimitResult = rateLimit(request)
+    if (!rateLimitResult.success) {
       return NextResponse.json(
-        { error: 'Too many requests' },
+        { error: rateLimitResult.message || 'Too many requests' },
         { status: 429 }
       )
     }
@@ -75,9 +76,10 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     // Rate limiting
-    if (!rateLimit(request)) {
+    const rateLimitResult = rateLimit(request)
+    if (!rateLimitResult.success) {
       return NextResponse.json(
-        { error: 'Too many requests' },
+        { error: rateLimitResult.message || 'Too many requests' },
         { status: 429 }
       )
     }
