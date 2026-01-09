@@ -41,9 +41,14 @@ export default function Home() {
             Generate as many TikTok Business Centers as you need. Any region, any currency. 
             No manual setup, no delays, no limits. Built for high-volume advertisers who can't afford to get throttled.
           </p>
-          <Link href="/signup" className="hero-cta">
-            Start Now
-          </Link>
+          <div className="hero-cta-group">
+            <Link href="/signup" className="hero-cta primary">
+              Start Now
+            </Link>
+            <Link href="#features" className="hero-cta secondary">
+              Learn More
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -267,9 +272,14 @@ export default function Home() {
           <p className="cta-subtitle">
             Join other affiliates that refuse to be slowed down by manual processes.
           </p>
-          <Link href="/signup" className="hero-cta large">
-            Start Now
-          </Link>
+          <div className="hero-cta-group">
+            <Link href="/signup" className="hero-cta large primary">
+              Start Now
+            </Link>
+            <Link href="#features" className="hero-cta large secondary">
+              Learn More
+            </Link>
+          </div>
         </div>
       </section>
     </div>
