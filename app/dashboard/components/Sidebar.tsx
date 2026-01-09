@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { signOut } from "../../actions/auth";
 import "../../styles/dashboard.css";
 
@@ -12,6 +13,12 @@ interface SidebarProps {
 
 export default function Sidebar({ userEmail, credits = 0 }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  useEffect(() => {
+    setIsNavigating(false);
+  }, [pathname]);
 
   const menuItems = [
     {
@@ -35,11 +42,6 @@ export default function Sidebar({ userEmail, credits = 0 }: SidebarProps) {
       path: "/dashboard/credits",
     },
     {
-      icon: "history",
-      label: "Activity",
-      path: "/dashboard/activity",
-    },
-    {
       icon: "settings",
       label: "Settings",
       path: "/dashboard/settings",
@@ -60,7 +62,9 @@ export default function Sidebar({ userEmail, credits = 0 }: SidebarProps) {
             <Link
               key={item.path}
               href={item.path}
+              prefetch={true}
               className={`sidebar-nav-item ${isActive ? "active" : ""}`}
+              onClick={() => setIsNavigating(true)}
             >
               <span className="material-icons">{item.icon}</span>
               <span>{item.label}</span>
