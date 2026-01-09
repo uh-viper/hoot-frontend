@@ -12,8 +12,8 @@ export default async function DashboardPage() {
   return (
     <div className="dashboard-content">
       <div className="dashboard-header">
-        <h1 className="dashboard-title">Welcome Back</h1>
-        <p className="dashboard-subtitle">Here's what's happening with your account</p>
+        <h1 className="dashboard-title">To Dashboard</h1>
+        <p className="dashboard-subtitle">Here's your account overview below it</p>
       </div>
 
       {/* Stats Cards */}
