@@ -1,11 +1,14 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
-import Footer from "../components/Footer";
+import { useState } from "react";
 import "../styles/base.css";
-import "../styles/footer.css";
 import "./page.css";
 
 export default function SignUpPage() {
+  const [showPassword, setShowPassword] = useState(false);
+
   return (
     <div className="auth-page">
       {/* Header */}
@@ -38,7 +41,7 @@ export default function SignUpPage() {
         <div className="auth-container">
           <div className="auth-card">
             <h1 className="auth-title">Create <span className="gold-text">Account</span></h1>
-            <p className="auth-subtitle">Start automating your TikTok growth today</p>
+            <p className="auth-subtitle">Start your automation now.</p>
             
             <form className="auth-form">
               <div className="form-group">
@@ -62,16 +65,39 @@ export default function SignUpPage() {
                   required
                 />
               </div>
+
+              <div className="form-group">
+                <label htmlFor="discord">Discord Username</label>
+                <input 
+                  type="text" 
+                  id="discord" 
+                  name="discord" 
+                  placeholder="Enter your Discord username"
+                  required
+                />
+              </div>
               
               <div className="form-group">
                 <label htmlFor="password">Password</label>
-                <input 
-                  type="password" 
-                  id="password" 
-                  name="password" 
-                  placeholder="Create a password"
-                  required
-                />
+                <div className="password-input-wrapper">
+                  <input 
+                    type={showPassword ? "text" : "password"}
+                    id="password" 
+                    name="password" 
+                    placeholder="Create a password"
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    <span className="material-icons">
+                      {showPassword ? "visibility_off" : "visibility"}
+                    </span>
+                  </button>
+                </div>
               </div>
               
               <button type="submit" className="auth-button">
@@ -82,14 +108,10 @@ export default function SignUpPage() {
             
             <div className="auth-footer">
               <p>Already have an account? <Link href="/login" className="auth-link">Sign in</Link></p>
-              <Link href="/" className="auth-link-back">← Back to home</Link>
             </div>
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <Footer />
     </div>
   );
 }

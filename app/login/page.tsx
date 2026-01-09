@@ -1,8 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import Footer from "../components/Footer";
 import "../styles/base.css";
-import "../styles/footer.css";
 import "./page.css";
 
 export default function LoginPage() {
@@ -52,33 +50,33 @@ export default function LoginPage() {
                 />
               </div>
               
-              <div className="form-group">
+            <div className="form-group">
+              <div className="form-group-header">
                 <label htmlFor="password">Password</label>
-                <input 
-                  type="password" 
-                  id="password" 
-                  name="password" 
-                  placeholder="Enter your password"
-                  required
-                />
+                <Link href="/forgot-password" className="forgot-password-link">Forgot password?</Link>
               </div>
-              
-              <button type="submit" className="auth-button">
-                <span className="material-icons">login</span>
-                Sign In
-              </button>
-            </form>
-            
-            <div className="auth-footer">
-              <p>Don't have an account? <Link href="/signup" className="auth-link">Sign up</Link></p>
-              <Link href="/" className="auth-link-back">← Back to home</Link>
+              <input 
+                type="password" 
+                id="password" 
+                name="password" 
+                placeholder="Enter your password"
+                required
+              />
             </div>
+            
+            <button type="submit" className="auth-button">
+              <span className="material-icons">login</span>
+              Sign In
+            </button>
+          </form>
+          
+          <div className="auth-footer">
+            <p>Don't have an account? <Link href="/signup" className="auth-link">Sign up</Link></p>
+          </div>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <Footer />
     </div>
   );
 }
