@@ -21,12 +21,34 @@ export default async function DashboardPage() {
   const { data: { user: userWithMetadata } } = await supabase.auth.getUser()
   const fullName = userWithMetadata?.user_metadata?.full_name || ''
 
-  // Fetch user stats from database
-  const { data: statsData } = await supabase
+  // Fetch user stats from database, creating if they don't exist
+  let { data: statsData } = await supabase
     .from('user_stats')
     .select('business_centers, requested, successful, failures')
     .eq('user_id', user.id)
     .single()
+
+  // If stats don't exist, create them
+  if (!statsData) {
+    await supabase
+      .from('user_stats')
+      .insert({
+        user_id: user.id,
+        business_centers: 0,
+        requested: 0,
+        successful: 0,
+        failures: 0,
+      })
+    
+    // Fetch again
+    const result = await supabase
+      .from('user_stats')
+      .select('business_centers, requested, successful, failures')
+      .eq('user_id', user.id)
+      .single()
+    
+    statsData = result.data
+  }
 
   const stats = {
     businessCenters: statsData?.business_centers ?? 0,
