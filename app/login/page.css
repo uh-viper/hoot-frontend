@@ -254,6 +254,7 @@
   height: 1px;
   background: #d4af37;
   transition: width 0.3s ease;
+  max-width: 100%;
 }
 
 .forgot-password-link:hover {
@@ -262,6 +263,7 @@
 
 .forgot-password-link:hover::after {
   width: 100%;
+  max-width: 100%;
 }
 
 .auth-button:disabled {
