@@ -19,6 +19,11 @@ export default function Sidebar({ userEmail }: SidebarProps) {
       path: "/dashboard",
     },
     {
+      icon: "add_circle",
+      label: "Creation",
+      path: "/dashboard/creation",
+    },
+    {
       icon: "account_balance",
       label: "Vault",
       path: "/dashboard/vault",
