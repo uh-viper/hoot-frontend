@@ -60,13 +60,11 @@ export default function SignUpPage({
             
             <form action={async (formData) => {
               startTransition(async () => {
-                try {
-                  await signUp(formData)
-                  // If signUp doesn't redirect, manually redirect
+                const result = await signUp(formData)
+                if (result?.error) {
+                  router.push(`/signup?error=${encodeURIComponent(result.error)}`)
+                } else if (result?.success) {
                   router.push('/auth/check-email')
-                } catch (error) {
-                  // Error is handled by redirect in signUp
-                  console.error('Signup error:', error)
                 }
               })
             }} className="auth-form">

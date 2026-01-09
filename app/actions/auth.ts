@@ -28,15 +28,15 @@ export async function signUp(formData: FormData) {
     },
   }
 
-  const { error, data: signUpData } = await supabase.auth.signUp(data)
+  const { error } = await supabase.auth.signUp(data)
 
   if (error) {
-    redirect(`/signup?error=${encodeURIComponent(error.message)}`)
+    return { error: error.message }
   }
 
-  // Always redirect to check-email page, even if email confirmation is disabled
+  // Return success instead of redirecting
   revalidatePath('/', 'layout')
-  redirect('/auth/check-email')
+  return { success: true }
 }
 
 export async function signIn(formData: FormData) {
