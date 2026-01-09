@@ -57,14 +57,17 @@ export default function AccountCard({ id, email, password }: AccountCardProps) {
         </div>
       </div>
 
-      <button
-        type="button"
-        className="fetch-code-btn"
-        onClick={handleFetchCode}
-      >
-        <span className="material-icons">code</span>
-        Fetch Code
-      </button>
+      <div className="account-fetch-section">
+        <label className="account-label">Actions</label>
+        <button
+          type="button"
+          className="fetch-code-btn"
+          onClick={handleFetchCode}
+        >
+          <span className="material-icons">sync</span>
+          Fetch Code
+        </button>
+      </div>
     </div>
   );
 }
