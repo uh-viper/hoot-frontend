@@ -48,7 +48,7 @@ export default function SignUpPage({
         <div className="auth-container">
           <div className="auth-card">
             <h1 className="auth-title">Create <span className="gold-text">Account</span></h1>
-            <p className="auth-subtitle">Automation starts here.</p>
+            <p className="auth-subtitle">Automation starts here</p>
             
             {searchParams.error && (
               <div className="error-message">
