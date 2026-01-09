@@ -15,7 +15,7 @@ export default function GraphSection() {
   return (
     <div className="dashboard-graph-section">
       <div className="graph-header">
-        <h2 className="graph-title">BC Creations</h2>
+        <h2 className="graph-title">Business Centers</h2>
         <div className="time-selector">
           <button 
             className={`time-btn ${activePeriod === 'today' ? 'active' : ''}`}
