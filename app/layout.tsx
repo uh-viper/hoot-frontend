@@ -17,7 +17,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Hoot - TikTok Automation Platform",
+  title: "Hoot - Automation Starts Here",
   description: "Automate and grow your TikTok presence with powerful tools",
   icons: {
     icon: [
