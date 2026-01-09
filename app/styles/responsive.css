@@ -149,12 +149,13 @@
 
   .feature-card {
     padding: 1.75rem 1rem;
+    text-align: center;
   }
 
   .feature-icon-wrapper {
     width: 56px;
     height: 56px;
-    margin-bottom: 1.125rem;
+    margin: 0 auto 1.125rem auto;
   }
 
   .feature-icon-wrapper .material-icons {
@@ -336,12 +337,13 @@
   /* Features on very small screens */
   .feature-card {
     padding: 1.5rem 0.875rem;
+    text-align: center;
   }
 
   .feature-icon-wrapper {
     width: 50px;
     height: 50px;
-    margin-bottom: 1rem;
+    margin: 0 auto 1rem auto;
   }
 
   .feature-icon-wrapper .material-icons {
