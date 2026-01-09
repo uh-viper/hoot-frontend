@@ -1,10 +1,7 @@
-"use client";
-
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
 import Footer from "./components/Footer";
+import EmailCodeHandler from "./components/EmailCodeHandler";
 import "./styles/base.css";
 import "./styles/hero.css";
 import "./styles/comparison.css";
@@ -17,20 +14,9 @@ import "./styles/footer.css";
 import "./styles/responsive.css";
 
 export default function Home() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-
-  useEffect(() => {
-    // Handle email confirmation code if present
-    const code = searchParams.get('code');
-    if (code) {
-      const callbackUrl = new URL('/auth/callback', window.location.origin);
-      callbackUrl.searchParams.set('code', code);
-      router.replace(callbackUrl.toString());
-    }
-  }, [searchParams, router]);
   return (
     <div className="landing-page">
+      <EmailCodeHandler />
       {/* Header */}
       <header className="header">
         <div className="header-container">
