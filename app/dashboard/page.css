@@ -4,24 +4,7 @@
   color: #ffffff;
 }
 
-.dashboard-header {
-  background: #0a0a0a;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  height: 70px;
-  display: flex;
-  align-items: center;
-}
-
-.dashboard-header .header-container {
-  max-width: 1400px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 0 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 100%;
-}
+/* Dashboard header uses base.css styles */
 
 .user-info {
   display: flex;
