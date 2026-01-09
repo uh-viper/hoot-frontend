@@ -7,6 +7,11 @@ import { redirect } from 'next/navigation'
 export async function signUp(formData: FormData) {
   const supabase = await createClient()
 
+  // Get the origin for redirect URL
+  const origin = typeof window !== 'undefined' 
+    ? window.location.origin 
+    : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+
   const data = {
     email: formData.get('email') as string,
     password: formData.get('password') as string,
@@ -15,6 +20,7 @@ export async function signUp(formData: FormData) {
         full_name: formData.get('name') as string,
         discord_username: formData.get('discord') as string,
       },
+      emailRedirectTo: `${origin}/auth/callback`,
     },
   }
 
