@@ -311,6 +311,28 @@
     padding: 0.875rem 1.5rem;
     font-size: 1rem;
   }
+
+  /* Footer */
+  .footer {
+    padding: 2.5rem 0 1.5rem;
+  }
+
+  .footer-container {
+    padding: 0 1rem;
+    gap: 1.5rem;
+  }
+
+  .footer-nav {
+    gap: 1.5rem;
+  }
+
+  .footer-link {
+    font-size: 0.95rem;
+  }
+
+  .footer-copyright {
+    font-size: 0.8rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -465,5 +487,27 @@
   .final-cta-section .hero-cta {
     max-width: 100%;
     width: 100%;
+  }
+
+  /* Footer on very small screens */
+  .footer {
+    padding: 2rem 0 1.25rem;
+  }
+
+  .footer-container {
+    gap: 1.25rem;
+  }
+
+  .footer-nav {
+    gap: 1.25rem;
+    flex-direction: column;
+  }
+
+  .footer-link {
+    font-size: 0.9rem;
+  }
+
+  .footer-logo-image {
+    max-height: 35px;
   }
 }

@@ -8,6 +8,7 @@ import "./styles/workflow.css";
 import "./styles/why.css";
 import "./styles/social-proof.css";
 import "./styles/cta.css";
+import "./styles/footer.css";
 import "./styles/responsive.css";
 
 export default function Home() {
@@ -290,6 +291,35 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="footer">
+        <div className="footer-container">
+          <div className="footer-logo">
+            <Image
+              src="/hootlogo.png"
+              alt="Hoot Logo"
+              width={120}
+              height={40}
+              className="footer-logo-image"
+            />
+          </div>
+          <nav className="footer-nav">
+            <Link href="#features" className="footer-link">
+              Learn More
+            </Link>
+            <Link href="/contact" className="footer-link">
+              Contact
+            </Link>
+            <a href="https://discord.gg/hoot" target="_blank" rel="noopener noreferrer" className="footer-link">
+              Discord
+            </a>
+          </nav>
+          <div className="footer-copyright">
+            © <span className="gold-text">Hoot</span> 2026. All rights reserved.
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
