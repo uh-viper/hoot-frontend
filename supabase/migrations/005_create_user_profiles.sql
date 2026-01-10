@@ -38,15 +38,22 @@ CREATE POLICY "Users can update their own profile"
   FOR UPDATE
   USING (auth.uid() = user_id);
 
+-- Drop existing policies if they exist (idempotent)
+DROP POLICY IF EXISTS "Users can view their own profile" ON public.user_profiles;
+DROP POLICY IF EXISTS "Users can insert their own profile" ON public.user_profiles;
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.user_profiles;
+
 -- Update handle_new_user function to also create profile (merges with existing function from migration 002)
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
   INSERT INTO public.user_credits (user_id, credits)
-  VALUES (NEW.id, 0);
+  VALUES (NEW.id, 0)
+  ON CONFLICT (user_id) DO NOTHING;
   
   INSERT INTO public.user_stats (user_id, business_centers, requested, successful, failures)
-  VALUES (NEW.id, 0, 0, 0, 0);
+  VALUES (NEW.id, 0, 0, 0, 0)
+  ON CONFLICT (user_id) DO NOTHING;
   
   INSERT INTO public.user_profiles (user_id, discord_username)
   VALUES (NEW.id, NEW.raw_user_meta_data->>'discord_username')
