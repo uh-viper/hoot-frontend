@@ -22,8 +22,16 @@ export default async function SettingsPage() {
   const { data: { user: userWithMetadata } } = await supabase.auth.getUser()
   
   const fullName = userWithMetadata?.user_metadata?.full_name || ''
-  const discordUsername = userWithMetadata?.user_metadata?.discord_username || ''
   const email = user.email || ''
+
+  // Get discord username from user_profiles table (or fallback to metadata)
+  const { data: profileData } = await supabase
+    .from('user_profiles')
+    .select('discord_username')
+    .eq('user_id', user.id)
+    .single()
+
+  const discordUsername = profileData?.discord_username || userWithMetadata?.user_metadata?.discord_username || ''
 
   return (
     <div className="dashboard-content">

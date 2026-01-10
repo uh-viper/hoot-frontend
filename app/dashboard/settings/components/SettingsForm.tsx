@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useToast } from '../../../contexts/ToastContext'
-import { updateProfile, updatePassword } from '../actions/settings'
+import { updateProfile, updatePassword, updateEmail } from '../actions/settings'
 
 interface SettingsFormProps {
   initialName: string
@@ -33,23 +33,40 @@ export default function SettingsForm({ initialName, initialEmail, initialDiscord
     setIsLoading(true)
 
     try {
-      const result = await updateProfile({
+      // Update profile (name and discord username)
+      const profileResult = await updateProfile({
         name: formData.name,
         discordUsername: formData.discordUsername,
       })
 
-      if (result?.error) {
-        showError(result.error)
+      if (profileResult?.error) {
+        showError(profileResult.error)
+        setIsLoading(false)
+        return
+      }
+
+      // If email changed, update email (requires verification)
+      if (formData.email !== initialEmail) {
+        const emailResult = await updateEmail({
+          newEmail: formData.email,
+        })
+
+        if (emailResult?.error) {
+          showError(emailResult.error)
+        } else {
+          showSuccess(emailResult?.message || 'Email update confirmation sent. Please check your new email inbox.')
+        }
       } else {
         showSuccess('Profile updated successfully!')
-        // Clear password fields
-        setFormData((prev) => ({
-          ...prev,
-          currentPassword: '',
-          newPassword: '',
-          confirmPassword: '',
-        }))
       }
+
+      // Clear password fields
+      setFormData((prev) => ({
+        ...prev,
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      }))
     } catch (error) {
       showError('Failed to update profile. Please try again.')
     } finally {
@@ -134,11 +151,11 @@ export default function SettingsForm({ initialName, initialEmail, initialDiscord
               id="email"
               name="email"
               value={formData.email}
-              disabled
-              className="settings-input settings-input-disabled"
+              onChange={handleInputChange}
+              className="settings-input"
               placeholder="Your email address"
             />
-            <span className="settings-hint">Email cannot be changed</span>
+            <span className="settings-hint">A confirmation email will be sent to your new address</span>
           </div>
 
           <div className="settings-form-field">
