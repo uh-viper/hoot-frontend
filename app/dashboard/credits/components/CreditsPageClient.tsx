@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { useToast } from '@/contexts/ToastContext'
+import { useToast } from '../../../contexts/ToastContext'
 
 export default function CreditsPageClient() {
   const searchParams = useSearchParams()
