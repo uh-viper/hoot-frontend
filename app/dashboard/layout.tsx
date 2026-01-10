@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getSessionUser } from '@/lib/auth/validate-session'
 import { createClient } from '@/lib/supabase/server'
+import { initializeUserData } from '@/lib/api/user-initialization'
 import Sidebar from './components/Sidebar'
 import '../styles/dashboard.css'
 
@@ -15,29 +16,17 @@ export default async function DashboardLayout({
     redirect('/login')
   }
 
-  // Fetch user credits from database, creating if they don't exist
+  // Ensure user has all required database rows (user_credits, user_stats, user_profiles)
+  // This check runs on every dashboard page load to handle manually deleted rows
+  await initializeUserData(user.id)
+
+  // Fetch user credits from database
   const supabase = await createClient()
-  let { data: creditsData } = await supabase
+  const { data: creditsData } = await supabase
     .from('user_credits')
     .select('credits')
     .eq('user_id', user.id)
     .single()
-
-  // If credits don't exist, create them
-  if (!creditsData) {
-    await supabase
-      .from('user_credits')
-      .insert({ user_id: user.id, credits: 0 })
-    
-    // Fetch again
-    const result = await supabase
-      .from('user_credits')
-      .select('credits')
-      .eq('user_id', user.id)
-      .single()
-    
-    creditsData = result.data
-  }
 
   const credits = creditsData?.credits ?? 0
 

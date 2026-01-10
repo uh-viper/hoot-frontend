@@ -1,6 +1,7 @@
 import { getSessionUser } from '@/lib/auth/validate-session'
 import { redirect } from 'next/navigation'
 import { Metadata } from 'next'
+import { initializeUserData } from '@/lib/api/user-initialization'
 import AccountCard from './components/AccountCard'
 import '../../styles/dashboard.css'
 import '../../styles/vault.css'
@@ -15,6 +16,9 @@ export default async function VaultPage() {
   if (!user) {
     redirect('/login')
   }
+
+  // Ensure user has all required database rows
+  await initializeUserData(user.id)
 
   // Test account data (will be replaced with actual data from database)
   const testAccounts = [

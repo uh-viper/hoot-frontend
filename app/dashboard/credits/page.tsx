@@ -2,6 +2,7 @@ import { getSessionUser } from '@/lib/auth/validate-session'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Metadata } from 'next'
+import { initializeUserData } from '@/lib/api/user-initialization'
 import CreditPackageCard from './components/CreditPackageCard'
 import PurchaseHistory from './components/PurchaseHistory'
 import CreditsPageClient from './components/CreditsPageClient'
@@ -37,6 +38,9 @@ export default async function CreditsPage() {
   if (!user) {
     redirect('/login')
   }
+
+  // Ensure user has all required database rows
+  await initializeUserData(user.id)
 
   // Fetch purchase history
   const supabase = await createClient()

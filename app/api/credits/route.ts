@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionUser } from '@/lib/auth/validate-session'
 import { createClient } from '@/lib/supabase/server'
+import { initializeUserData } from '@/lib/api/user-initialization'
 import { rateLimit } from '@/lib/api/rate-limit'
 
 // GET - Fetch user credits
@@ -24,6 +25,9 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Ensure user has all required database rows (user_credits, user_stats, user_profiles)
+    await initializeUserData(user.id)
+
     // Fetch user credits
     const supabase = await createClient()
     const { data, error } = await supabase
@@ -33,28 +37,6 @@ export async function GET(request: NextRequest) {
       .single()
 
     if (error) {
-      // If credits don't exist, create them with default value
-      if (error.code === 'PGRST116') {
-        const { data: newCredits, error: insertError } = await supabase
-          .from('user_credits')
-          .insert({
-            user_id: user.id,
-            credits: 0,
-          })
-          .select('credits')
-          .single()
-
-        if (insertError) {
-          console.error('Error creating user credits:', insertError)
-          return NextResponse.json(
-            { error: 'Failed to create credits' },
-            { status: 500 }
-          )
-        }
-
-        return NextResponse.json({ credits: newCredits.credits })
-      }
-
       console.error('Error fetching user credits:', error)
       return NextResponse.json(
         { error: 'Failed to fetch credits' },
@@ -93,6 +75,9 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
+    // Ensure user has all required database rows
+    await initializeUserData(user.id)
+
     const body = await request.json()
     const { credits, operation } = body // operation: 'set', 'add', 'subtract'
 
@@ -106,37 +91,30 @@ export async function PATCH(request: NextRequest) {
 
     const supabase = await createClient()
 
-    // Fetch current credits
+    // Fetch current credits (should exist after initializeUserData)
     const { data: currentData, error: fetchError } = await supabase
       .from('user_credits')
       .select('credits')
       .eq('user_id', user.id)
       .single()
 
-    let newCredits = credits
+    if (fetchError) {
+      console.error('Error fetching user credits after initialization:', fetchError)
+      return NextResponse.json(
+        { error: 'Failed to fetch credits' },
+        { status: 500 }
+      )
+    }
 
-    if (fetchError && fetchError.code === 'PGRST116') {
-      // Credits don't exist, create them
-      if (operation === 'add') {
-        newCredits = credits
-      } else if (operation === 'subtract') {
-        return NextResponse.json(
-          { error: 'Cannot subtract from non-existent credits' },
-          { status: 400 }
-        )
-      } else {
-        newCredits = credits
-      }
-    } else if (!fetchError) {
-      // Credits exist, apply operation
-      if (operation === 'add') {
-        newCredits = currentData.credits + credits
-      } else if (operation === 'subtract') {
-        newCredits = Math.max(0, currentData.credits - credits) // Prevent negative
-      } else {
-        // 'set' or default
-        newCredits = credits
-      }
+    // Apply operation
+    let newCredits = credits
+    if (operation === 'add') {
+      newCredits = currentData.credits + credits
+    } else if (operation === 'subtract') {
+      newCredits = Math.max(0, currentData.credits - credits) // Prevent negative
+    } else {
+      // 'set' or default
+      newCredits = credits
     }
 
     // Update or create credits

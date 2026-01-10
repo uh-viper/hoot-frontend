@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionUser } from '@/lib/auth/validate-session'
 import { createClient } from '@/lib/supabase/server'
+import { initializeUserData } from '@/lib/api/user-initialization'
 import { rateLimit } from '@/lib/api/rate-limit'
 
 // GET - Fetch user stats
@@ -24,6 +25,9 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Ensure user has all required database rows (user_credits, user_stats, user_profiles)
+    await initializeUserData(user.id)
+
     // Fetch user stats
     const supabase = await createClient()
     const { data, error } = await supabase
@@ -33,36 +37,6 @@ export async function GET(request: NextRequest) {
       .single()
 
     if (error) {
-      // If stats don't exist, create them with default values
-      if (error.code === 'PGRST116') {
-        const { data: newStats, error: insertError } = await supabase
-          .from('user_stats')
-          .insert({
-            user_id: user.id,
-            business_centers: 0,
-            requested: 0,
-            successful: 0,
-            failures: 0,
-          })
-          .select('business_centers, requested, successful, failures')
-          .single()
-
-        if (insertError) {
-          console.error('Error creating user stats:', insertError)
-          return NextResponse.json(
-            { error: 'Failed to create stats' },
-            { status: 500 }
-          )
-        }
-
-        return NextResponse.json({
-          business_centers: newStats.business_centers,
-          requested: newStats.requested,
-          successful: newStats.successful,
-          failures: newStats.failures,
-        })
-      }
-
       console.error('Error fetching user stats:', error)
       return NextResponse.json(
         { error: 'Failed to fetch stats' },
@@ -106,6 +80,9 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
+    // Ensure user has all required database rows
+    await initializeUserData(user.id)
+
     const body = await request.json()
     const { business_centers, requested, successful, failures } = body
 
@@ -136,7 +113,7 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    // Update stats
+    // Update stats (should exist after initializeUserData)
     const supabase = await createClient()
     const { data, error } = await supabase
       .from('user_stats')
@@ -146,36 +123,6 @@ export async function PATCH(request: NextRequest) {
       .single()
 
     if (error) {
-      // If stats don't exist, create them
-      if (error.code === 'PGRST116') {
-        const { data: newStats, error: insertError } = await supabase
-          .from('user_stats')
-          .insert({
-            user_id: user.id,
-            business_centers: business_centers ?? 0,
-            requested: requested ?? 0,
-            successful: successful ?? 0,
-            failures: failures ?? 0,
-          })
-          .select('business_centers, requested, successful, failures')
-          .single()
-
-        if (insertError) {
-          console.error('Error creating user stats:', insertError)
-          return NextResponse.json(
-            { error: 'Failed to create stats' },
-            { status: 500 }
-          )
-        }
-
-        return NextResponse.json({
-          business_centers: newStats.business_centers,
-          requested: newStats.requested,
-          successful: newStats.successful,
-          failures: newStats.failures,
-        })
-      }
-
       console.error('Error updating user stats:', error)
       return NextResponse.json(
         { error: 'Failed to update stats' },

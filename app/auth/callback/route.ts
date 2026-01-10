@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { initializeUserData } from '@/lib/api/user-initialization'
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
@@ -27,9 +28,12 @@ export async function GET(request: NextRequest) {
     const { error, data } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error && data.user) {
-      // After email confirmation, the email in auth.users has been updated
-      // Now we sync the confirmed email to user_profiles table
-      // This only happens AFTER the user clicks the confirmation link
+      // After email confirmation, ensure all user data rows exist
+      // This handles cases where rows might be missing or were manually deleted
+      // Note: initializeUserData will create its own client with the session cookies
+      await initializeUserData(data.user.id)
+      
+      // Also sync the confirmed email to user_profiles table
       const { error: profileError } = await supabase
         .from('user_profiles')
         .upsert({
