@@ -36,9 +36,6 @@ export async function updateProfile(data: UpdateProfileData) {
     return { error: ERROR_MESSAGES.NOT_AUTHENTICATED }
   }
 
-  // Ensure user profile exists (creates if missing)
-  await initializeUserData(user.id)
-
   // Get current user email (from auth.users)
   const currentEmail = user.email || ''
 
@@ -56,22 +53,44 @@ export async function updateProfile(data: UpdateProfileData) {
     return { error: ERROR_MESSAGES.UPDATE_FAILED }
   }
 
-  // Update or insert profile data in user_profiles table
-  // This saves: name, email, and discord_username to the database table
-  const { error: profileError } = await supabase
+  // Ensure user profile exists first using RPC function (bypasses RLS)
+  // This ensures the profile exists before we try to update it
+  const { error: ensureError } = await supabase.rpc('ensure_user_profile', {
+    user_uuid: user.id,
+  })
+
+  if (ensureError) {
+    console.error('Error ensuring user profile exists:', ensureError)
+    // If RPC fails, try direct insert (should work with RLS for current user)
+    const { error: insertError } = await supabase
+      .from('user_profiles')
+      .insert({
+        user_id: user.id,
+        full_name: data.name || null,
+        discord_username: data.discordUsername || null,
+        email: currentEmail,
+      })
+      .select()
+
+    if (insertError) {
+      console.error('Error creating user profile:', insertError)
+      return { error: ERROR_MESSAGES.UPDATE_FAILED }
+    }
+  }
+
+  // Now update the profile (it should exist at this point)
+  const { error: updateError } = await supabase
     .from('user_profiles')
-    .upsert({
-      user_id: user.id,
+    .update({
       full_name: data.name || null,
       discord_username: data.discordUsername || null,
       email: currentEmail, // Keep current email from auth.users
-    }, {
-      onConflict: 'user_id',
     })
+    .eq('user_id', user.id)
 
-  if (profileError) {
+  if (updateError) {
     // Don't expose database error details
-    console.error('Error updating user profile:', profileError)
+    console.error('Error updating user profile:', updateError)
     return { error: ERROR_MESSAGES.UPDATE_FAILED }
   }
 
