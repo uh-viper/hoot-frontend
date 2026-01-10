@@ -2,6 +2,7 @@ import { getSessionUser } from '@/lib/auth/validate-session'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Metadata } from 'next'
+import { initializeUserData } from '@/lib/api/user-initialization'
 import SettingsForm from './components/SettingsForm'
 import '../../styles/dashboard.css'
 import '../../styles/settings.css'
@@ -16,6 +17,10 @@ export default async function SettingsPage() {
   if (!user) {
     redirect('/login')
   }
+
+  // Ensure user data is initialized (creates user_profiles if missing)
+  // This handles users who signed up before user_profiles table existed
+  await initializeUserData(user.id)
 
   // Get user metadata (fallback)
   const supabase = await createClient()
