@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
           // Find the purchase record by checkout session ID
           const { data: purchase, error: purchaseError } = await supabaseAdmin
             .from('purchases')
-            .select('id, user_id, credits')
+            .select('id, user_id, credits, status')
             .eq('stripe_checkout_session_id', session.id)
             .single()
 
