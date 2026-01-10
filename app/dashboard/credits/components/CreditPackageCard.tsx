@@ -11,8 +11,7 @@ interface CreditPackageCardProps {
 }
 
 export default function CreditPackageCard({ packageId, credits, price, popular }: CreditPackageCardProps) {
-  const { showError, showSuccess } = useToast()
-  const router = useRouter()
+  const { showError } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   
   const pricePerCredit = (price / credits).toFixed(2)
