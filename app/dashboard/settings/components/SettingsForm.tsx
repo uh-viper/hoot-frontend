@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useToast } from '../../../contexts/ToastContext'
-import { updateProfile, updatePassword } from '../../actions/settings'
+import { updateProfile, updatePassword } from '../actions/settings'
 
 interface SettingsFormProps {
   initialName: string
