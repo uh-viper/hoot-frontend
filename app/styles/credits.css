@@ -313,7 +313,8 @@
   color: rgba(255, 255, 255, 0.5);
 }
 
-.purchase-history-empty .material-icons {
+.purchase-history-empty .material-icons,
+.purchase-history-empty .material-symbols-outlined {
   font-size: 3rem;
   opacity: 0.3;
   margin-bottom: 1rem;
