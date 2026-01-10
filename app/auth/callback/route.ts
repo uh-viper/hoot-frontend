@@ -28,8 +28,8 @@ export async function GET(request: NextRequest) {
 
     if (!error && data.user) {
       // After email confirmation, the email in auth.users has been updated
-      // The database trigger will automatically sync the email to user_profiles
-      // But we'll also ensure it's updated here as a safety measure
+      // Now we sync the confirmed email to user_profiles table
+      // This only happens AFTER the user clicks the confirmation link
       const { error: profileError } = await supabase
         .from('user_profiles')
         .upsert({
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
         })
 
       if (profileError) {
-        // Log but don't fail - the trigger should handle it
+        // Log but don't fail - email is already confirmed in auth
         console.error('Failed to sync email to user_profiles:', profileError)
       }
 
