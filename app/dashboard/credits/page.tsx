@@ -2,6 +2,7 @@ import { getSessionUser } from '@/lib/auth/validate-session'
 import { redirect } from 'next/navigation'
 import { Metadata } from 'next'
 import CreditPackageCard from './components/CreditPackageCard'
+import PurchaseHistory from './components/PurchaseHistory'
 import '../../styles/dashboard.css'
 import '../../styles/credits.css'
 
@@ -53,6 +54,8 @@ export default async function CreditsPage() {
           ))}
         </div>
       </div>
+
+      <PurchaseHistory />
     </div>
   )
 }
