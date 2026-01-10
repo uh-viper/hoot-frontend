@@ -110,13 +110,15 @@ export async function POST(request: NextRequest) {
             console.log('Adding credits to user (new purchase):', {
               user_id: userId,
               credits: credits,
-              purchase_id: purchaseId
+              purchase_id: purchaseId,
+              payment_intent: session.payment_intent
             })
             
             const { error: addCreditsError } = await supabaseAdmin.rpc('add_credits_to_user', {
               p_user_id: userId,
               p_credits: credits,
               p_purchase_id: purchaseId,
+              p_payment_intent_id: session.payment_intent || null,
             })
 
             if (addCreditsError) {
@@ -155,33 +157,28 @@ export async function POST(request: NextRequest) {
                 user_id: purchase.user_id,
                 purchase_credits: purchase.credits,
                 session_credits: credits,
-                status: purchase.status
+                status: purchase.status,
+                payment_intent: session.payment_intent
               })
               
-              // Update payment intent ID if not set (do this before adding credits to avoid status change)
-              if (session.payment_intent) {
-                await supabaseAdmin
-                  .from('purchases')
-                  .update({ stripe_payment_intent_id: session.payment_intent as string })
-                  .eq('id', purchase.id)
-              }
-
-              // Add credits to user - use purchase.credits (from database) not session metadata
-              console.log('Adding credits to user:', {
+              // Add credits to user FIRST (before updating payment_intent_id to avoid any issues)
+              // The function will mark purchase as completed and update payment_intent_id atomically
+              console.log('Calling add_credits_to_user:', {
                 user_id: purchase.user_id,
                 credits: creditsToAdd,
                 purchase_id: purchase.id,
-                purchase_status: purchase.status
+                payment_intent: session.payment_intent
               })
               
               const { error: addCreditsError } = await supabaseAdmin.rpc('add_credits_to_user', {
                 p_user_id: purchase.user_id,
                 p_credits: creditsToAdd,
                 p_purchase_id: purchase.id,
+                p_payment_intent_id: session.payment_intent || null,
               })
 
               if (addCreditsError) {
-                console.error('❌ FAILED to add credits:', {
+                console.error('❌ FAILED to add credits - DETAILED ERROR:', {
                   error: addCreditsError,
                   message: addCreditsError.message,
                   code: addCreditsError.code,
@@ -190,7 +187,8 @@ export async function POST(request: NextRequest) {
                   user_id: purchase.user_id,
                   credits: creditsToAdd,
                   purchase_id: purchase.id,
-                  purchase_credits_from_db: purchase.credits
+                  purchase_credits_from_db: purchase.credits,
+                  purchase_status_before_call: purchase.status
                 })
                 
                 // Update purchase status to failed if credits couldn't be added
@@ -198,17 +196,33 @@ export async function POST(request: NextRequest) {
                   .from('purchases')
                   .update({ status: 'failed' })
                   .eq('id', purchase.id)
+                  
+                // Log the failed purchase for manual review
+                console.error('PURCHASE MARKED AS FAILED - Manual review needed:', purchase.id)
               } else {
-                console.log('✅ Successfully added credits to user:', {
-                  user_id: purchase.user_id,
-                  credits_added: creditsToAdd,
-                  purchase_id: purchase.id
-                })
+                // Verify credits were actually added
+                const { data: userCredits, error: verifyError } = await supabaseAdmin
+                  .from('user_credits')
+                  .select('credits')
+                  .eq('user_id', purchase.user_id)
+                  .single()
+                
+                if (verifyError) {
+                  console.error('⚠️  Could not verify credits were added:', verifyError)
+                } else {
+                  console.log('✅ Successfully added credits to user:', {
+                    user_id: purchase.user_id,
+                    credits_added: creditsToAdd,
+                    new_total_credits: userCredits.credits,
+                    purchase_id: purchase.id
+                  })
+                }
               }
             } else {
-              console.log('Purchase already processed, skipping:', {
+              console.log('⚠️  Purchase already processed, skipping:', {
                 purchase_id: purchase.id,
-                status: purchase.status
+                status: purchase.status,
+                note: 'If this purchase should have credits but they are missing, manual intervention may be needed'
               })
             }
           }
