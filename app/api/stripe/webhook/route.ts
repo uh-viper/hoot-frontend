@@ -22,10 +22,12 @@ const supabaseAdmin = createClient(
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || ''
 
 export async function POST(request: NextRequest) {
+  console.log('🔔 WEBHOOK RECEIVED - Starting webhook processing...')
   const body = await request.text()
   const signature = request.headers.get('stripe-signature')
 
   if (!signature) {
+    console.error('❌ WEBHOOK ERROR: No signature provided')
     return NextResponse.json(
       { error: 'No signature provided' },
       { status: 400 }
@@ -33,7 +35,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (!webhookSecret) {
-    console.error('STRIPE_WEBHOOK_SECRET is not set')
+    console.error('❌ WEBHOOK ERROR: STRIPE_WEBHOOK_SECRET is not set')
     return NextResponse.json(
       { error: 'Webhook secret not configured' },
       { status: 500 }
@@ -44,8 +46,9 @@ export async function POST(request: NextRequest) {
 
   try {
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
+    console.log('✅ Webhook signature verified. Event type:', event.type)
   } catch (err) {
-    console.error('Webhook signature verification failed:', err)
+    console.error('❌ WEBHOOK ERROR: Signature verification failed:', err)
     return NextResponse.json(
       { error: 'Webhook signature verification failed' },
       { status: 400 }
@@ -56,7 +59,16 @@ export async function POST(request: NextRequest) {
     // Handle the event
     switch (event.type) {
       case 'checkout.session.completed': {
+        console.log('💰 Processing checkout.session.completed event...')
         const session = event.data.object as Stripe.Checkout.Session
+        
+        console.log('Session details:', {
+          id: session.id,
+          payment_status: session.payment_status,
+          client_reference_id: session.client_reference_id,
+          metadata: session.metadata,
+          amount_total: session.amount_total
+        })
         
         // Only process if payment is successful
         if (session.payment_status === 'paid') {
@@ -64,8 +76,10 @@ export async function POST(request: NextRequest) {
           const credits = parseInt(session.metadata?.credits || '0')
           const amountPaid = session.amount_total || 0
 
+          console.log('Extracted values:', { userId, credits, amountPaid })
+
           if (!userId || !credits) {
-            console.error('Missing userId or credits in session metadata:', session.metadata)
+            console.error('❌ Missing userId or credits in session metadata:', session.metadata)
             return NextResponse.json({ received: true })
           }
 
