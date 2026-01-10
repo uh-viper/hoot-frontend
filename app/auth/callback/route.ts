@@ -24,9 +24,26 @@ export async function GET(request: NextRequest) {
       }
     )
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    const { error, data } = await supabase.auth.exchangeCodeForSession(code)
 
-    if (!error) {
+    if (!error && data.user) {
+      // After email confirmation, the email in auth.users has been updated
+      // The database trigger will automatically sync the email to user_profiles
+      // But we'll also ensure it's updated here as a safety measure
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .upsert({
+          user_id: data.user.id,
+          email: data.user.email || null,
+        }, {
+          onConflict: 'user_id',
+        })
+
+      if (profileError) {
+        // Log but don't fail - the trigger should handle it
+        console.error('Failed to sync email to user_profiles:', profileError)
+      }
+
       // Redirect to our custom confirmation success page
       const confirmPageUrl = new URL('/auth/confirm', requestUrl.origin)
       confirmPageUrl.searchParams.set('success', 'true')

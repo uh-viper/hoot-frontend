@@ -1,0 +1,9 @@
+-- Note: We cannot create triggers directly on auth.users table in Supabase
+-- Instead, email sync happens in the auth callback route after email confirmation
+-- This migration file is kept for documentation purposes
+-- 
+-- Email sync logic is handled in: app/auth/callback/route.ts
+-- When a user confirms their email change, the callback:
+-- 1. Exchanges the confirmation code for a session
+-- 2. At this point, auth.users.email has been updated with the new email
+-- 3. The callback then syncs the confirmed email to user_profiles table

@@ -73,6 +73,7 @@ export async function updateEmail(data: UpdateEmailData) {
 
   // Update email in auth.users - Supabase will send a confirmation email
   // Email is stored in auth.users.email (not in metadata)
+  // The email will NOT change until the user confirms via the confirmation link
   const { error: updateError } = await supabase.auth.updateUser({
     email: data.newEmail,
   })
@@ -81,19 +82,9 @@ export async function updateEmail(data: UpdateEmailData) {
     return { error: updateError.message }
   }
 
-  // Update email in user_profiles table as well
-  // Note: This updates immediately, but the auth email won't change until confirmation
-  // The email in auth.users.email will be updated after user confirms
-  const { error: profileError } = await supabase
-    .from('user_profiles')
-    .update({ email: data.newEmail })
-    .eq('user_id', user.id)
-
-  if (profileError) {
-    // Log but don't fail - email update in auth is the critical one
-    console.error('Failed to update email in user_profiles:', profileError)
-    // Still return success since auth email update worked
-  }
+  // DO NOT update user_profiles table here - wait until email is confirmed
+  // The database trigger will sync the email from auth.users to user_profiles
+  // once the email is confirmed and auth.users.email is actually updated
 
   revalidatePath('/dashboard/settings')
   return { success: true, message: 'Email update confirmation sent. Please check your new email inbox.' }
