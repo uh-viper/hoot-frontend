@@ -210,8 +210,31 @@
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.credit-purchase-btn:hover .material-icons {
+.credit-purchase-btn:hover .material-icons:not(.spinning) {
   transform: translateX(4px);
+}
+
+.credit-purchase-btn .material-icons.spinning {
+  animation: spin 1s linear infinite;
+}
+
+.credit-purchase-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.credit-purchase-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Popular card special styling */

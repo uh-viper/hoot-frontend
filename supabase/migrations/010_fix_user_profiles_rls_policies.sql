@@ -13,12 +13,14 @@ CREATE POLICY "Users can view their own profile"
   USING (auth.uid() = user_id);
 
 -- Create policy: Users can insert their own profile
+-- USING checks existing rows (for conflict resolution), WITH CHECK validates new rows
 CREATE POLICY "Users can insert their own profile"
   ON public.user_profiles
   FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
 -- Create policy: Users can update their own profile
+-- USING checks which rows can be updated, WITH CHECK validates the updated values
 CREATE POLICY "Users can update their own profile"
   ON public.user_profiles
   FOR UPDATE

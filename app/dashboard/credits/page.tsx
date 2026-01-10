@@ -1,8 +1,11 @@
 import { getSessionUser } from '@/lib/auth/validate-session'
+import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Metadata } from 'next'
 import CreditPackageCard from './components/CreditPackageCard'
 import PurchaseHistory from './components/PurchaseHistory'
+import CreditsPageClient from './components/CreditsPageClient'
+import { Suspense } from 'react'
 import '../../styles/dashboard.css'
 import '../../styles/credits.css'
 
@@ -35,8 +38,30 @@ export default async function CreditsPage() {
     redirect('/login')
   }
 
+  // Fetch purchase history
+  const supabase = await createClient()
+  const { data: purchases, error: purchasesError } = await supabase
+    .from('purchases')
+    .select('id, credits, amount_paid_cents, status, created_at')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(50)
+
+  // Format purchases for component
+  const formattedPurchases = purchases?.map(purchase => ({
+    id: purchase.id,
+    credits: purchase.credits,
+    price: purchase.amount_paid_cents / 100, // Convert cents to dollars
+    date: new Date(purchase.created_at),
+    status: purchase.status as 'completed' | 'pending' | 'failed',
+  })) || []
+
   return (
     <div className="dashboard-content">
+      <Suspense fallback={null}>
+        <CreditsPageClient />
+      </Suspense>
+      
       <div className="dashboard-header">
         <h1 className="dashboard-title">Credits</h1>
         <p className="dashboard-subtitle">Purchase credits here</p>
@@ -47,6 +72,7 @@ export default async function CreditsPage() {
           {creditPackages.map((pkg) => (
             <CreditPackageCard
               key={pkg.id}
+              packageId={pkg.id}
               credits={pkg.credits}
               price={pkg.price}
               popular={pkg.popular}
@@ -55,7 +81,7 @@ export default async function CreditsPage() {
         </div>
       </div>
 
-      <PurchaseHistory />
+      <PurchaseHistory purchases={formattedPurchases} />
     </div>
   )
 }

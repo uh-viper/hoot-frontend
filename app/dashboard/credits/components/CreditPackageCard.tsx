@@ -1,20 +1,59 @@
 "use client";
 
+import { useState } from 'react'
+import { useToast } from '@/contexts/ToastContext'
+import { useRouter } from 'next/navigation'
+
 interface CreditPackageCardProps {
+  packageId: string
   credits: number
   price: number
   popular?: boolean
 }
 
-export default function CreditPackageCard({ credits, price, popular }: CreditPackageCardProps) {
+export default function CreditPackageCard({ packageId, credits, price, popular }: CreditPackageCardProps) {
+  const { showError, showSuccess } = useToast()
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+  
   const pricePerCredit = (price / credits).toFixed(2)
   const basePricePerCredit = 1.00 // Base rate: $1.00 per credit (from 10 credits package)
   const savingsPercent = Math.round(((basePricePerCredit - (price / credits)) / basePricePerCredit) * 100)
   const savings = savingsPercent > 0 ? savingsPercent : 0
 
-  const handlePurchase = () => {
-    // TODO: Implement purchase functionality
-    console.log(`Purchasing ${credits} credits for $${price}`)
+  const handlePurchase = async () => {
+    setIsLoading(true)
+    
+    try {
+      const response = await fetch('/api/stripe/create-checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          credits,
+          price,
+          packageId,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create checkout session')
+      }
+
+      if (data.url) {
+        // Redirect to Stripe Checkout
+        window.location.href = data.url
+      } else {
+        throw new Error('No checkout URL received')
+      }
+    } catch (error) {
+      console.error('Error creating checkout:', error)
+      showError(error instanceof Error ? error.message : 'Failed to start checkout. Please try again.')
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -56,9 +95,19 @@ export default function CreditPackageCard({ credits, price, popular }: CreditPac
       <button 
         className="credit-purchase-btn"
         onClick={handlePurchase}
+        disabled={isLoading}
       >
-        <span>Purchase</span>
-        <span className="material-icons">arrow_forward</span>
+        {isLoading ? (
+          <>
+            <span className="material-icons spinning">sync</span>
+            <span>Processing...</span>
+          </>
+        ) : (
+          <>
+            <span>Purchase</span>
+            <span className="material-icons">arrow_forward</span>
+          </>
+        )}
       </button>
     </div>
   )
