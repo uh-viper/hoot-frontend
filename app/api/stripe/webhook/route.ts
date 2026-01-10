@@ -70,11 +70,18 @@ export async function POST(request: NextRequest) {
           }
 
           // Find the purchase record by checkout session ID
+          console.log('Looking up purchase for session:', session.id)
           const { data: purchase, error: purchaseError } = await supabaseAdmin
             .from('purchases')
-            .select('id, user_id, credits, status')
+            .select('id, user_id, credits, status, stripe_checkout_session_id')
             .eq('stripe_checkout_session_id', session.id)
             .single()
+          
+          console.log('Purchase lookup result:', {
+            found: !!purchase,
+            error: purchaseError,
+            purchase: purchase
+          })
 
           if (purchaseError || !purchase) {
             console.error('Purchase not found for session:', session.id, purchaseError)
@@ -130,7 +137,15 @@ export async function POST(request: NextRequest) {
               })
             }
           } else {
-            // Purchase exists, update payment intent ID and add credits
+            // Purchase exists, check if we should process it
+            console.log('Found existing purchase:', {
+              purchase_id: purchase.id,
+              status: purchase.status,
+              user_id: purchase.user_id,
+              credits: purchase.credits
+            })
+            
+            // Process if pending (not yet completed)
             if (purchase.status === 'pending') {
               // Use the credits from the purchase record (source of truth), not from session metadata
               const creditsToAdd = purchase.credits
