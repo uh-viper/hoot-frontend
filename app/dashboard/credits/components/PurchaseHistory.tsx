@@ -40,7 +40,7 @@ export default function PurchaseHistory({ purchases = [] }: PurchaseHistoryProps
       <div className="purchase-history-box">
         <div className="purchase-history-header">
           <div className="purchase-history-icon">
-            <span className="material-icons">history</span>
+            <span className="material-icons">receipt</span>
           </div>
           <h2 className="purchase-history-title">Purchase History</h2>
         </div>
@@ -70,7 +70,7 @@ export default function PurchaseHistory({ purchases = [] }: PurchaseHistoryProps
                   </p>
                 </div>
                 <div className="purchase-history-item-credits">
-                  +{purchase.credits.toLocaleString()}
+                  {purchase.credits.toLocaleString()}
                 </div>
                 <div className="purchase-history-item-price">
                   ${purchase.price.toLocaleString()}
