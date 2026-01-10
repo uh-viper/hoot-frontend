@@ -54,12 +54,6 @@ export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
           className={`toast toast-${toast.type}`}
           onClick={() => onRemove(toast.id)}
         >
-          <span className="toast-icon">
-            {toast.type === 'error' && '✕'}
-            {toast.type === 'success' && '✓'}
-            {toast.type === 'warning' && '⚠'}
-            {toast.type === 'info' && 'ℹ'}
-          </span>
           <span className="toast-message">{toast.message}</span>
         </div>
       ))}
