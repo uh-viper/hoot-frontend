@@ -17,20 +17,20 @@ export default async function SettingsPage() {
     redirect('/login')
   }
 
-  // Get user metadata
+  // Get user metadata (fallback)
   const supabase = await createClient()
   const { data: { user: userWithMetadata } } = await supabase.auth.getUser()
   
-  const fullName = userWithMetadata?.user_metadata?.full_name || ''
-  const email = user.email || ''
-
-  // Get discord username from user_profiles table (or fallback to metadata)
+  // Get profile data from user_profiles table (or fallback to metadata)
   const { data: profileData } = await supabase
     .from('user_profiles')
-    .select('discord_username')
+    .select('discord_username, full_name, email')
     .eq('user_id', user.id)
     .single()
 
+  // Use profile table data first, fallback to user_metadata/auth
+  const fullName = profileData?.full_name || userWithMetadata?.user_metadata?.full_name || ''
+  const email = profileData?.email || user.email || ''
   const discordUsername = profileData?.discord_username || userWithMetadata?.user_metadata?.discord_username || ''
 
   return (

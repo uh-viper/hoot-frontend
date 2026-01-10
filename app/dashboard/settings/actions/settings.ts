@@ -38,12 +38,17 @@ export async function updateProfile(data: UpdateProfileData) {
     return { error: updateMetadataError.message }
   }
 
-  // Update or insert discord_username in user_profiles table
+  // Get current user email
+  const currentEmail = user.email || ''
+
+  // Update or insert profile data in user_profiles table
   const { error: profileError } = await supabase
     .from('user_profiles')
     .upsert({
       user_id: user.id,
       discord_username: data.discordUsername || null,
+      full_name: data.name || null,
+      email: currentEmail,
     }, {
       onConflict: 'user_id',
     })
@@ -72,6 +77,19 @@ export async function updateEmail(data: UpdateEmailData) {
 
   if (updateError) {
     return { error: updateError.message }
+  }
+
+  // Update email in user_profiles table (will update after email confirmation)
+  // We'll update it with the new email even though it's not confirmed yet
+  // The trigger will handle it properly once confirmed
+  const { error: profileError } = await supabase
+    .from('user_profiles')
+    .update({ email: data.newEmail })
+    .eq('user_id', user.id)
+
+  // Don't fail if profile update fails - email update in auth is the important one
+  if (profileError) {
+    console.error('Failed to update email in user_profiles:', profileError)
   }
 
   revalidatePath('/dashboard/settings')
