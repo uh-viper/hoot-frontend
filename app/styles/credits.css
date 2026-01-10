@@ -384,7 +384,7 @@
 
 .purchase-history-item {
   display: grid;
-  grid-template-columns: auto 1fr auto auto;
+  grid-template-columns: auto 1fr auto;
   gap: 1.5rem;
   align-items: center;
   padding: 1rem 1.25rem;
@@ -438,15 +438,6 @@
   margin: 0;
 }
 
-.purchase-history-item-credits {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #d4af37;
-  font-family: var(--font-outfit);
-  text-align: right;
-  white-space: nowrap;
-}
-
 .purchase-history-item-price {
   font-size: 0.9375rem;
   font-weight: 600;
@@ -467,14 +458,9 @@
     gap: 0.75rem;
   }
 
-  .purchase-history-item-credits,
   .purchase-history-item-price {
     grid-column: 2;
     text-align: left;
     margin-top: 0.25rem;
-  }
-
-  .purchase-history-item-credits {
-    font-size: 0.9375rem;
   }
 }

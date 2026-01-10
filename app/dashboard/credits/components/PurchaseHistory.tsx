@@ -58,7 +58,7 @@ export default function PurchaseHistory({ purchases = [] }: PurchaseHistoryProps
                 <div className="purchase-history-item-icon">
                   <span className="material-icons">
                     {purchase.status === 'completed' ? 'check_circle' : 
-                     purchase.status === 'pending' ? 'pending' : 'error'}
+                     purchase.status === 'pending' ? 'credit_card' : 'error'}
                   </span>
                 </div>
                 <div className="purchase-history-item-details">
@@ -68,9 +68,6 @@ export default function PurchaseHistory({ purchases = [] }: PurchaseHistoryProps
                   <p className="purchase-history-item-date">
                     {formatDate(purchase.date)}
                   </p>
-                </div>
-                <div className="purchase-history-item-credits">
-                  {purchase.credits.toLocaleString()}
                 </div>
                 <div className="purchase-history-item-price">
                   ${purchase.price.toLocaleString()}
