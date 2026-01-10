@@ -55,73 +55,32 @@ export async function updateProfile(data: UpdateProfileData) {
     return { error: ERROR_MESSAGES.UPDATE_FAILED }
   }
 
-  // Check if profile exists first
-  const { data: existingProfile, error: checkError } = await supabase
-    .from('user_profiles')
-    .select('id')
-    .eq('user_id', user.id)
-    .maybeSingle()
+  // Use RPC function to upsert profile (bypasses RLS with SECURITY DEFINER)
+  // This safely creates or updates the profile without RLS issues
+  const { error: upsertError } = await supabase.rpc('upsert_user_profile', {
+    p_user_id: user.id,
+    p_full_name: data.name || null,
+    p_email: currentEmail,
+    p_discord_username: data.discordUsername || null,
+  })
 
-  // If profile doesn't exist, create it first
-  if (!existingProfile) {
-    // Try RPC function first (bypasses RLS with SECURITY DEFINER)
-    const { error: rpcError } = await supabase.rpc('ensure_user_profile', {
-      user_uuid: user.id,
-    })
-
-    // If RPC fails, try direct insert (should work with RLS INSERT policy)
-    if (rpcError) {
-      console.error('RPC ensure_user_profile failed, trying direct insert:', rpcError)
-      const { error: insertError } = await supabase
-        .from('user_profiles')
-        .insert({
-          user_id: user.id,
-          full_name: data.name || null,
-          discord_username: data.discordUsername || null,
-          email: currentEmail,
-        })
-
-      if (insertError) {
-        console.error('Error creating user profile (both RPC and direct insert failed):', insertError)
-        // Last resort: call initializeUserData which has fallback logic
-        await initializeUserData(user.id)
-      }
-    }
-  }
-
-  // Now update the profile (it should exist at this point)
-  // Use update instead of upsert since we've ensured it exists
-  const { error: updateError } = await supabase
-    .from('user_profiles')
-    .update({
-      full_name: data.name || null,
-      discord_username: data.discordUsername || null,
-      email: currentEmail,
-    })
-    .eq('user_id', user.id)
-
-  if (updateError) {
-    // Don't expose database error details
-    console.error('Error updating user profile:', updateError)
+  if (upsertError) {
+    // If RPC fails, fallback to initializeUserData
+    console.error('Error upserting user profile via RPC:', upsertError)
+    await initializeUserData(user.id)
     
-    // If update fails (profile might still not exist), try upsert as last resort
-    if (updateError.code === 'PGRST116' || updateError.message.includes('row-level security')) {
-      const { error: upsertError } = await supabase
-        .from('user_profiles')
-        .upsert({
-          user_id: user.id,
-          full_name: data.name || null,
-          discord_username: data.discordUsername || null,
-          email: currentEmail,
-        }, {
-          onConflict: 'user_id',
-        })
+    // Try one more time with direct update (profile should exist now)
+    const { error: updateError } = await supabase
+      .from('user_profiles')
+      .update({
+        full_name: data.name || null,
+        discord_username: data.discordUsername || null,
+        email: currentEmail,
+      })
+      .eq('user_id', user.id)
 
-      if (upsertError) {
-        console.error('Upsert also failed:', upsertError)
-        return { error: ERROR_MESSAGES.UPDATE_FAILED }
-      }
-    } else {
+    if (updateError) {
+      console.error('Error updating user profile after initialization:', updateError)
       return { error: ERROR_MESSAGES.UPDATE_FAILED }
     }
   }
