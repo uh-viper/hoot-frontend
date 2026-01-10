@@ -47,7 +47,7 @@ export default function PurchaseHistory({ purchases = [] }: PurchaseHistoryProps
 
         {purchaseHistory.length === 0 ? (
           <div className="purchase-history-empty">
-            <span className="material-symbols-outlined">receipt_long</span>
+            <span className="material-icons">description</span>
             <p>No purchase history yet</p>
             <span>Your credit purchases will appear here</span>
           </div>
