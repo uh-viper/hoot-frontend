@@ -99,7 +99,13 @@ export async function POST(request: NextRequest) {
               .update({ stripe_payment_intent_id: session.payment_intent as string })
               .eq('id', purchaseId)
 
-            // Add credits to user
+            // Add credits to user (purchase was just created)
+            console.log('Adding credits to user (new purchase):', {
+              user_id: userId,
+              credits: credits,
+              purchase_id: purchaseId
+            })
+            
             const { error: addCreditsError } = await supabaseAdmin.rpc('add_credits_to_user', {
               p_user_id: userId,
               p_credits: credits,
@@ -107,12 +113,37 @@ export async function POST(request: NextRequest) {
             })
 
             if (addCreditsError) {
-              console.error('Failed to add credits:', addCreditsError)
+              console.error('❌ FAILED to add credits (new purchase):', {
+                error: addCreditsError,
+                message: addCreditsError.message,
+                code: addCreditsError.code,
+                details: addCreditsError.details,
+                hint: addCreditsError.hint,
+                user_id: userId,
+                credits: credits,
+                purchase_id: purchaseId
+              })
+            } else {
+              console.log('✅ Successfully added credits to user (new purchase):', {
+                user_id: userId,
+                credits_added: credits
+              })
             }
           } else {
             // Purchase exists, update payment intent ID and add credits
             if (purchase.status === 'pending') {
-              // Update payment intent ID if not set
+              // Use the credits from the purchase record (source of truth), not from session metadata
+              const creditsToAdd = purchase.credits
+              
+              console.log('Processing existing purchase:', {
+                purchase_id: purchase.id,
+                user_id: purchase.user_id,
+                purchase_credits: purchase.credits,
+                session_credits: credits,
+                status: purchase.status
+              })
+              
+              // Update payment intent ID if not set (do this before adding credits to avoid status change)
               if (session.payment_intent) {
                 await supabaseAdmin
                   .from('purchases')
@@ -120,22 +151,50 @@ export async function POST(request: NextRequest) {
                   .eq('id', purchase.id)
               }
 
-              // Add credits to user
+              // Add credits to user - use purchase.credits (from database) not session metadata
+              console.log('Adding credits to user:', {
+                user_id: purchase.user_id,
+                credits: creditsToAdd,
+                purchase_id: purchase.id,
+                purchase_status: purchase.status
+              })
+              
               const { error: addCreditsError } = await supabaseAdmin.rpc('add_credits_to_user', {
                 p_user_id: purchase.user_id,
-                p_credits: purchase.credits || credits,
+                p_credits: creditsToAdd,
                 p_purchase_id: purchase.id,
               })
 
               if (addCreditsError) {
-                console.error('Failed to add credits:', addCreditsError)
+                console.error('❌ FAILED to add credits:', {
+                  error: addCreditsError,
+                  message: addCreditsError.message,
+                  code: addCreditsError.code,
+                  details: addCreditsError.details,
+                  hint: addCreditsError.hint,
+                  user_id: purchase.user_id,
+                  credits: creditsToAdd,
+                  purchase_id: purchase.id,
+                  purchase_credits_from_db: purchase.credits
+                })
                 
                 // Update purchase status to failed if credits couldn't be added
                 await supabaseAdmin
                   .from('purchases')
                   .update({ status: 'failed' })
                   .eq('id', purchase.id)
+              } else {
+                console.log('✅ Successfully added credits to user:', {
+                  user_id: purchase.user_id,
+                  credits_added: creditsToAdd,
+                  purchase_id: purchase.id
+                })
               }
+            } else {
+              console.log('Purchase already processed, skipping:', {
+                purchase_id: purchase.id,
+                status: purchase.status
+              })
             }
           }
         }
