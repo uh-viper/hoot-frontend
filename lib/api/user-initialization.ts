@@ -18,28 +18,15 @@ export async function initializeUserData(userId: string) {
       .single()
 
     // Create credits if they don't exist
+    // Use RPC function directly to bypass RLS (more reliable than direct insert)
     if (creditsError && creditsError.code === 'PGRST116') {
-      // Try direct insert first
-      const { error: insertCreditsError } = await supabase
-        .from('user_credits')
-        .insert({
-          user_id: userId,
-          credits: 0,
-        })
+      const { error: rpcError } = await supabase.rpc('ensure_user_credits', {
+        p_user_id: userId,
+      })
 
-      // If direct insert fails (RLS issue), use RPC function (bypasses RLS)
-      if (insertCreditsError) {
-        const { error: rpcError } = await supabase.rpc('ensure_user_credits', {
-          p_user_id: userId,
-        })
-
-        if (rpcError) {
-          console.error('Error initializing user credits (both methods failed):', {
-            insertError: insertCreditsError,
-            rpcError: rpcError,
-          })
-          return { success: false, error: insertCreditsError.message }
-        }
+      if (rpcError) {
+        console.error('Error initializing user credits:', rpcError)
+        return { success: false, error: rpcError.message }
       }
     }
 
@@ -51,31 +38,15 @@ export async function initializeUserData(userId: string) {
       .single()
 
     // Create stats if they don't exist
+    // Use RPC function directly to bypass RLS (more reliable than direct insert)
     if (statsError && statsError.code === 'PGRST116') {
-      // Try direct insert first
-      const { error: insertStatsError } = await supabase
-        .from('user_stats')
-        .insert({
-          user_id: userId,
-          business_centers: 0,
-          requested: 0,
-          successful: 0,
-          failures: 0,
-        })
+      const { error: rpcError } = await supabase.rpc('ensure_user_stats', {
+        p_user_id: userId,
+      })
 
-      // If direct insert fails (RLS issue), use RPC function (bypasses RLS)
-      if (insertStatsError) {
-        const { error: rpcError } = await supabase.rpc('ensure_user_stats', {
-          p_user_id: userId,
-        })
-
-        if (rpcError) {
-          console.error('Error initializing user stats (both methods failed):', {
-            insertError: insertStatsError,
-            rpcError: rpcError,
-          })
-          return { success: false, error: insertStatsError.message }
-        }
+      if (rpcError) {
+        console.error('Error initializing user stats:', rpcError)
+        return { success: false, error: rpcError.message }
       }
     }
 
