@@ -1,29 +1,29 @@
--- Add payment_intent_id update to add_credits_to_user function
--- This ensures the payment intent is updated atomically with credit addition
--- Also adds payment_intent_id as an optional parameter
-
+-- Fix add_credits_to_user function - simplified version that always works
+-- Drop all existing versions first
 DROP FUNCTION IF EXISTS public.add_credits_to_user(UUID, INTEGER, UUID);
+DROP FUNCTION IF EXISTS public.add_credits_to_user(UUID, INTEGER, UUID, TEXT);
 
+-- Create simplified function with 4 parameters (default for 4th parameter allows 3-param calls)
 CREATE OR REPLACE FUNCTION public.add_credits_to_user(
   p_user_id UUID,
-  p_credits INTEGER,  -- Parameter kept for backward compatibility but not used
+  p_credits INTEGER,  -- Parameter kept for backward compatibility but not used in logic
   p_purchase_id UUID,
-  p_payment_intent_id TEXT DEFAULT NULL  -- Optional: update payment intent if provided
+  p_payment_intent_id TEXT DEFAULT NULL
 )
 RETURNS void AS $$
 DECLARE
   v_purchase_user_id UUID;
   v_purchase_status TEXT;
   v_purchase_credits INTEGER;
-  v_current_credits INTEGER;
 BEGIN
-  -- Verify the purchase exists and get its details
+  -- Verify the purchase exists and get its details (use FOR UPDATE to lock row)
   SELECT user_id, status, credits
-  INTO v_purchase_user_id, v_purchase_status, v_purchase_credits
+  INTO STRICT v_purchase_user_id, v_purchase_status, v_purchase_credits
   FROM public.purchases
-  WHERE id = p_purchase_id;
+  WHERE id = p_purchase_id
+  FOR UPDATE;
 
-  -- Validate purchase exists
+  -- Validate purchase exists (STRICT will raise exception if not found, but we check anyway)
   IF v_purchase_user_id IS NULL THEN
     RAISE EXCEPTION 'Purchase record not found: %', p_purchase_id;
   END IF;
@@ -42,11 +42,6 @@ BEGIN
   IF v_purchase_credits IS NULL OR v_purchase_credits <= 0 THEN
     RAISE EXCEPTION 'Invalid credits in purchase record: % (purchase_id: %)', v_purchase_credits, p_purchase_id;
   END IF;
-
-  -- Get current user credits (if exists) for verification
-  SELECT credits INTO v_current_credits
-  FROM public.user_credits
-  WHERE user_id = p_user_id;
 
   -- Upsert user credits (insert if doesn't exist, update if it does)
   -- ALWAYS use credits from purchase record (source of truth)
@@ -67,6 +62,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Grant execute permission (updated for new function signature)
+-- Grant execute permissions (both 3-param and 4-param calls will work due to DEFAULT)
 GRANT EXECUTE ON FUNCTION public.add_credits_to_user(UUID, INTEGER, UUID, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.add_credits_to_user(UUID, INTEGER, UUID, TEXT) TO service_role;

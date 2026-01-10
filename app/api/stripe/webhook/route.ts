@@ -100,18 +100,14 @@ export async function POST(request: NextRequest) {
               return NextResponse.json({ received: true })
             }
 
-            // Update payment intent ID
-            await supabaseAdmin
-              .from('purchases')
-              .update({ stripe_payment_intent_id: session.payment_intent as string })
-              .eq('id', purchaseId)
-
             // Add credits to user (purchase was just created)
-            console.log('Adding credits to user (new purchase):', {
+            // The function will handle payment_intent_id update atomically
+            console.log('🔵 Processing NEW purchase - calling add_credits_to_user:', {
               user_id: userId,
               credits: credits,
               purchase_id: purchaseId,
-              payment_intent: session.payment_intent
+              payment_intent: session.payment_intent,
+              session_id: session.id
             })
             
             const { error: addCreditsError } = await supabaseAdmin.rpc('add_credits_to_user', {
