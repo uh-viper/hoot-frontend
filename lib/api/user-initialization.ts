@@ -19,6 +19,7 @@ export async function initializeUserData(userId: string) {
 
     // Create credits if they don't exist
     if (creditsError && creditsError.code === 'PGRST116') {
+      // Try direct insert first
       const { error: insertCreditsError } = await supabase
         .from('user_credits')
         .insert({
@@ -26,9 +27,19 @@ export async function initializeUserData(userId: string) {
           credits: 0,
         })
 
+      // If direct insert fails (RLS issue), use RPC function (bypasses RLS)
       if (insertCreditsError) {
-        console.error('Error initializing user credits:', insertCreditsError)
-        return { success: false, error: insertCreditsError.message }
+        const { error: rpcError } = await supabase.rpc('ensure_user_credits', {
+          p_user_id: userId,
+        })
+
+        if (rpcError) {
+          console.error('Error initializing user credits (both methods failed):', {
+            insertError: insertCreditsError,
+            rpcError: rpcError,
+          })
+          return { success: false, error: insertCreditsError.message }
+        }
       }
     }
 
@@ -41,6 +52,7 @@ export async function initializeUserData(userId: string) {
 
     // Create stats if they don't exist
     if (statsError && statsError.code === 'PGRST116') {
+      // Try direct insert first
       const { error: insertStatsError } = await supabase
         .from('user_stats')
         .insert({
@@ -51,9 +63,19 @@ export async function initializeUserData(userId: string) {
           failures: 0,
         })
 
+      // If direct insert fails (RLS issue), use RPC function (bypasses RLS)
       if (insertStatsError) {
-        console.error('Error initializing user stats:', insertStatsError)
-        return { success: false, error: insertStatsError.message }
+        const { error: rpcError } = await supabase.rpc('ensure_user_stats', {
+          p_user_id: userId,
+        })
+
+        if (rpcError) {
+          console.error('Error initializing user stats (both methods failed):', {
+            insertError: insertStatsError,
+            rpcError: rpcError,
+          })
+          return { success: false, error: insertStatsError.message }
+        }
       }
     }
 
