@@ -13,6 +13,9 @@ interface SettingsFormProps {
 export default function SettingsForm({ initialName, initialEmail, initialDiscordUsername }: SettingsFormProps) {
   const { showSuccess, showError } = useToast()
   const [isLoading, setIsLoading] = useState(false)
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const [formData, setFormData] = useState({
     name: initialName,
@@ -181,7 +184,7 @@ export default function SettingsForm({ initialName, initialEmail, initialDiscord
             >
               {isLoading ? (
                 <>
-                  <span className="material-icons">hourglass_empty</span>
+                  <span className="material-icons spinning">sync</span>
                   <span>Saving...</span>
                 </>
               ) : (
@@ -209,30 +212,54 @@ export default function SettingsForm({ initialName, initialEmail, initialDiscord
             <label htmlFor="currentPassword" className="settings-label">
               Current Password
             </label>
-            <input
-              type="password"
-              id="currentPassword"
-              name="currentPassword"
-              value={formData.currentPassword}
-              onChange={handleInputChange}
-              className="settings-input"
-              placeholder="Enter your current password"
-            />
+            <div className="settings-password-wrapper">
+              <input
+                type={showCurrentPassword ? "text" : "password"}
+                id="currentPassword"
+                name="currentPassword"
+                value={formData.currentPassword}
+                onChange={handleInputChange}
+                className="settings-input"
+                placeholder="Enter your current password"
+              />
+              <button
+                type="button"
+                className="settings-password-toggle"
+                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                aria-label={showCurrentPassword ? "Hide password" : "Show password"}
+              >
+                <span className="material-icons">
+                  {showCurrentPassword ? "visibility_off" : "visibility"}
+                </span>
+              </button>
+            </div>
           </div>
 
           <div className="settings-form-field">
             <label htmlFor="newPassword" className="settings-label">
               New Password
             </label>
-            <input
-              type="password"
-              id="newPassword"
-              name="newPassword"
-              value={formData.newPassword}
-              onChange={handleInputChange}
-              className="settings-input"
-              placeholder="Enter your new password"
-            />
+            <div className="settings-password-wrapper">
+              <input
+                type={showNewPassword ? "text" : "password"}
+                id="newPassword"
+                name="newPassword"
+                value={formData.newPassword}
+                onChange={handleInputChange}
+                className="settings-input"
+                placeholder="Enter your new password"
+              />
+              <button
+                type="button"
+                className="settings-password-toggle"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+                aria-label={showNewPassword ? "Hide password" : "Show password"}
+              >
+                <span className="material-icons">
+                  {showNewPassword ? "visibility_off" : "visibility"}
+                </span>
+              </button>
+            </div>
             <span className="settings-hint">Must be at least 6 characters</span>
           </div>
 
@@ -240,15 +267,27 @@ export default function SettingsForm({ initialName, initialEmail, initialDiscord
             <label htmlFor="confirmPassword" className="settings-label">
               Confirm New Password
             </label>
-            <input
-              type="password"
-              id="confirmPassword"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleInputChange}
-              className="settings-input"
-              placeholder="Confirm your new password"
-            />
+            <div className="settings-password-wrapper">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                id="confirmPassword"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                className="settings-input"
+                placeholder="Confirm your new password"
+              />
+              <button
+                type="button"
+                className="settings-password-toggle"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+              >
+                <span className="material-icons">
+                  {showConfirmPassword ? "visibility_off" : "visibility"}
+                </span>
+              </button>
+            </div>
           </div>
 
           <div className="settings-form-field">
@@ -259,7 +298,7 @@ export default function SettingsForm({ initialName, initialEmail, initialDiscord
             >
               {isLoading ? (
                 <>
-                  <span className="material-icons">hourglass_empty</span>
+                  <span className="material-icons spinning">sync</span>
                   <span>Updating...</span>
                 </>
               ) : (

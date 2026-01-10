@@ -159,6 +159,57 @@
   color: #0a0a0a;
 }
 
+.settings-submit-btn .material-icons.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.settings-password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.settings-password-wrapper .settings-input {
+  padding-right: 3rem;
+}
+
+.settings-password-toggle {
+  position: absolute;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  transition: color 0.3s ease;
+  z-index: 1;
+}
+
+.settings-password-toggle:hover {
+  color: #d4af37;
+}
+
+.settings-password-toggle:focus {
+  outline: none;
+  color: #d4af37;
+}
+
+.settings-password-toggle .material-icons {
+  font-size: 1.25rem;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .settings-section-box {
