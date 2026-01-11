@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Metadata } from 'next'
 import { initializeUserData } from '@/lib/api/user-initialization'
-import { processPendingPurchases } from './actions/process-pending'
+import { processCheckoutSession } from './actions/process-checkout'
 import CreditPackageCard from './components/CreditPackageCard'
 import PurchaseHistory from './components/PurchaseHistory'
 import CreditsPageClient from './components/CreditsPageClient'
@@ -33,7 +33,11 @@ const creditPackages: CreditPackage[] = [
   { id: '2000', credits: 2000, price: 600 },
 ]
 
-export default async function CreditsPage() {
+interface PageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+export default async function CreditsPage({ searchParams }: PageProps) {
   const user = await getSessionUser()
 
   if (!user) {
@@ -43,11 +47,21 @@ export default async function CreditsPage() {
   // Ensure user has all required database rows
   await initializeUserData(user.id)
 
-  // Process any pending purchases (in case webhook failed)
-  // This ensures credits are added when user returns to credits page
-  const pendingResult = await processPendingPurchases(user.id)
-  if (pendingResult.processed > 0) {
-    console.log(`Processed ${pendingResult.processed} pending purchases, added ${pendingResult.creditsAdded} credits`)
+  // Get search params
+  const params = await searchParams
+  const sessionId = params.session_id as string | undefined
+  const success = params.success as string | undefined
+
+  // If returning from Stripe checkout with success, process the purchase immediately
+  // This is the PRIMARY method - doesn't rely on webhook
+  if (success === 'true' && sessionId) {
+    console.log('Processing checkout session on page load:', sessionId)
+    const result = await processCheckoutSession(sessionId, user.id)
+    if (result.success) {
+      console.log(`✅ Processed checkout - Added ${result.creditsAdded} credits`)
+    } else if (result.error) {
+      console.error('Failed to process checkout:', result.error)
+    }
   }
 
   // Fetch purchase history
