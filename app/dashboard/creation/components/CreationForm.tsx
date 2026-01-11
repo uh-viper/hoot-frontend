@@ -131,6 +131,34 @@ export default function CreationForm() {
     if (isPolling) {
       setActive(true);
     }
+    
+    // Verify job exists when restoring from localStorage (one-time check on mount)
+    const wasRestored = typeof window !== 'undefined' && localStorage.getItem('hoot_current_job_id') === currentJobId;
+    if (wasRestored) {
+      // Quick verification - check if job exists before starting to poll
+      fetchJobStatus(currentJobId).then((result) => {
+        if (!result.success || !result.status) {
+          if (result.error && (result.error.toLowerCase().includes('not found') || result.error.toLowerCase().includes('job not found'))) {
+            addMessage('info', 'Previous deployment job no longer exists. Resetting...');
+            setIsPolling(false);
+            setActive(false);
+            setCurrentJobId(null);
+            if (typeof window !== 'undefined') {
+              try {
+                localStorage.removeItem('hoot_current_job_id');
+                localStorage.removeItem('hoot_is_polling');
+              } catch (error) {
+                console.error('Failed to clear job state from localStorage:', error);
+              }
+            }
+            return; // Don't start polling if job doesn't exist
+          }
+        }
+        // Job exists or error is transient, proceed with polling
+      }).catch(() => {
+        // If verification fails, assume job might exist and proceed
+      });
+    }
 
     const POLL_INTERVAL = 10000; // 10 seconds (API limit: 60 requests/minute)
     const MAX_POLL_TIME = 10 * 60 * 1000; // 10 minutes max
