@@ -398,4 +398,26 @@
   .settings-policy-link-arrow {
     font-size: 20px;
   }
+
+  .settings-api-content {
+    gap: 1.25rem;
+  }
+
+  .settings-api-badge {
+    padding: 0.4375rem 0.875rem;
+    font-size: 0.8125rem;
+  }
+
+  .settings-api-badge .material-icons {
+    font-size: 1rem;
+  }
+
+  .settings-api-description {
+    font-size: 0.9375rem;
+  }
+
+  .settings-api-request-btn {
+    width: 100%;
+    padding: 0.875rem 1.5rem;
+  }
 }
