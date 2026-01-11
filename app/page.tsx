@@ -16,7 +16,12 @@ export const metadata: Metadata = {
   title: 'Hoot - Automation Starts Here',
 }
 
-export default function Home() {
+export default async function Home() {
+  // Redirect authenticated users to dashboard (similar to login page)
+  const user = await getSessionUser()
+  if (user) {
+    redirect('/dashboard')
+  }
   return (
     <div className="landing-page">
       <EmailCodeHandler />
