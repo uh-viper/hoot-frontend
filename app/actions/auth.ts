@@ -115,9 +115,10 @@ export async function resetPasswordForEmail(formData: FormData) {
 
   // Always return success for security (don't reveal if email exists)
   // Supabase will send email if account exists, but won't reveal if it doesn't
-  // Password reset emails include a code parameter - we redirect through callback to handle it
+  // Password reset emails redirect to callback route which handles code exchange
+  // Note: Supabase doesn't preserve query params in redirectTo, so we'll detect recovery in callback
   await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}/auth/callback?type=recovery&next=/reset-password`,
+    redirectTo: `${origin}/auth/callback?next=/reset-password`,
   })
 
   // Always return success message (security best practice)

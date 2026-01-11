@@ -40,6 +40,9 @@ export async function GET(request: NextRequest) {
 
     if (!error && data.user) {
       // Handle password recovery flow
+      // Check if this is a password recovery by looking at next parameter or type parameter
+      // Supabase password reset codes have type=recovery in the verify URL but it doesn't get passed to callback
+      // So we check the next parameter to detect password reset flow
       if (type === 'recovery' || next === '/reset-password') {
         // For password reset, redirect to reset password page (without code, session is already set)
         const resetUrl = new URL('/reset-password', requestUrl.origin)
@@ -60,6 +63,11 @@ export async function GET(request: NextRequest) {
         
         return redirectResponse
       }
+      
+      // If no type or next indicates recovery, but the code was from password reset,
+      // Supabase might still redirect here - check if we should go to reset password
+      // by checking if the user was redirected here without email confirmation flow
+      // For now, we'll rely on next parameter to detect password reset
 
       // After email confirmation, ensure all user data rows exist
       // This handles cases where rows might be missing or were manually deleted
