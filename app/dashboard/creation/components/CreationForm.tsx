@@ -120,6 +120,7 @@ export default function CreationForm() {
     const MAX_POLL_TIME = 30 * 60 * 1000; // 30 minutes max
     const startTime = Date.now();
     let lastProgress = { created: 0, requested: 0 };
+    let initialTimeoutRef: NodeJS.Timeout | null = null;
 
     const pollStatus = async () => {
       try {
@@ -267,7 +268,7 @@ export default function CreationForm() {
 
     // Start polling - wait 10 seconds before first poll, then poll every 10 seconds
     // This prevents hitting rate limits from immediate polling after job creation
-    const initialTimeout = setTimeout(() => {
+    initialTimeoutRef = setTimeout(() => {
       pollStatus();
       pollingIntervalRef.current = setInterval(pollStatus, POLL_INTERVAL);
     }, POLL_INTERVAL);
@@ -278,7 +279,10 @@ export default function CreationForm() {
         pollingIntervalRef.current = null;
       }
       // Also clear the initial timeout if component unmounts
-      clearTimeout(initialTimeout);
+      if (initialTimeoutRef) {
+        clearTimeout(initialTimeoutRef);
+        initialTimeoutRef = null;
+      }
     };
     // Only re-run when currentJobId or isPolling changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
