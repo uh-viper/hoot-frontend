@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useToast } from '../../../contexts/ToastContext'
 import { updateProfile, updatePassword, updateEmail } from '../actions/settings'
 
@@ -310,6 +311,45 @@ export default function SettingsForm({ initialName, initialEmail, initialDiscord
             </button>
           </div>
         </form>
+      </div>
+
+      {/* Policy Links */}
+      <div className="settings-section-box">
+        <div className="settings-section-header">
+          <div className="settings-section-icon">
+            <span className="material-icons">description</span>
+          </div>
+          <h2 className="settings-section-title">Legal & Policies</h2>
+        </div>
+
+        <div className="settings-policies-grid">
+          <Link href="/terms-of-service" className="settings-policy-link">
+            <span className="material-icons">gavel</span>
+            <div className="settings-policy-link-content">
+              <span className="settings-policy-link-title">Terms of Service</span>
+              <span className="settings-policy-link-subtitle">View our terms and conditions</span>
+            </div>
+            <span className="material-icons settings-policy-link-arrow">chevron_right</span>
+          </Link>
+
+          <Link href="/privacy-policy" className="settings-policy-link">
+            <span className="material-icons">privacy_tip</span>
+            <div className="settings-policy-link-content">
+              <span className="settings-policy-link-title">Privacy Policy</span>
+              <span className="settings-policy-link-subtitle">Learn how we protect your data</span>
+            </div>
+            <span className="material-icons settings-policy-link-arrow">chevron_right</span>
+          </Link>
+
+          <Link href="/refund-policy" className="settings-policy-link">
+            <span className="material-icons">receipt</span>
+            <div className="settings-policy-link-content">
+              <span className="settings-policy-link-title">Refund Policy</span>
+              <span className="settings-policy-link-subtitle">Understand our refund process</span>
+            </div>
+            <span className="material-icons settings-policy-link-arrow">chevron_right</span>
+          </Link>
+        </div>
       </div>
     </div>
   )
