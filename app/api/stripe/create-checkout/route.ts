@@ -68,19 +68,9 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Create purchase record in database (pending status) using RPC function
-    // This bypasses RLS using SECURITY DEFINER
-    const { error: dbError } = await supabase.rpc('create_purchase', {
-      p_user_id: user.id,
-      p_stripe_checkout_session_id: session.id,
-      p_credits: credits,
-      p_amount_paid_cents: Math.round(price * 100),
-    })
-
-    if (dbError) {
-      console.error('Error creating purchase record:', dbError)
-      // Continue anyway - webhook will create it if needed
-    }
+    // NOTE: Purchase record is created AFTER payment is confirmed
+    // Either by webhook (checkout.session.completed) or when user returns from Stripe
+    // This prevents pending purchases from showing up if user doesn't complete payment
 
     return NextResponse.json({ 
       sessionId: session.id,

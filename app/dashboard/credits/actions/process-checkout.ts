@@ -49,16 +49,45 @@ export async function processCheckoutSession(sessionId: string, userId: string):
       return { success: false, creditsAdded: 0, error: 'No credits in session' }
     }
 
-    // Find the purchase record
-    const { data: purchase, error: purchaseError } = await supabaseAdmin
+    // Find or create the purchase record
+    let purchase
+    const { data: existingPurchase, error: purchaseError } = await supabaseAdmin
       .from('purchases')
       .select('id, user_id, credits, status')
       .eq('stripe_checkout_session_id', sessionId)
       .single()
 
-    if (purchaseError || !purchase) {
-      console.error('Purchase not found for session:', sessionId, purchaseError)
-      return { success: false, creditsAdded: 0, error: 'Purchase record not found' }
+    if (purchaseError || !existingPurchase) {
+      // Purchase doesn't exist yet - create it now (payment is confirmed)
+      console.log('Creating purchase record for confirmed payment:', sessionId)
+      
+      const { data: purchaseId, error: createError } = await supabaseAdmin.rpc('create_purchase', {
+        p_user_id: userId,
+        p_stripe_checkout_session_id: sessionId,
+        p_credits: credits,
+        p_amount_paid_cents: session.amount_total || 0,
+      })
+
+      if (createError || !purchaseId) {
+        console.error('Failed to create purchase record:', createError)
+        return { success: false, creditsAdded: 0, error: 'Failed to create purchase record' }
+      }
+
+      // Fetch the newly created purchase
+      const { data: newPurchase, error: fetchError } = await supabaseAdmin
+        .from('purchases')
+        .select('id, user_id, credits, status')
+        .eq('id', purchaseId)
+        .single()
+
+      if (fetchError || !newPurchase) {
+        console.error('Failed to fetch newly created purchase:', fetchError)
+        return { success: false, creditsAdded: 0, error: 'Failed to fetch purchase record' }
+      }
+
+      purchase = newPurchase
+    } else {
+      purchase = existingPurchase
     }
 
     // If already completed, return success (idempotent)
