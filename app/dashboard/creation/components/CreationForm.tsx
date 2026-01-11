@@ -116,10 +116,44 @@ export default function CreationForm() {
       return;
     }
 
+    const POLL_INTERVAL = 5000; // 5 seconds (API limit: 60 requests/minute)
+    const MAX_POLL_TIME = 30 * 60 * 1000; // 30 minutes max
+    const startTime = Date.now();
+    let lastProgress = { created: 0, requested: 0 };
+
     const pollStatus = async () => {
       try {
+        // Check timeout
+        const elapsed = Date.now() - startTime;
+        if (elapsed > MAX_POLL_TIME) {
+          addMessage('error', 'Job polling timeout after 30 minutes. Please check job status manually.');
+          setIsPolling(false);
+          setActive(false);
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+          return;
+        }
+
         const result = await fetchJobStatus(currentJobId);
         if (!result.success || !result.status) {
+          // Handle rate limit error
+          if (result.error && result.error.toLowerCase().includes('rate limit')) {
+            addMessage('error', 'Rate limit exceeded. Polling will resume in 1 minute...');
+            // Wait 60 seconds before resuming
+            if (pollingIntervalRef.current) {
+              clearInterval(pollingIntervalRef.current);
+              pollingIntervalRef.current = null;
+            }
+            setTimeout(() => {
+              if (currentJobId && isPolling) {
+                pollingIntervalRef.current = setInterval(pollStatus, POLL_INTERVAL);
+                pollStatus(); // Poll immediately after resume
+              }
+            }, 60000);
+            return;
+          }
           addMessage('error', result.error || 'Failed to fetch job status');
           setIsPolling(false);
           setActive(false);
@@ -128,7 +162,7 @@ export default function CreationForm() {
 
         const status = result.status;
 
-        // Log any failures from the API
+        // Log any failures from the API (only new ones)
         if (status.failures && status.failures.length > 0) {
           status.failures.forEach((failure) => {
             addMessage('error', `Failed to create account ${failure.email}: ${failure.error}`);
@@ -143,6 +177,10 @@ export default function CreationForm() {
             setIsPolling(false);
             setActive(false);
             setCurrentJobId(null);
+            if (pollingIntervalRef.current) {
+              clearInterval(pollingIntervalRef.current);
+              pollingIntervalRef.current = null;
+            }
             return;
           }
 
@@ -152,6 +190,10 @@ export default function CreationForm() {
             setIsPolling(false);
             setActive(false);
             setCurrentJobId(null);
+            if (pollingIntervalRef.current) {
+              clearInterval(pollingIntervalRef.current);
+              pollingIntervalRef.current = null;
+            }
             return;
           }
 
@@ -180,16 +222,44 @@ export default function CreationForm() {
 
           // Clear job ID
           setCurrentJobId(null);
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
         } else if (status.status === 'failed') {
           addMessage('error', status.error || 'Job failed');
           setIsPolling(false);
           setActive(false);
           setCurrentJobId(null);
-        } else if (status.status === 'running') {
-          addMessage('info', `Progress: ${status.total_created} / ${status.total_requested} accounts created...`);
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+        } else if (status.status === 'running' || status.status === 'pending') {
+          // Only log progress if it actually changed
+          if (status.total_created !== lastProgress.created || status.total_requested !== lastProgress.requested) {
+            addMessage('info', `Progress: ${status.total_created} / ${status.total_requested} accounts created...`);
+            lastProgress = { created: status.total_created, requested: status.total_requested };
+          }
         }
       } catch (error) {
-        addMessage('error', `Error polling job status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        // Handle rate limit in catch block too
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        if (errorMessage.toLowerCase().includes('rate limit')) {
+          addMessage('error', 'Rate limit exceeded. Polling will resume in 1 minute...');
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+          setTimeout(() => {
+            if (currentJobId && isPolling) {
+              pollingIntervalRef.current = setInterval(pollStatus, POLL_INTERVAL);
+              pollStatus();
+            }
+          }, 60000);
+          return;
+        }
+        addMessage('error', `Error polling job status: ${errorMessage}`);
         setIsPolling(false);
         setActive(false);
       }
@@ -197,7 +267,7 @@ export default function CreationForm() {
 
     // Poll immediately, then every 5 seconds
     pollStatus();
-    pollingIntervalRef.current = setInterval(pollStatus, 5000);
+    pollingIntervalRef.current = setInterval(pollStatus, POLL_INTERVAL);
 
     return () => {
       if (pollingIntervalRef.current) {
