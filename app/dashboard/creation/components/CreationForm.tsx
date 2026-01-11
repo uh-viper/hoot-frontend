@@ -87,8 +87,24 @@ export default function CreationForm() {
   const [currencySearchTerm, setCurrencySearchTerm] = useState('');
   const [currentCredits, setCurrentCredits] = useState<number | null>(null);
   const [isCheckingCredits, setIsCheckingCredits] = useState(false);
-  const [currentJobId, setCurrentJobId] = useState<string | null>(null);
-  const [isPolling, setIsPolling] = useState(false);
+  // Restore job state from localStorage when component mounts
+  const [currentJobId, setCurrentJobId] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      return localStorage.getItem('hoot_current_job_id');
+    } catch {
+      return null;
+    }
+  });
+  
+  const [isPolling, setIsPolling] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return localStorage.getItem('hoot_is_polling') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const countryDropdownRef = useRef<HTMLDivElement>(null);
   const currencyDropdownRef = useRef<HTMLDivElement>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -116,8 +132,13 @@ export default function CreationForm() {
       return;
     }
 
+    // Restore active state in console if we're polling
+    if (isPolling) {
+      setActive(true);
+    }
+
     const POLL_INTERVAL = 10000; // 10 seconds (API limit: 60 requests/minute)
-    const MAX_POLL_TIME = 30 * 60 * 1000; // 30 minutes max
+    const MAX_POLL_TIME = 10 * 60 * 1000; // 10 minutes max
     const startTime = Date.now();
     let lastProgress = { created: 0, requested: 0 };
     let initialTimeoutRef: NodeJS.Timeout | null = null;
@@ -221,8 +242,17 @@ export default function CreationForm() {
             }
           }
 
-          // Clear job ID
+          // Clear job ID and localStorage
           setCurrentJobId(null);
+          setIsPolling(false);
+          if (typeof window !== 'undefined') {
+            try {
+              localStorage.removeItem('hoot_current_job_id');
+              localStorage.removeItem('hoot_is_polling');
+            } catch (error) {
+              console.error('Failed to clear job state from localStorage:', error);
+            }
+          }
           if (pollingIntervalRef.current) {
             clearInterval(pollingIntervalRef.current);
             pollingIntervalRef.current = null;
@@ -232,6 +262,14 @@ export default function CreationForm() {
           setIsPolling(false);
           setActive(false);
           setCurrentJobId(null);
+          if (typeof window !== 'undefined') {
+            try {
+              localStorage.removeItem('hoot_current_job_id');
+              localStorage.removeItem('hoot_is_polling');
+            } catch (error) {
+              console.error('Failed to clear job state from localStorage:', error);
+            }
+          }
           if (pollingIntervalRef.current) {
             clearInterval(pollingIntervalRef.current);
             pollingIntervalRef.current = null;
@@ -266,12 +304,22 @@ export default function CreationForm() {
       }
     };
 
-    // Start polling - wait 10 seconds before first poll, then poll every 10 seconds
-    // This prevents hitting rate limits from immediate polling after job creation
-    initialTimeoutRef = setTimeout(() => {
-      pollStatus();
-      pollingIntervalRef.current = setInterval(pollStatus, POLL_INTERVAL);
-    }, POLL_INTERVAL);
+        // Save job state to localStorage
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('hoot_current_job_id', currentJobId);
+            localStorage.setItem('hoot_is_polling', 'true');
+          } catch (error) {
+            console.error('Failed to save job state to localStorage:', error);
+          }
+        }
+
+        // Start polling - wait 10 seconds before first poll, then poll every 10 seconds
+        // This prevents hitting rate limits from immediate polling after job creation
+        initialTimeoutRef = setTimeout(() => {
+          pollStatus();
+          pollingIntervalRef.current = setInterval(pollStatus, POLL_INTERVAL);
+        }, POLL_INTERVAL);
 
     return () => {
       if (pollingIntervalRef.current) {
@@ -413,7 +461,7 @@ export default function CreationForm() {
 
     // Start deployment
     startTransition(async () => {
-      clearMessages();
+      // Don't clear messages - keep them in localStorage
       setActive(true);
       addMessage('info', 'Initializing deployment...');
       addMessage('info', `Country: ${selectedCountry.name} (${selectedCountry.code})`);
