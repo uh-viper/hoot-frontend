@@ -55,27 +55,13 @@ function ResetPasswordPageContent() {
           setIsTokenValid(true);
         }
       } else {
-        // No code or token_hash - check if user has a valid session from callback
-        // Try to verify session by checking if we can get user
-        const checkSession = async () => {
-          try {
-            // Simple check - if no params, assume invalid
-            showError("Invalid reset link. Please request a new password reset.");
-            setIsVerifying(false);
-            setIsTokenValid(false);
-            setTimeout(() => {
-              router.push("/forgot-password");
-            }, 3000);
-          } catch {
-            showError("Invalid reset link. Please request a new password reset.");
-            setIsVerifying(false);
-            setIsTokenValid(false);
-            setTimeout(() => {
-              router.push("/forgot-password");
-            }, 3000);
-          }
-        };
-        checkSession();
+        // No code or token_hash - user navigated directly without valid token
+        showError("Invalid reset link. Please request a new password reset.");
+        setIsVerifying(false);
+        setIsTokenValid(false);
+        setTimeout(() => {
+          router.push("/forgot-password");
+        }, 3000);
       }
     };
 

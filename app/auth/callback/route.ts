@@ -9,6 +9,10 @@ export async function GET(request: NextRequest) {
   const next = requestUrl.searchParams.get('next') ?? '/dashboard'
 
   if (code) {
+    let supabaseResponse = NextResponse.next({
+      request,
+    })
+
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -20,6 +24,12 @@ export async function GET(request: NextRequest) {
           setAll(cookiesToSet) {
             cookiesToSet.forEach(({ name, value, options }) =>
               request.cookies.set(name, value)
+            )
+            supabaseResponse = NextResponse.next({
+              request,
+            })
+            cookiesToSet.forEach(({ name, value, options }) =>
+              supabaseResponse.cookies.set(name, value, options)
             )
           },
         },
@@ -36,16 +46,19 @@ export async function GET(request: NextRequest) {
         const forwardedHost = request.headers.get('x-forwarded-host')
         const isLocalEnv = process.env.NODE_ENV === 'development'
         
-        // Create a response with redirect
-        const response = isLocalEnv 
+        // Create redirect response
+        const redirectResponse = isLocalEnv 
           ? NextResponse.redirect(resetUrl)
           : forwardedHost 
             ? NextResponse.redirect(`https://${forwardedHost}${resetUrl.pathname}`)
             : NextResponse.redirect(resetUrl)
         
-        // Copy cookies to the response
-        const cookies = supabase.auth.getSession()
-        return response
+        // Copy cookies from supabaseResponse to redirectResponse
+        supabaseResponse.cookies.getAll().forEach((cookie) => {
+          redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+        })
+        
+        return redirectResponse
       }
 
       // After email confirmation, ensure all user data rows exist
