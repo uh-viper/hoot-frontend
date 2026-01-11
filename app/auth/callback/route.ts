@@ -49,10 +49,23 @@ export async function GET(request: NextRequest) {
 
     if (data.user) {
       // Handle password recovery flow
-      // Check if this is a password recovery by looking at next parameter or type parameter
-      // Supabase password reset codes have type=recovery in the verify URL but it doesn't get passed to callback
-      // So we check the next parameter to detect password reset flow
-      if (type === 'recovery' || next === '/reset-password') {
+      // Check multiple ways to detect if this is a password recovery:
+      // 1. type parameter explicitly set to 'recovery'
+      // 2. next parameter set to '/reset-password'
+      // 3. Check session AMR (Authentication Methods Reference) for recovery
+      // 4. Check if user's recovery_sent_at is recent (within last 10 minutes)
+      const isRecovery = type === 'recovery' || 
+                         next === '/reset-password' ||
+                         data.session?.user?.recovery_sent_at !== null ||
+                         (data.session?.user?.aud === 'authenticated' && 
+                          data.session?.user?.app_metadata?.provider === 'email' &&
+                          !data.session?.user?.email_confirmed_at)
+      
+      // Also check AMR claims if available
+      const amr = (data.session as any)?.amr
+      const hasRecoveryAmr = amr?.some((claim: any) => claim.method === 'recovery')
+      
+      if (isRecovery || hasRecoveryAmr) {
         // For password reset, redirect to reset password page (without code, session is already set)
         const resetUrl = new URL('/reset-password', requestUrl.origin)
         const forwardedHost = request.headers.get('x-forwarded-host')
