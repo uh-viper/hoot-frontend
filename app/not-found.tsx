@@ -1,30 +1,16 @@
+'use client'
+
 import Link from 'next/link'
 import Image from 'next/image'
+import './styles/not-found.css'
 
 export default function NotFound() {
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#000000',
-      color: '#ffffff',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '2rem',
-      textAlign: 'center'
-    }}>
-      <div style={{
-        maxWidth: '600px',
-        width: '100%'
-      }}>
+    <div className="not-found-container">
+      <div className="not-found-content">
         {/* Logo */}
-        <div style={{
-          marginBottom: '3rem',
-          display: 'flex',
-          justifyContent: 'center'
-        }}>
-          <Link href="/" style={{ display: 'inline-block' }}>
+        <div className="not-found-logo">
+          <Link href="/">
             <Image
               src="/hootlogo.png"
               alt="Hoot Logo"
@@ -37,94 +23,30 @@ export default function NotFound() {
         </div>
 
         {/* 404 Message */}
-        <h1 style={{
-          fontSize: 'clamp(3rem, 8vw, 6rem)',
-          fontWeight: 700,
-          marginBottom: '1rem',
-          fontFamily: 'var(--font-outfit)',
-          letterSpacing: '-0.02em'
-        }}>
+        <h1 className="not-found-404">
           404
         </h1>
 
-        <h2 style={{
-          fontSize: 'clamp(1.5rem, 4vw, 2.5rem)',
-          fontWeight: 600,
-          marginBottom: '1rem',
-          fontFamily: 'var(--font-outfit)',
-          color: '#ffffff'
-        }}>
+        <h2 className="not-found-title">
           Oops. Looks like this page doesn't exist!
         </h2>
 
-        <p style={{
-          fontSize: '1.125rem',
-          color: 'rgba(255, 255, 255, 0.7)',
-          marginBottom: '3rem',
-          fontFamily: 'var(--font-poppins)',
-          lineHeight: '1.6'
-        }}>
+        <p className="not-found-description">
           The page you're looking for might have been moved, deleted, or doesn't exist.
         </p>
 
         {/* CTA Buttons */}
-        <div style={{
-          display: 'flex',
-          gap: '1rem',
-          justifyContent: 'center',
-          flexWrap: 'wrap'
-        }}>
+        <div className="not-found-buttons">
           <Link
             href="/"
-            style={{
-              background: 'linear-gradient(135deg, #d4af37 0%, #b8941f 100%)',
-              color: '#0a0a0a',
-              border: 'none',
-              borderRadius: '10px',
-              padding: '1rem 2rem',
-              fontSize: '1.125rem',
-              fontWeight: 600,
-              fontFamily: 'var(--font-poppins)',
-              textDecoration: 'none',
-              display: 'inline-block',
-              transition: 'all 0.3s ease',
-              boxShadow: '0 4px 16px rgba(212, 175, 55, 0.3)'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)'
-              e.currentTarget.style.boxShadow = '0 8px 24px rgba(212, 175, 55, 0.4)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)'
-              e.currentTarget.style.boxShadow = '0 4px 16px rgba(212, 175, 55, 0.3)'
-            }}
+            className="not-found-btn-primary"
           >
             Go Home
           </Link>
 
           <Link
             href="/dashboard"
-            style={{
-              background: 'transparent',
-              color: '#ffffff',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              borderRadius: '10px',
-              padding: '1rem 2rem',
-              fontSize: '1.125rem',
-              fontWeight: 600,
-              fontFamily: 'var(--font-poppins)',
-              textDecoration: 'none',
-              display: 'inline-block',
-              transition: 'all 0.3s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'
-              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent'
-              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'
-            }}
+            className="not-found-btn-secondary"
           >
             Go to Dashboard
           </Link>
