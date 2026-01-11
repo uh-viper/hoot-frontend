@@ -471,16 +471,6 @@ export default function CreationForm() {
         <div className="form-field">
           <label htmlFor="bcs-amount" className="form-label">
             Business Centers <span className="required">*</span>
-            {currentCredits !== null && (
-              <span className="credits-indicator" style={{ 
-                marginLeft: '0.5rem', 
-                fontSize: '0.875rem', 
-                color: hasEnoughCredits ? 'rgba(255, 255, 255, 0.7)' : '#ff6b6b',
-                fontWeight: 'normal'
-              }}>
-                ({currentCredits} credits available)
-              </span>
-            )}
             {isCheckingCredits && (
               <span className="material-icons spinning" style={{ 
                 marginLeft: '0.5rem', 

@@ -106,3 +106,16 @@ export async function getRegions(): Promise<{ regions: Region[] }> {
 
   return await response.json();
 }
+
+/**
+ * Check API health status
+ */
+export async function checkHealth(): Promise<{ status: string; message?: string }> {
+  const response = await fetch(`${API_BASE_URL}/api/health`);
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: API health check failed`);
+  }
+
+  return await response.json();
+}
