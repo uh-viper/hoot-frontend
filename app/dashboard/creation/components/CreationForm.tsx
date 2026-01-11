@@ -201,8 +201,29 @@ export default function CreationForm() {
             pollingTimeoutRef = setTimeout(pollStatus, 60000);
             return;
           }
+          // Handle "Job not found" - job was deleted/terminated, stop polling
+          if (result.error && (result.error.toLowerCase().includes('not found') || result.error.toLowerCase().includes('job not found'))) {
+            addMessage('error', 'Job no longer exists. Deployment has been terminated.');
+            setIsPolling(false);
+            setActive(false);
+            setCurrentJobId(null);
+            if (typeof window !== 'undefined') {
+              try {
+                localStorage.removeItem('hoot_current_job_id');
+                localStorage.removeItem('hoot_is_polling');
+              } catch (error) {
+                console.error('Failed to clear job state from localStorage:', error);
+              }
+            }
+            if (pollingTimeoutRef) {
+              clearTimeout(pollingTimeoutRef);
+              pollingTimeoutRef = null;
+            }
+            return;
+          }
+          
           addMessage('error', result.error || 'Failed to fetch job status');
-          // Schedule next poll even on error
+          // Schedule next poll even on error (but not for "not found" errors)
           if (pollingTimeoutRef) {
             clearTimeout(pollingTimeoutRef);
           }
