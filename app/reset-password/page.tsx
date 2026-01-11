@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useState, useTransition, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "../contexts/ToastContext";
-import { updatePasswordFromReset } from "../actions/auth";
+import { verifyPasswordResetToken, updatePasswordFromReset } from "../actions/auth";
 import "../login/page.css";
 
 function ResetPasswordPageContent() {
@@ -14,13 +14,58 @@ function ResetPasswordPageContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [isVerifying, setIsVerifying] = useState(true);
+  const [isTokenValid, setIsTokenValid] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showError, showSuccess } = useToast();
 
-  // Note: Supabase password reset emails include the token in the URL hash
-  // The token will be automatically extracted by Supabase when we call updateUser
-  // So we don't need to strictly validate token_hash here
+  useEffect(() => {
+    // Check if we have a code in the URL (Supabase password reset links)
+    const code = searchParams?.get("code");
+    const tokenHash = searchParams?.get("token_hash");
+    const type = searchParams?.get("type");
+
+    const verifyToken = async () => {
+      if (code) {
+        // If we have a code, we need to exchange it for a session via callback
+        // But we can't do that from client side, so redirect to auth callback
+        const callbackUrl = `/auth/callback?code=${code}&type=recovery&next=/reset-password`;
+        router.replace(callbackUrl);
+        return;
+      }
+
+      if (tokenHash && type === "recovery") {
+        // Verify the token
+        const formData = new FormData();
+        formData.append("token_hash", tokenHash);
+        formData.append("type", type);
+
+        const result = await verifyPasswordResetToken(formData);
+        
+        if (result?.error) {
+          showError(result.error || "Invalid or expired reset token. Please request a new password reset.");
+          setIsVerifying(false);
+          setIsTokenValid(false);
+          setTimeout(() => {
+            router.push("/forgot-password");
+          }, 3000);
+        } else {
+          setIsVerifying(false);
+          setIsTokenValid(true);
+        }
+      } else {
+        showError("Invalid reset link. Please request a new password reset.");
+        setIsVerifying(false);
+        setIsTokenValid(false);
+        setTimeout(() => {
+          router.push("/forgot-password");
+        }, 3000);
+      }
+    };
+
+    verifyToken();
+  }, [searchParams, router, showError]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

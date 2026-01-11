@@ -124,18 +124,37 @@ export async function resetPasswordForEmail(formData: FormData) {
   return { success: true }
 }
 
+export async function verifyPasswordResetToken(formData: FormData) {
+  const supabase = await createClient()
+  const tokenHash = formData.get('token_hash') as string
+  const type = formData.get('type') as string
+
+  // Verify the OTP token - this creates a session if valid
+  const { error } = await supabase.auth.verifyOtp({
+    token_hash: tokenHash,
+    type: type as any,
+  })
+
+  if (error) {
+    return { error: error.message || 'Invalid or expired reset token' }
+  }
+
+  revalidatePath('/', 'layout')
+  return { success: true }
+}
+
 export async function updatePasswordFromReset(formData: FormData) {
   const supabase = await createClient()
   const password = formData.get('password') as string
 
-  // When user clicks the password reset link, Supabase sets a session
-  // We can directly update the password using updateUser
+  // After verifyOtp, the user should have a session
+  // Now we can update the password
   const { error } = await supabase.auth.updateUser({
     password: password,
   })
 
   if (error) {
-    return { error: error.message || 'Failed to update password. The reset link may have expired.' }
+    return { error: error.message || 'Failed to update password. Please try again or request a new reset link.' }
   }
 
   revalidatePath('/', 'layout')

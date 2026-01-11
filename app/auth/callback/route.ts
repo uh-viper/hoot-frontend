@@ -5,6 +5,7 @@ import { initializeUserData } from '@/lib/api/user-initialization'
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
+  const type = requestUrl.searchParams.get('type')
   const next = requestUrl.searchParams.get('next') ?? '/dashboard'
 
   if (code) {
@@ -28,6 +29,22 @@ export async function GET(request: NextRequest) {
     const { error, data } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error && data.user) {
+      // Handle password recovery flow
+      if (type === 'recovery' && next === '/reset-password') {
+        // For password reset, redirect to reset password page
+        const resetUrl = new URL('/reset-password', requestUrl.origin)
+        const forwardedHost = request.headers.get('x-forwarded-host')
+        const isLocalEnv = process.env.NODE_ENV === 'development'
+        
+        if (isLocalEnv) {
+          return NextResponse.redirect(resetUrl)
+        } else if (forwardedHost) {
+          return NextResponse.redirect(`https://${forwardedHost}${resetUrl.pathname}`)
+        } else {
+          return NextResponse.redirect(resetUrl)
+        }
+      }
+
       // After email confirmation, ensure all user data rows exist
       // This handles cases where rows might be missing or were manually deleted
       // Note: initializeUserData will create its own client with the session cookies
@@ -66,6 +83,6 @@ export async function GET(request: NextRequest) {
 
   // If there's an error, redirect to login with error message
   const loginUrl = new URL('/login', requestUrl.origin)
-  loginUrl.searchParams.set('error', 'Email confirmation failed. Please try again.')
+  loginUrl.searchParams.set('error', 'Authentication failed. Please try again.')
   return NextResponse.redirect(loginUrl)
 }
