@@ -280,7 +280,7 @@
 .settings-api-content {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
   align-items: flex-start;
 }
 
@@ -301,48 +301,6 @@
 .settings-api-badge .material-icons {
   font-size: 1.125rem;
   color: #d4af37;
-}
-
-.settings-api-description {
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.7);
-  font-family: var(--font-poppins);
-  line-height: 1.6;
-  margin: 0;
-}
-
-.settings-api-request-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.875rem 1.75rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
-  color: #ffffff;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  font-family: var(--font-poppins);
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.settings-api-request-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(212, 175, 55, 0.5);
-  color: #d4af37;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);
-}
-
-.settings-api-request-btn:active {
-  transform: translateY(0);
-}
-
-.settings-api-request-btn .material-icons {
-  font-size: 1.125rem;
-  color: inherit;
 }
 
 /* Responsive Design */
@@ -399,10 +357,6 @@
     font-size: 20px;
   }
 
-  .settings-api-content {
-    gap: 1.25rem;
-  }
-
   .settings-api-badge {
     padding: 0.4375rem 0.875rem;
     font-size: 0.8125rem;
@@ -410,14 +364,5 @@
 
   .settings-api-badge .material-icons {
     font-size: 1rem;
-  }
-
-  .settings-api-description {
-    font-size: 0.9375rem;
-  }
-
-  .settings-api-request-btn {
-    width: 100%;
-    padding: 0.875rem 1.5rem;
   }
 }
