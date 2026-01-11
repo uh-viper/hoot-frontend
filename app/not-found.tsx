@@ -36,14 +36,14 @@ export default function NotFound() {
             Dashboard
           </Link>
 
-          <Link
-            href="https://discord.gg/your-discord-link"
+          <a
+            href="https://discord.gg/6xEjW6SYxj"
             target="_blank"
             rel="noopener noreferrer"
             className="not-found-btn-secondary"
           >
             Discord
-          </Link>
+          </a>
         </div>
       </div>
     </div>
