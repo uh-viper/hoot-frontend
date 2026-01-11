@@ -28,13 +28,33 @@ const formatTime = (date: Date) => {
 export default function StatusConsole() {
   const { messages, isActive } = useConsole();
   const consoleRef = useRef<HTMLDivElement>(null);
+  const shouldAutoScrollRef = useRef(true);
 
   useEffect(() => {
-    // Auto-scroll to bottom when new messages arrive
-    if (consoleRef.current) {
+    // Only auto-scroll if user is near the bottom (within 100px)
+    if (consoleRef.current && shouldAutoScrollRef.current) {
       consoleRef.current.scrollTop = consoleRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // Track scroll position to determine if we should auto-scroll
+  useEffect(() => {
+    const consoleElement = consoleRef.current;
+    if (!consoleElement) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = consoleElement;
+      const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+      // If user is within 100px of bottom, enable auto-scroll
+      // Otherwise, disable it so they can read older messages
+      shouldAutoScrollRef.current = distanceFromBottom < 100;
+    };
+
+    consoleElement.addEventListener('scroll', handleScroll);
+    return () => {
+      consoleElement.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   return (
     <div className="status-console-container">
