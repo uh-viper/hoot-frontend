@@ -440,6 +440,11 @@ export default function CreationForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Prevent double submission
+    if (isPending || isPolling) {
+      return;
+    }
+    
     // Validate BCS on submit
     const numValue = parseInt(bcsInputValue) || 0;
     let validBcsAmount = numValue;
@@ -533,6 +538,9 @@ export default function CreationForm() {
   // Calculate if user has enough credits
   const hasEnoughCredits = currentCredits !== null && currentCredits >= bcsAmount;
   const canDeploy = !isPending && !isPolling && hasEnoughCredits && selectedCountry && selectedCurrency && bcsAmount >= 5 && bcsAmount <= 25;
+  
+  // Prevent form submission if already deploying
+  const isDeploying = isPending || isPolling;
 
   return (
     <div className="creation-form-container">
@@ -682,7 +690,14 @@ export default function CreationForm() {
           <button
             type="submit"
             className="deployment-button"
-            disabled={!canDeploy || isPending || isPolling}
+            disabled={!canDeploy || isDeploying}
+            onClick={(e) => {
+              // Extra protection - prevent if already deploying
+              if (isDeploying) {
+                e.preventDefault();
+                e.stopPropagation();
+              }
+            }}
           >
             {isPending || isPolling ? (
               <>
