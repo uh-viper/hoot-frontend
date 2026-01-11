@@ -344,14 +344,7 @@ export default function CreationForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentJobId, isPolling]);
 
-  // Cleanup polling on unmount
-  useEffect(() => {
-    return () => {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
-      }
-    };
-  }, []);
+  // Note: Polling cleanup is handled in the polling useEffect's return function
 
   // Close dropdowns when clicking outside
   useEffect(() => {
