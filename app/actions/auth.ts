@@ -105,7 +105,7 @@ export async function resetPasswordForEmail(formData: FormData) {
   const email = formData.get('email') as string
 
   // Get the origin for redirect URL
-  let origin = process.env.NEXT_PUBLIC_SITE_URL
+  let origin = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL
   if (!origin && process.env.VERCEL_URL) {
     origin = `https://${process.env.VERCEL_URL}`
   }
@@ -113,14 +113,14 @@ export async function resetPasswordForEmail(formData: FormData) {
     origin = 'http://localhost:3000'
   }
 
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}/reset-password`,
+  // Always return success for security (don't reveal if email exists)
+  // Supabase will send email if account exists, but won't reveal if it doesn't
+  await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/callback?type=recovery&next=/reset-password`,
   })
 
-  if (error) {
-    return { error: error.message }
-  }
-
+  // Always return success message (security best practice)
+  // This prevents email enumeration attacks
   return { success: true }
 }
 

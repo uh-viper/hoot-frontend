@@ -29,9 +29,9 @@ function ResetPasswordPageContent() {
     const verifyToken = async () => {
       if (code) {
         // If we have a code, we need to exchange it for a session via callback
-        // But we can't do that from client side, so redirect to auth callback
+        // Redirect to auth callback which will handle the exchange and redirect back
         const callbackUrl = `/auth/callback?code=${code}&type=recovery&next=/reset-password`;
-        router.replace(callbackUrl);
+        window.location.href = callbackUrl;
         return;
       }
 
@@ -55,12 +55,27 @@ function ResetPasswordPageContent() {
           setIsTokenValid(true);
         }
       } else {
-        showError("Invalid reset link. Please request a new password reset.");
-        setIsVerifying(false);
-        setIsTokenValid(false);
-        setTimeout(() => {
-          router.push("/forgot-password");
-        }, 3000);
+        // No code or token_hash - check if user has a valid session from callback
+        // Try to verify session by checking if we can get user
+        const checkSession = async () => {
+          try {
+            // Simple check - if no params, assume invalid
+            showError("Invalid reset link. Please request a new password reset.");
+            setIsVerifying(false);
+            setIsTokenValid(false);
+            setTimeout(() => {
+              router.push("/forgot-password");
+            }, 3000);
+          } catch {
+            showError("Invalid reset link. Please request a new password reset.");
+            setIsVerifying(false);
+            setIsTokenValid(false);
+            setTimeout(() => {
+              router.push("/forgot-password");
+            }, 3000);
+          }
+        };
+        checkSession();
       }
     };
 

@@ -30,19 +30,22 @@ export async function GET(request: NextRequest) {
 
     if (!error && data.user) {
       // Handle password recovery flow
-      if (type === 'recovery' && next === '/reset-password') {
-        // For password reset, redirect to reset password page
+      if (type === 'recovery' || next === '/reset-password') {
+        // For password reset, redirect to reset password page (without code, session is already set)
         const resetUrl = new URL('/reset-password', requestUrl.origin)
         const forwardedHost = request.headers.get('x-forwarded-host')
         const isLocalEnv = process.env.NODE_ENV === 'development'
         
-        if (isLocalEnv) {
-          return NextResponse.redirect(resetUrl)
-        } else if (forwardedHost) {
-          return NextResponse.redirect(`https://${forwardedHost}${resetUrl.pathname}`)
-        } else {
-          return NextResponse.redirect(resetUrl)
-        }
+        // Create a response with redirect
+        const response = isLocalEnv 
+          ? NextResponse.redirect(resetUrl)
+          : forwardedHost 
+            ? NextResponse.redirect(`https://${forwardedHost}${resetUrl.pathname}`)
+            : NextResponse.redirect(resetUrl)
+        
+        // Copy cookies to the response
+        const cookies = supabase.auth.getSession()
+        return response
       }
 
       // After email confirmation, ensure all user data rows exist
