@@ -116,7 +116,7 @@ export default function CreationForm() {
       return;
     }
 
-    const POLL_INTERVAL = 5000; // 5 seconds (API limit: 60 requests/minute)
+    const POLL_INTERVAL = 10000; // 10 seconds (API limit: 60 requests/minute)
     const MAX_POLL_TIME = 30 * 60 * 1000; // 30 minutes max
     const startTime = Date.now();
     let lastProgress = { created: 0, requested: 0 };
@@ -265,17 +265,24 @@ export default function CreationForm() {
       }
     };
 
-    // Poll immediately, then every 5 seconds
-    pollStatus();
-    pollingIntervalRef.current = setInterval(pollStatus, POLL_INTERVAL);
+    // Start polling - wait 10 seconds before first poll, then poll every 10 seconds
+    // This prevents hitting rate limits from immediate polling after job creation
+    const initialTimeout = setTimeout(() => {
+      pollStatus();
+      pollingIntervalRef.current = setInterval(pollStatus, POLL_INTERVAL);
+    }, POLL_INTERVAL);
 
     return () => {
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
         pollingIntervalRef.current = null;
       }
+      // Also clear the initial timeout if component unmounts
+      clearTimeout(initialTimeout);
     };
-  }, [currentJobId, isPolling, addMessage, setActive, selectedCountry, selectedCurrency, showSuccess, showError]);
+    // Only re-run when currentJobId or isPolling changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentJobId, isPolling]);
 
   // Cleanup polling on unmount
   useEffect(() => {
