@@ -36,7 +36,7 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // Public routes that don't require authentication
-  const publicRoutes = ['/', '/login', '/signup', '/auth', '/learn-more', '/contact', '/terms-of-service', '/privacy-policy', '/refund-policy']
+  const publicRoutes = ['/', '/login', '/signup', '/auth', '/learn-more', '/contact', '/terms-of-service', '/privacy-policy', '/refund-policy', '/forgot-password', '/reset-password']
   const isPublicRoute = publicRoutes.some(route => 
     request.nextUrl.pathname === route || 
     request.nextUrl.pathname.startsWith('/auth') ||
@@ -44,7 +44,9 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/contact') ||
     request.nextUrl.pathname.startsWith('/terms-of-service') ||
     request.nextUrl.pathname.startsWith('/privacy-policy') ||
-    request.nextUrl.pathname.startsWith('/refund-policy')
+    request.nextUrl.pathname.startsWith('/refund-policy') ||
+    request.nextUrl.pathname.startsWith('/forgot-password') ||
+    request.nextUrl.pathname.startsWith('/reset-password')
   ) || request.nextUrl.pathname === '/auth/confirm' || request.nextUrl.pathname === '/auth/check-email' || request.nextUrl.pathname === '/auth/callback'
 
   // Redirect authenticated users away from login/signup to dashboard

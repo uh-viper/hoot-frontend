@@ -310,6 +310,12 @@ export default function SettingsForm({ initialName, initialEmail, initialDiscord
               )}
             </button>
           </div>
+
+          <div className="settings-form-field">
+            <Link href="/forgot-password" className="settings-forgot-password-link">
+              Forgot password?
+            </Link>
+          </div>
         </form>
       </div>
 

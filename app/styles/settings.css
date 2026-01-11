@@ -210,6 +210,20 @@
   font-size: 1.25rem;
 }
 
+.settings-forgot-password-link {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-decoration: none;
+  font-family: var(--font-poppins);
+  transition: color 0.3s ease;
+  margin-top: -0.5rem;
+}
+
+.settings-forgot-password-link:hover {
+  color: #d4af37;
+  text-decoration: underline;
+}
+
 /* Policy Links */
 .settings-policies-grid {
   display: flex;

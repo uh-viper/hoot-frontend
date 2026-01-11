@@ -99,3 +99,45 @@ export async function verifyEmail(token_hash: string, type: string) {
   revalidatePath('/', 'layout')
   return { success: true }
 }
+
+export async function resetPasswordForEmail(formData: FormData) {
+  const supabase = await createClient()
+  const email = formData.get('email') as string
+
+  // Get the origin for redirect URL
+  let origin = process.env.NEXT_PUBLIC_SITE_URL
+  if (!origin && process.env.VERCEL_URL) {
+    origin = `https://${process.env.VERCEL_URL}`
+  }
+  if (!origin) {
+    origin = 'http://localhost:3000'
+  }
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/reset-password`,
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  return { success: true }
+}
+
+export async function updatePasswordFromReset(formData: FormData) {
+  const supabase = await createClient()
+  const password = formData.get('password') as string
+
+  // When user clicks the password reset link, Supabase sets a session
+  // We can directly update the password using updateUser
+  const { error } = await supabase.auth.updateUser({
+    password: password,
+  })
+
+  if (error) {
+    return { error: error.message || 'Failed to update password. The reset link may have expired.' }
+  }
+
+  revalidatePath('/', 'layout')
+  return { success: true }
+}
