@@ -128,10 +128,10 @@ export default function CreationForm() {
 
         const status = result.status;
 
-        // Update logs if available
-        if (status.logs && status.logs.length > 0) {
-          status.logs.forEach((log) => {
-            addMessage('info', log);
+        // Log any failures from the API
+        if (status.failures && status.failures.length > 0) {
+          status.failures.forEach((failure) => {
+            addMessage('error', `Failed to create account ${failure.email}: ${failure.error}`);
           });
         }
 

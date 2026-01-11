@@ -115,6 +115,14 @@ export async function createJob(
     revalidatePath('/dashboard')
     revalidatePath('/dashboard/creation')
 
+    // Validate job was created successfully
+    if (!jobResponse.success || !jobResponse.job_id) {
+      return {
+        success: false,
+        error: jobResponse.error || 'Job creation failed - no job ID returned',
+      }
+    }
+
     return {
       success: true,
       jobId: jobResponse.job_id,

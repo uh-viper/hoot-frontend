@@ -23,22 +23,33 @@ export interface CreateJobRequest {
 }
 
 export interface CreateJobResponse {
+  success: boolean;
   job_id: string;
-  status: string;
   message?: string;
+  error?: string;
+  details?: Record<string, string[]>;
 }
 
 export interface JobStatus {
+  success: boolean;
   job_id: string;
   status: 'pending' | 'running' | 'completed' | 'failed';
   total_requested: number;
   total_created: number;
+  total_failed?: number;
+  duration?: number;
   accounts?: Array<{
     email: string;
     password: string;
+    region?: string;
+    currency?: string;
+  }>;
+  failures?: Array<{
+    email: string;
+    error: string;
+    code?: string;
   }>;
   error?: string;
-  logs?: string[];
 }
 
 export interface Region {
@@ -74,20 +85,23 @@ export async function createAccountsJob(
     body: JSON.stringify(payload),
   });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    let error;
-    try {
-      error = JSON.parse(errorText);
-    } catch {
-      error = { error: errorText || 'Failed to create job' };
-    }
-    console.error('[createAccountsJob] API error:', { status: response.status, error });
-    throw new Error(error.error || error.message || `HTTP ${response.status}: Failed to create job`);
-  }
-
   const result = await response.json();
   console.log('[createAccountsJob] API response:', result);
+
+  // Check if API returned an error (even with 200 status)
+  if (!result.success) {
+    const errorMsg = result.error || result.message || 'Failed to create job';
+    console.error('[createAccountsJob] API returned error:', result);
+    throw new Error(errorMsg);
+  }
+
+  // Check HTTP status code
+  if (!response.ok) {
+    const errorMsg = result.error || result.message || `HTTP ${response.status}: Failed to create job`;
+    console.error('[createAccountsJob] HTTP error:', { status: response.status, result });
+    throw new Error(errorMsg);
+  }
+
   return result;
 }
 
@@ -101,20 +115,23 @@ export async function getJobStatus(jobId: string): Promise<JobStatus> {
     },
   });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    let error;
-    try {
-      error = JSON.parse(errorText);
-    } catch {
-      error = { error: errorText || 'Failed to get job status' };
-    }
-    console.error('[getJobStatus] API error:', { status: response.status, jobId, error });
-    throw new Error(error.error || error.message || `HTTP ${response.status}: Failed to get job status`);
-  }
-
   const result = await response.json();
   console.log('[getJobStatus] API response:', { jobId, result });
+
+  // Check if API returned an error (even with 200 status)
+  if (!result.success) {
+    const errorMsg = result.error || result.message || 'Failed to get job status';
+    console.error('[getJobStatus] API returned error:', { jobId, result });
+    throw new Error(errorMsg);
+  }
+
+  // Check HTTP status code
+  if (!response.ok) {
+    const errorMsg = result.error || result.message || `HTTP ${response.status}: Failed to get job status`;
+    console.error('[getJobStatus] HTTP error:', { status: response.status, jobId, result });
+    throw new Error(errorMsg);
+  }
+
   return result;
 }
 
