@@ -37,7 +37,7 @@ export default function NotFound() {
           </Link>
 
           <a
-            href="https://discord.gg/6xEjW6SYxj"
+            href="https://discord.gg/b8RSYKNNbR"
             target="_blank"
             rel="noopener noreferrer"
             className="not-found-btn-secondary"

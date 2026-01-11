@@ -25,7 +25,7 @@ export default function Footer() {
             <Link href="/contact" className="footer-link" prefetch={false}>
               Contact
             </Link>
-            <a href="https://discord.gg/6xEjW6SYxj" target="_blank" rel="noopener noreferrer" className="footer-link">
+            <a href="https://discord.gg/b8RSYKNNbR" target="_blank" rel="noopener noreferrer" className="footer-link">
               Discord
             </a>
           </nav>

@@ -381,7 +381,7 @@ export default function SettingsForm({ initialName, initialEmail, initialDiscord
           </Link>
 
           <a
-            href="https://discord.gg/6xEjW6SYxj"
+            href="https://discord.gg/b8RSYKNNbR"
             target="_blank"
             rel="noopener noreferrer"
             className="settings-policy-link"

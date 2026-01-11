@@ -71,7 +71,7 @@ export default async function Contact() {
                 Join our Discord community for real-time support, updates, and to connect with other users.
               </p>
               <a 
-                href="https://discord.gg/6xEjW6SYxj" 
+                href="https://discord.gg/b8RSYKNNbR" 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="contact-button"
