@@ -55,25 +55,40 @@ export async function createAccountsJob(
   region: string,
   currency: string
 ): Promise<CreateJobResponse> {
+  const payload = {
+    accounts,
+    region,
+    currency,
+  };
+  
+  console.log('[createAccountsJob] Sending request to:', `${API_BASE_URL}/api/create-accounts`);
+  console.log('[createAccountsJob] Request payload:', payload);
+  console.log('[createAccountsJob] API_KEY set:', !!API_KEY);
+  
   const response = await fetch(`${API_BASE_URL}/api/create-accounts`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'X-API-Key': API_KEY,
     },
-    body: JSON.stringify({
-      accounts,
-      region,
-      currency,
-    }),
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'Failed to create job' }));
-    throw new Error(error.error || `HTTP ${response.status}: Failed to create job`);
+    const errorText = await response.text();
+    let error;
+    try {
+      error = JSON.parse(errorText);
+    } catch {
+      error = { error: errorText || 'Failed to create job' };
+    }
+    console.error('[createAccountsJob] API error:', { status: response.status, error });
+    throw new Error(error.error || error.message || `HTTP ${response.status}: Failed to create job`);
   }
 
-  return await response.json();
+  const result = await response.json();
+  console.log('[createAccountsJob] API response:', result);
+  return result;
 }
 
 /**
@@ -87,11 +102,20 @@ export async function getJobStatus(jobId: string): Promise<JobStatus> {
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'Failed to get job status' }));
-    throw new Error(error.error || `HTTP ${response.status}: Failed to get job status`);
+    const errorText = await response.text();
+    let error;
+    try {
+      error = JSON.parse(errorText);
+    } catch {
+      error = { error: errorText || 'Failed to get job status' };
+    }
+    console.error('[getJobStatus] API error:', { status: response.status, jobId, error });
+    throw new Error(error.error || error.message || `HTTP ${response.status}: Failed to get job status`);
   }
 
-  return await response.json();
+  const result = await response.json();
+  console.log('[getJobStatus] API response:', { jobId, result });
+  return result;
 }
 
 /**

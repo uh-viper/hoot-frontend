@@ -137,6 +137,24 @@ export default function CreationForm() {
 
         // Handle different statuses
         if (status.status === 'completed') {
+          // Check if job failed even though status is "completed"
+          if (status.total_created === 0 && status.error) {
+            addMessage('error', `Job failed: ${status.error}`);
+            setIsPolling(false);
+            setActive(false);
+            setCurrentJobId(null);
+            return;
+          }
+
+          // Check if no accounts were created
+          if (status.total_created === 0) {
+            addMessage('error', `Job completed but no accounts were created. ${status.error ? `Error: ${status.error}` : 'Please check the backend logs.'}`);
+            setIsPolling(false);
+            setActive(false);
+            setCurrentJobId(null);
+            return;
+          }
+
           addMessage('success', `Job completed! Created ${status.total_created} out of ${status.total_requested} accounts.`);
           setIsPolling(false);
           setActive(false);

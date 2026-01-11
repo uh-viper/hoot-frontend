@@ -78,7 +78,9 @@ export async function createJob(
 
   try {
     // Create job via backend API
+    console.log('[createJob] Creating job with:', { accounts, region, currency })
     const jobResponse = await createAccountsJob(accounts, region, currency)
+    console.log('[createJob] Job created successfully:', jobResponse)
 
     // Deduct credits from user using RPC function
     const { error: deductError } = await supabase.rpc('deduct_credits_from_user', {
@@ -132,9 +134,11 @@ export async function createJob(
 export async function fetchJobStatus(jobId: string): Promise<{ success: boolean; status?: JobStatus; error?: string }> {
   try {
     const status = await getJobStatus(jobId)
+    // Log the status for debugging
+    console.log('[fetchJobStatus] Job status response:', JSON.stringify(status, null, 2))
     return { success: true, status }
   } catch (error) {
-    console.error('Failed to fetch job status:', error)
+    console.error('[fetchJobStatus] Failed to fetch job status:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch job status',
