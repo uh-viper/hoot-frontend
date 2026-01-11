@@ -15,13 +15,20 @@ interface PurchaseHistoryProps {
   allPurchases?: PurchaseHistoryItem[]
 }
 
+const ITEMS_PER_PAGE = 5
+
 export default function PurchaseHistory({ purchases = [], allPurchases = [] }: PurchaseHistoryProps) {
-  const [showAll, setShowAll] = useState(false)
+  const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE)
   
   // Use allPurchases if provided, otherwise use purchases
   const allHistory = allPurchases.length > 0 ? allPurchases : purchases
-  const displayHistory = showAll ? allHistory : allHistory.slice(0, 5)
-  const hasMore = allHistory.length > 5
+  const displayHistory = allHistory.slice(0, displayCount)
+  const hasMore = displayCount < allHistory.length
+  const remainingCount = allHistory.length - displayCount
+
+  const handleViewMore = () => {
+    setDisplayCount(prev => prev + ITEMS_PER_PAGE)
+  }
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -73,30 +80,13 @@ export default function PurchaseHistory({ purchases = [], allPurchases = [] }: P
                 </div>
               ))}
             </div>
-            {hasMore && !showAll && (
-              <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+            {hasMore && (
+              <div className="purchase-history-view-more">
                 <button
-                  onClick={() => setShowAll(true)}
-                  style={{
-                    background: 'transparent',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    color: '#fff',
-                    padding: '0.5rem 1.5rem',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontSize: '0.9rem',
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent'
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'
-                  }}
+                  onClick={handleViewMore}
+                  className="purchase-history-view-more-btn"
                 >
-                  View More
+                  View More {remainingCount > ITEMS_PER_PAGE ? `(${ITEMS_PER_PAGE} more)` : `(${remainingCount} more)`}
                 </button>
               </div>
             )}

@@ -107,7 +107,7 @@ export default async function CreditsPage({ searchParams }: PageProps) {
         </div>
       </div>
 
-      <PurchaseHistory purchases={formattedPurchases.slice(0, 5)} allPurchases={formattedPurchases} />
+      <PurchaseHistory allPurchases={formattedPurchases} />
     </div>
   )
 }
