@@ -22,33 +22,18 @@ export default function NotFound() {
           </Link>
         </div>
 
-        {/* 404 Message */}
-        <h1 className="not-found-404">
-          404
+        {/* Message */}
+        <h1 className="not-found-title">
+          Oops. Looks like this page doesn't exist!
         </h1>
 
-        <h2 className="not-found-title">
-          Oops. Looks like this page doesn't exist!
-        </h2>
-
-        <p className="not-found-description">
-          The page you're looking for might have been moved, deleted, or doesn't exist.
-        </p>
-
-        {/* CTA Buttons */}
+        {/* CTA Button */}
         <div className="not-found-buttons">
           <Link
             href="/"
             className="not-found-btn-primary"
           >
-            Go Home
-          </Link>
-
-          <Link
-            href="/dashboard"
-            className="not-found-btn-secondary"
-          >
-            Go to Dashboard
+            Home Page
           </Link>
         </div>
       </div>

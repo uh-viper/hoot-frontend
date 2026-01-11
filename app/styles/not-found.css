@@ -21,28 +21,12 @@
   justify-content: center;
 }
 
-.not-found-404 {
-  font-size: clamp(3rem, 8vw, 6rem);
-  font-weight: 700;
-  margin-bottom: 1rem;
-  font-family: var(--font-outfit);
-  letter-spacing: -0.02em;
-}
-
 .not-found-title {
   font-size: clamp(1.5rem, 4vw, 2.5rem);
   font-weight: 600;
-  margin-bottom: 1rem;
+  margin-bottom: 3rem;
   font-family: var(--font-outfit);
   color: #ffffff;
-}
-
-.not-found-description {
-  font-size: 1.125rem;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 3rem;
-  font-family: var(--font-poppins);
-  line-height: 1.6;
 }
 
 .not-found-buttons {
