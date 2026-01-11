@@ -27,13 +27,22 @@ export default function NotFound() {
           Oops. Looks like this page doesn't exist!
         </h1>
 
-        {/* CTA Button */}
+        {/* CTA Buttons */}
         <div className="not-found-buttons">
           <Link
-            href="/"
+            href="/dashboard"
             className="not-found-btn-primary"
           >
-            Home Page
+            Dashboard
+          </Link>
+
+          <Link
+            href="https://discord.gg/your-discord-link"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="not-found-btn-secondary"
+          >
+            Discord
           </Link>
         </div>
       </div>
