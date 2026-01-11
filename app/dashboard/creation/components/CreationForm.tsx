@@ -495,6 +495,16 @@ export default function CreationForm() {
         // Start polling for job status
         setCurrentJobId(result.jobId);
         setIsPolling(true);
+        
+        // Save to localStorage
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('hoot_current_job_id', result.jobId);
+            localStorage.setItem('hoot_is_polling', 'true');
+          } catch (error) {
+            console.error('Failed to save job state to localStorage:', error);
+          }
+        }
       } catch (error) {
         addMessage('error', `Failed to create job: ${error instanceof Error ? error.message : 'Unknown error'}`);
         showError(error instanceof Error ? error.message : 'Failed to create job');
