@@ -38,7 +38,16 @@ export async function GET(request: NextRequest) {
 
     const { error, data } = await supabase.auth.exchangeCodeForSession(code)
 
-    if (!error && data.user) {
+    if (error) {
+      // Log error for debugging
+      console.error('Callback code exchange error:', error)
+      // Redirect to login with error message
+      const loginUrl = new URL('/login', requestUrl.origin)
+      loginUrl.searchParams.set('error', error.message || 'Authentication failed. Please try again.')
+      return NextResponse.redirect(loginUrl)
+    }
+
+    if (data.user) {
       // Handle password recovery flow
       // Check if this is a password recovery by looking at next parameter or type parameter
       // Supabase password reset codes have type=recovery in the verify URL but it doesn't get passed to callback
