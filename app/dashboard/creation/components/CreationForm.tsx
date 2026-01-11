@@ -128,290 +128,163 @@ export default function CreationForm() {
     }
 
     // Restore active state in console if we're polling
-    if (isPolling) {
-      setActive(true);
-    }
-    
-    // Verify job exists when restoring from localStorage (one-time check on mount)
-    const wasRestored = typeof window !== 'undefined' && localStorage.getItem('hoot_current_job_id') === currentJobId;
-    if (wasRestored) {
-      // Quick verification - check if job exists before starting to poll
-      fetchJobStatus(currentJobId).then((result) => {
-        if (!result.success || !result.status) {
-          if (result.error && (result.error.toLowerCase().includes('not found') || result.error.toLowerCase().includes('job not found'))) {
-            addMessage('info', 'Previous deployment job no longer exists. Resetting...');
-            setIsPolling(false);
-            setActive(false);
-            setCurrentJobId(null);
-            if (typeof window !== 'undefined') {
-              try {
-                localStorage.removeItem('hoot_current_job_id');
-                localStorage.removeItem('hoot_is_polling');
-              } catch (error) {
-                console.error('Failed to clear job state from localStorage:', error);
-              }
-            }
-            return; // Don't start polling if job doesn't exist
-          }
-        }
-        // Job exists or error is transient, proceed with polling
-      }).catch(() => {
-        // If verification fails, assume job might exist and proceed
-      });
-    }
+    setActive(true);
 
-    const POLL_INTERVAL = 10000; // 10 seconds (API limit: 60 requests/minute)
+    const POLL_INTERVAL = 10000; // 10 seconds
     const MAX_POLL_TIME = 10 * 60 * 1000; // 10 minutes max
     const startTime = Date.now();
-    let lastProgress: { created: number; requested: number; lastUpdateTime?: number } = { 
-      created: 0, 
-      requested: 0,
-      lastUpdateTime: Date.now()
-    };
-    let pollingTimeoutRef: NodeJS.Timeout | null = null;
+    let lastLogTime = 0;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let isCancelled = false;
 
-    const pollStatus = async () => {
-      // Don't poll if we're no longer supposed to be polling
-      if (!currentJobId || !isPolling) {
+    // Save job state to localStorage
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('hoot_current_job_id', currentJobId);
+        localStorage.setItem('hoot_is_polling', 'true');
+      } catch (e) {
+        console.error('Failed to save job state:', e);
+      }
+    }
+
+    const clearJobState = () => {
+      setIsPolling(false);
+      setActive(false);
+      setCurrentJobId(null);
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.removeItem('hoot_current_job_id');
+          localStorage.removeItem('hoot_is_polling');
+        } catch (e) {
+          console.error('Failed to clear job state:', e);
+        }
+      }
+    };
+
+    const scheduleNextPoll = (delay: number = POLL_INTERVAL) => {
+      if (isCancelled) return;
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(pollOnce, delay);
+    };
+
+    const pollOnce = async () => {
+      if (isCancelled) return;
+
+      // Check timeout
+      if (Date.now() - startTime > MAX_POLL_TIME) {
+        addMessage('error', 'Job polling timeout after 10 minutes.');
+        clearJobState();
         return;
       }
-      try {
-        // Check timeout
-        const elapsed = Date.now() - startTime;
-        if (elapsed > MAX_POLL_TIME) {
-          addMessage('error', 'Job polling timeout after 10 minutes. Please check job status manually.');
-          setIsPolling(false);
-          setActive(false);
-          if (pollingTimeoutRef) {
-            clearTimeout(pollingTimeoutRef);
-            pollingTimeoutRef = null;
-          }
-          return;
-        }
 
+      try {
         const result = await fetchJobStatus(currentJobId);
+
+        if (isCancelled) return;
+
         if (!result.success || !result.status) {
-          // Handle rate limit error
-          if (result.error && result.error.toLowerCase().includes('rate limit')) {
-            addMessage('error', 'Rate limit exceeded. Polling will resume in 1 minute...');
-            // Wait 60 seconds before next poll
-            if (pollingTimeoutRef) {
-              clearTimeout(pollingTimeoutRef);
-            }
-            pollingTimeoutRef = setTimeout(pollStatus, 60000);
-            return;
-          }
-          // Handle "Job not found" - job was deleted/terminated, stop polling
-          if (result.error && (result.error.toLowerCase().includes('not found') || result.error.toLowerCase().includes('job not found'))) {
-            addMessage('error', 'Job no longer exists. Deployment has been terminated.');
-            setIsPolling(false);
-            setActive(false);
-            setCurrentJobId(null);
-            if (typeof window !== 'undefined') {
-              try {
-                localStorage.removeItem('hoot_current_job_id');
-                localStorage.removeItem('hoot_is_polling');
-              } catch (error) {
-                console.error('Failed to clear job state from localStorage:', error);
-              }
-            }
-            if (pollingTimeoutRef) {
-              clearTimeout(pollingTimeoutRef);
-              pollingTimeoutRef = null;
-            }
+          const err = result.error || '';
+          
+          // Job not found - stop polling
+          if (err.toLowerCase().includes('not found')) {
+            addMessage('error', 'Job no longer exists.');
+            clearJobState();
             return;
           }
           
-          addMessage('error', result.error || 'Failed to fetch job status');
-          // Schedule next poll even on error (but not for "not found" errors)
-          if (pollingTimeoutRef) {
-            clearTimeout(pollingTimeoutRef);
+          // Rate limit - wait longer
+          if (err.toLowerCase().includes('rate limit')) {
+            addMessage('warning', 'Rate limited. Waiting 60 seconds...');
+            scheduleNextPoll(60000);
+            return;
           }
-          pollingTimeoutRef = setTimeout(pollStatus, POLL_INTERVAL);
+          
+          // Other error - keep polling
+          addMessage('warning', `Error: ${err}. Retrying...`);
+          scheduleNextPoll();
           return;
         }
 
         const status = result.status;
 
-        // Log any failures from the API (only new ones)
-        if (status.failures && status.failures.length > 0) {
-          status.failures.forEach((failure) => {
-            addMessage('error', `Failed to create account ${failure.email}: ${failure.error}`);
-          });
-        }
-
-        // Handle different statuses
+        // Job completed
         if (status.status === 'completed') {
-          // Check if job failed even though status is "completed"
-          if (status.total_created === 0 && status.error) {
-            addMessage('error', `Job failed: ${status.error}`);
-            setIsPolling(false);
-            setActive(false);
-            setCurrentJobId(null);
-            if (pollingTimeoutRef) {
-              clearTimeout(pollingTimeoutRef);
-              pollingTimeoutRef = null;
-            }
-            return;
-          }
-
-          // Check if no accounts were created
           if (status.total_created === 0) {
-            addMessage('error', `Job completed but no accounts were created. ${status.error ? `Error: ${status.error}` : 'Please check the backend logs.'}`);
-            setIsPolling(false);
-            setActive(false);
-            setCurrentJobId(null);
-            if (pollingTimeoutRef) {
-              clearTimeout(pollingTimeoutRef);
-              pollingTimeoutRef = null;
-            }
-            return;
-          }
-
-          addMessage('success', `Job completed! Created ${status.total_created} out of ${status.total_requested} accounts.`);
-          setIsPolling(false);
-          setActive(false);
-
-          // Save accounts to database
-          if (status.accounts && status.accounts.length > 0 && selectedCountry) {
-            addMessage('info', 'Saving accounts to your vault...');
-            const saveResult = await saveAccounts(
-              currentJobId,
-              status.accounts,
-              selectedCountry.code,
-              selectedCurrency
-            );
-
-            if (saveResult.success) {
-              addMessage('success', `Successfully saved ${saveResult.savedCount} accounts to your vault!`);
-              showSuccess(`Successfully created and saved ${saveResult.savedCount} business center accounts!`);
-            } else {
-              addMessage('error', saveResult.error || 'Failed to save accounts');
-              showError(saveResult.error || 'Failed to save accounts');
+            addMessage('error', `No accounts created. ${status.error || 'Check backend logs.'}`);
+          } else {
+            addMessage('success', `Completed! Created ${status.total_created}/${status.total_requested} accounts.`);
+            
+            // Save accounts
+            if (status.accounts && status.accounts.length > 0 && selectedCountry) {
+              addMessage('info', 'Saving to vault...');
+              const saveResult = await saveAccounts(
+                currentJobId,
+                status.accounts,
+                selectedCountry.code,
+                selectedCurrency
+              );
+              if (saveResult.success) {
+                addMessage('success', `Saved ${saveResult.savedCount} accounts!`);
+                showSuccess(`Created and saved ${saveResult.savedCount} accounts!`);
+              } else {
+                addMessage('error', saveResult.error || 'Failed to save');
+                showError(saveResult.error || 'Failed to save');
+              }
             }
           }
+          clearJobState();
+          return;
+        }
 
-          // Clear job ID and localStorage
-          setCurrentJobId(null);
-          setIsPolling(false);
-          if (typeof window !== 'undefined') {
-            try {
-              localStorage.removeItem('hoot_current_job_id');
-              localStorage.removeItem('hoot_is_polling');
-            } catch (error) {
-              console.error('Failed to clear job state from localStorage:', error);
-            }
-          }
-          if (pollingTimeoutRef) {
-            clearTimeout(pollingTimeoutRef);
-            pollingTimeoutRef = null;
-          }
-        } else if (status.status === 'failed') {
+        // Job failed
+        if (status.status === 'failed') {
           addMessage('error', status.error || 'Job failed');
-          setIsPolling(false);
-          setActive(false);
-          setCurrentJobId(null);
-          if (typeof window !== 'undefined') {
-            try {
-              localStorage.removeItem('hoot_current_job_id');
-              localStorage.removeItem('hoot_is_polling');
-            } catch (error) {
-              console.error('Failed to clear job state from localStorage:', error);
-            }
-          }
-          if (pollingTimeoutRef) {
-            clearTimeout(pollingTimeoutRef);
-            pollingTimeoutRef = null;
-          }
-        } else if (status.status === 'running' || status.status === 'pending') {
-          // Schedule next poll for running/pending jobs
-          if (pollingTimeoutRef) {
-            clearTimeout(pollingTimeoutRef);
-          }
-          pollingTimeoutRef = setTimeout(pollStatus, POLL_INTERVAL);
-          // Log progress if it changed, or log a heartbeat every 30 seconds to show we're still polling
-          const now = Date.now();
-          const timeSinceLastProgress = now - (lastProgress as any).lastUpdateTime || 0;
-          
-          if (status.total_created !== lastProgress.created || status.total_requested !== lastProgress.requested) {
-            addMessage('info', `Progress: ${status.total_created} / ${status.total_requested} accounts created...`);
-            lastProgress = { 
-              created: status.total_created, 
-              requested: status.total_requested,
-              lastUpdateTime: now
-            } as any;
-          } else if (timeSinceLastProgress > 30000) {
-            // Log a heartbeat every 30 seconds if no progress update
-            addMessage('info', `Still processing... ${status.total_created} / ${status.total_requested} accounts created`);
-            (lastProgress as any).lastUpdateTime = now;
-          }
+          clearJobState();
+          return;
         }
+
+        // Job running/pending - log progress and schedule next poll
+        const now = Date.now();
+        if (now - lastLogTime > 10000) { // Log at most every 10 seconds
+          addMessage('info', `Progress: ${status.total_created}/${status.total_requested} accounts...`);
+          lastLogTime = now;
+        }
+        
+        scheduleNextPoll();
+        
       } catch (error) {
-        // Handle rate limit in catch block too
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        if (errorMessage.toLowerCase().includes('rate limit')) {
-          addMessage('error', 'Rate limit exceeded. Polling will resume in 1 minute...');
-          if (pollingTimeoutRef) {
-            clearTimeout(pollingTimeoutRef);
-          }
-          pollingTimeoutRef = setTimeout(pollStatus, 60000);
+        if (isCancelled) return;
+        
+        const msg = error instanceof Error ? error.message : 'Unknown error';
+        
+        if (msg.toLowerCase().includes('not found')) {
+          addMessage('error', 'Job no longer exists.');
+          clearJobState();
           return;
         }
         
-        // Handle "Job not found" - job was deleted/terminated, stop polling
-        if (errorMessage.toLowerCase().includes('not found') || errorMessage.toLowerCase().includes('job not found')) {
-          addMessage('error', 'Job no longer exists. Deployment has been terminated.');
-          setIsPolling(false);
-          setActive(false);
-          setCurrentJobId(null);
-          if (typeof window !== 'undefined') {
-            try {
-              localStorage.removeItem('hoot_current_job_id');
-              localStorage.removeItem('hoot_is_polling');
-            } catch (error) {
-              console.error('Failed to clear job state from localStorage:', error);
-            }
-          }
-          if (pollingTimeoutRef) {
-            clearTimeout(pollingTimeoutRef);
-            pollingTimeoutRef = null;
-          }
+        if (msg.toLowerCase().includes('rate limit')) {
+          addMessage('warning', 'Rate limited. Waiting 60 seconds...');
+          scheduleNextPoll(60000);
           return;
         }
         
-        // Log error but don't stop polling - schedule next poll
-        console.error('Error polling job status:', error);
-        addMessage('warning', `Polling error: ${errorMessage}. Will retry in ${POLL_INTERVAL / 1000} seconds...`);
-        // Schedule next poll even on error (but not for "not found" errors)
-        if (pollingTimeoutRef) {
-          clearTimeout(pollingTimeoutRef);
-        }
-        pollingTimeoutRef = setTimeout(pollStatus, POLL_INTERVAL);
+        console.error('Poll error:', error);
+        addMessage('warning', `Error: ${msg}. Retrying...`);
+        scheduleNextPoll();
       }
     };
 
-        // Save job state to localStorage
-        if (typeof window !== 'undefined') {
-          try {
-            localStorage.setItem('hoot_current_job_id', currentJobId);
-            localStorage.setItem('hoot_is_polling', 'true');
-          } catch (error) {
-            console.error('Failed to save job state to localStorage:', error);
-          }
-        }
-
-        // Start polling - wait 10 seconds before first poll, then use recursive setTimeout
-        // This ensures consistent 10-second intervals even if polls take time or fail
-        pollingTimeoutRef = setTimeout(pollStatus, POLL_INTERVAL);
+    // Start first poll after initial delay
+    timeoutId = setTimeout(pollOnce, POLL_INTERVAL);
 
     return () => {
-      // Clear any pending polling timeout
-      if (pollingTimeoutRef) {
-        clearTimeout(pollingTimeoutRef);
-        pollingTimeoutRef = null;
+      isCancelled = true;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
       }
     };
-    // Only re-run when currentJobId or isPolling changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentJobId, isPolling]);
 
