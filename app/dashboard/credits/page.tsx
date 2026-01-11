@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Metadata } from 'next'
 import { initializeUserData } from '@/lib/api/user-initialization'
+import { processPendingPurchases } from './actions/process-pending'
 import CreditPackageCard from './components/CreditPackageCard'
 import PurchaseHistory from './components/PurchaseHistory'
 import CreditsPageClient from './components/CreditsPageClient'
@@ -41,6 +42,13 @@ export default async function CreditsPage() {
 
   // Ensure user has all required database rows
   await initializeUserData(user.id)
+
+  // Process any pending purchases (in case webhook failed)
+  // This ensures credits are added when user returns to credits page
+  const pendingResult = await processPendingPurchases(user.id)
+  if (pendingResult.processed > 0) {
+    console.log(`Processed ${pendingResult.processed} pending purchases, added ${pendingResult.creditsAdded} credits`)
+  }
 
   // Fetch purchase history
   const supabase = await createClient()
