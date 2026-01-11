@@ -73,12 +73,12 @@ export default async function CreditsPage({ searchParams }: PageProps) {
     .order('created_at', { ascending: false })
     .limit(50)
 
-  // Format purchases for component
+  // Format purchases for component - convert dates to ISO strings to avoid hydration errors
   const formattedPurchases = purchases?.map(purchase => ({
     id: purchase.id,
     credits: purchase.credits,
     price: purchase.amount_paid_cents / 100, // Convert cents to dollars
-    date: new Date(purchase.created_at),
+    date: purchase.created_at, // Keep as string to avoid hydration issues
     status: purchase.status as 'completed' | 'pending' | 'failed',
   })) || []
 
@@ -107,7 +107,7 @@ export default async function CreditsPage({ searchParams }: PageProps) {
         </div>
       </div>
 
-      <PurchaseHistory purchases={formattedPurchases} />
+      <PurchaseHistory purchases={formattedPurchases.slice(0, 5)} allPurchases={formattedPurchases} />
     </div>
   )
 }

@@ -2,6 +2,7 @@
 
 import { stripe } from '@/lib/stripe/server'
 import { createClient } from '@supabase/supabase-js'
+import { revalidatePath } from 'next/cache'
 
 // Use service role key to bypass RLS
 const supabaseAdmin = createClient(
@@ -92,6 +93,11 @@ export async function processCheckoutSession(sessionId: string, userId: string):
     }
 
     console.log('✅ Credits added successfully:', purchase.credits)
+    
+    // Revalidate the credits page and dashboard layout to refresh credits display
+    revalidatePath('/dashboard/credits')
+    revalidatePath('/dashboard', 'layout')
+    
     return { success: true, creditsAdded: purchase.credits }
   } catch (error: any) {
     console.error('Error processing checkout session:', error)
