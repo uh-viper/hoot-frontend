@@ -20,14 +20,11 @@ export default function ForgotPasswordPage() {
       const formData = new FormData();
       formData.append("email", email);
       
-      const result = await resetPasswordForEmail(formData);
+      await resetPasswordForEmail(formData);
       
-      if (result?.error) {
-        showError(result.error);
-      } else {
-        showSuccess("Password reset email sent! Please check your inbox.");
-        router.push("/login");
-      }
+      // Always show success (security: prevents email enumeration)
+      showSuccess("If an account with that email exists, a password reset link has been sent. Please check your inbox.");
+      router.push("/login");
     });
   };
 
