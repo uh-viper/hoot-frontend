@@ -461,7 +461,8 @@ export default function CreationForm() {
 
     // Start deployment
     startTransition(async () => {
-      // Don't clear messages - keep them in localStorage
+      // Clear previous logs when starting a new deployment
+      clearMessages();
       setActive(true);
       addMessage('info', 'Initializing deployment...');
       addMessage('info', `Country: ${selectedCountry.name} (${selectedCountry.code})`);
