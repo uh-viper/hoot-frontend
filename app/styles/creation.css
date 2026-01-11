@@ -269,6 +269,23 @@
   font-size: 1.5rem;
 }
 
+.deployment-button .material-icons.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.material-icons.spinning {
+  animation: spin 1s linear infinite;
+}
+
 /* Status Console */
 .status-console-container {
   margin-top: 2.5rem;

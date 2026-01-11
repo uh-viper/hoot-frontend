@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useToast } from '../../../contexts/ToastContext';
 import { useConsole } from '../contexts/ConsoleContext';
+import { checkCredits, createJob, fetchJobStatus, saveAccounts } from '../../../actions/account-creation';
+import { useTransition } from 'react';
 
 interface Country {
   code: string;
@@ -72,8 +74,9 @@ const countries: Country[] = [
 const regions = ['North America', 'South America', 'Europe', 'Asia', 'Middle East', 'Africa', 'Oceania'];
 
 export default function CreationForm() {
-  const { showError } = useToast();
+  const { showError, showSuccess } = useToast();
   const { addMessage, setActive, clearMessages } = useConsole();
+  const [isPending, startTransition] = useTransition();
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
   const [selectedCurrency, setSelectedCurrency] = useState<string>('');
   const [bcsAmount, setBcsAmount] = useState<number>(5);
@@ -82,8 +85,118 @@ export default function CreationForm() {
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
   const [countrySearchTerm, setCountrySearchTerm] = useState('');
   const [currencySearchTerm, setCurrencySearchTerm] = useState('');
+  const [currentCredits, setCurrentCredits] = useState<number | null>(null);
+  const [isCheckingCredits, setIsCheckingCredits] = useState(false);
+  const [currentJobId, setCurrentJobId] = useState<string | null>(null);
+  const [isPolling, setIsPolling] = useState(false);
   const countryDropdownRef = useRef<HTMLDivElement>(null);
   const currencyDropdownRef = useRef<HTMLDivElement>(null);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Check credits when form values change
+  useEffect(() => {
+    if (bcsAmount >= 5 && bcsAmount <= 25) {
+      setIsCheckingCredits(true);
+      checkCredits(bcsAmount).then((result) => {
+        setCurrentCredits(result.currentCredits);
+        setIsCheckingCredits(false);
+      }).catch(() => {
+        setIsCheckingCredits(false);
+      });
+    }
+  }, [bcsAmount]);
+
+  // Poll job status when jobId is set
+  useEffect(() => {
+    if (!currentJobId || !isPolling) {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+      return;
+    }
+
+    const pollStatus = async () => {
+      try {
+        const result = await fetchJobStatus(currentJobId);
+        if (!result.success || !result.status) {
+          addMessage('error', result.error || 'Failed to fetch job status');
+          setIsPolling(false);
+          setActive(false);
+          return;
+        }
+
+        const status = result.status;
+
+        // Update logs if available
+        if (status.logs && status.logs.length > 0) {
+          status.logs.forEach((log) => {
+            addMessage('info', log);
+          });
+        }
+
+        // Handle different statuses
+        if (status.status === 'completed') {
+          addMessage('success', `Job completed! Created ${status.total_created} out of ${status.total_requested} accounts.`);
+          setIsPolling(false);
+          setActive(false);
+
+          // Save accounts to database
+          if (status.accounts && status.accounts.length > 0 && selectedCountry) {
+            addMessage('info', 'Saving accounts to your vault...');
+            const saveResult = await saveAccounts(
+              currentJobId,
+              status.accounts,
+              selectedCountry.code,
+              selectedCurrency
+            );
+
+            if (saveResult.success) {
+              addMessage('success', `Successfully saved ${saveResult.savedCount} accounts to your vault!`);
+              showSuccess(`Successfully created and saved ${saveResult.savedCount} business center accounts!`);
+            } else {
+              addMessage('error', saveResult.error || 'Failed to save accounts');
+              showError(saveResult.error || 'Failed to save accounts');
+            }
+          }
+
+          // Clear job ID
+          setCurrentJobId(null);
+        } else if (status.status === 'failed') {
+          addMessage('error', status.error || 'Job failed');
+          setIsPolling(false);
+          setActive(false);
+          setCurrentJobId(null);
+        } else if (status.status === 'running') {
+          addMessage('info', `Progress: ${status.total_created} / ${status.total_requested} accounts created...`);
+        }
+      } catch (error) {
+        addMessage('error', `Error polling job status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        setIsPolling(false);
+        setActive(false);
+      }
+    };
+
+    // Poll immediately, then every 5 seconds
+    pollStatus();
+    pollingIntervalRef.current = setInterval(pollStatus, 5000);
+
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+  }, [currentJobId, isPolling, addMessage, setActive, selectedCountry, selectedCurrency, showSuccess, showError]);
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, []);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -161,7 +274,7 @@ export default function CreationForm() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate BCS on submit
@@ -173,47 +286,79 @@ export default function CreationForm() {
       setBcsAmount(5);
       setBcsInputValue('5');
       showError('Business Centers must be at least 5.');
+      return;
     } else if (numValue > 25) {
       validBcsAmount = 25;
       setBcsAmount(25);
       setBcsInputValue('25');
       showError('Business Centers can\'t be more than 25.');
+      return;
     } else if (numValue === 0) {
       validBcsAmount = 5;
       setBcsAmount(5);
       setBcsInputValue('5');
       showError('Business Centers must be at least 5.');
+      return;
     }
     
     if (!selectedCountry || !selectedCurrency || validBcsAmount < 5 || validBcsAmount > 25) {
       return;
     }
-    
-    // Start deployment and show status updates
-    clearMessages();
-    setActive(true);
-    addMessage('info', 'Initializing deployment...');
-    addMessage('info', `Country: ${selectedCountry.name} (${selectedCountry.code})`);
-    addMessage('info', `Currency: ${selectedCurrency}`);
-    addMessage('info', `Business Centers: ${validBcsAmount}`);
-    
-    // Simulate deployment process (replace with actual API call)
-    setTimeout(() => {
-      addMessage('info', 'Validating configuration...');
-    }, 1000);
-    
-    setTimeout(() => {
-      addMessage('info', 'Creating business centers...');
-    }, 2000);
-    
-    setTimeout(() => {
-      addMessage('success', 'Deployment started successfully!');
-      addMessage('info', 'Processing your request...');
-    }, 3000);
-    
-    // TODO: Handle actual form submission
-    console.log({ country: selectedCountry, currency: selectedCurrency, bcsAmount: validBcsAmount });
+
+    // Check credits before proceeding
+    const creditsCheck = await checkCredits(validBcsAmount);
+    if (!creditsCheck.hasEnough) {
+      showError(`Insufficient credits. You have ${creditsCheck.currentCredits} credits, but need ${creditsCheck.requiredCredits}.`);
+      return;
+    }
+
+    // Start deployment
+    startTransition(async () => {
+      clearMessages();
+      setActive(true);
+      addMessage('info', 'Initializing deployment...');
+      addMessage('info', `Country: ${selectedCountry.name} (${selectedCountry.code})`);
+      addMessage('info', `Currency: ${selectedCurrency}`);
+      addMessage('info', `Business Centers: ${validBcsAmount}`);
+      addMessage('info', `Credits: ${creditsCheck.currentCredits} → ${creditsCheck.currentCredits - validBcsAmount} (deducting ${validBcsAmount})`);
+
+      try {
+        // Create job via API
+        addMessage('info', 'Creating job...');
+        const result = await createJob(validBcsAmount, selectedCountry.code, selectedCurrency);
+
+        if (!result.success) {
+          addMessage('error', result.error || 'Failed to create job');
+          showError(result.error || 'Failed to create job');
+          setActive(false);
+          return;
+        }
+
+        if (!result.jobId) {
+          addMessage('error', 'Job created but no job ID returned');
+          showError('Job created but no job ID returned');
+          setActive(false);
+          return;
+        }
+
+        addMessage('success', 'Job created successfully!');
+        addMessage('info', `Job ID: ${result.jobId}`);
+        addMessage('info', 'Starting account creation process...');
+
+        // Start polling for job status
+        setCurrentJobId(result.jobId);
+        setIsPolling(true);
+      } catch (error) {
+        addMessage('error', `Failed to create job: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        showError(error instanceof Error ? error.message : 'Failed to create job');
+        setActive(false);
+      }
+    });
   };
+
+  // Calculate if user has enough credits
+  const hasEnoughCredits = currentCredits !== null && currentCredits >= bcsAmount;
+  const canDeploy = !isPending && !isPolling && hasEnoughCredits && selectedCountry && selectedCurrency && bcsAmount >= 5 && bcsAmount <= 25;
 
   return (
     <div className="creation-form-container">
@@ -326,6 +471,23 @@ export default function CreationForm() {
         <div className="form-field">
           <label htmlFor="bcs-amount" className="form-label">
             Business Centers <span className="required">*</span>
+            {currentCredits !== null && (
+              <span className="credits-indicator" style={{ 
+                marginLeft: '0.5rem', 
+                fontSize: '0.875rem', 
+                color: hasEnoughCredits ? 'rgba(255, 255, 255, 0.7)' : '#ff6b6b',
+                fontWeight: 'normal'
+              }}>
+                ({currentCredits} credits available)
+              </span>
+            )}
+            {isCheckingCredits && (
+              <span className="material-icons spinning" style={{ 
+                marginLeft: '0.5rem', 
+                fontSize: '1rem', 
+                verticalAlign: 'middle' 
+              }}>sync</span>
+            )}
           </label>
           <input
             type="number"
@@ -337,7 +499,18 @@ export default function CreationForm() {
             onBlur={handleBcsBlur}
             className="bcs-input-simple"
             placeholder="Enter amount (5-25)"
+            disabled={isPending || isPolling}
           />
+          {currentCredits !== null && !hasEnoughCredits && bcsAmount >= 5 && (
+            <span style={{ 
+              fontSize: '0.875rem', 
+              color: '#ff6b6b', 
+              marginTop: '0.25rem', 
+              display: 'block' 
+            }}>
+              Insufficient credits. You need {bcsAmount} credits but only have {currentCredits}.
+            </span>
+          )}
         </div>
 
         {/* Submit Button */}
@@ -345,10 +518,19 @@ export default function CreationForm() {
           <button
             type="submit"
             className="deployment-button"
-            disabled={!selectedCountry || !selectedCurrency || !bcsAmount || bcsAmount < 5 || bcsAmount > 25}
+            disabled={!canDeploy || isPending || isPolling}
           >
-            <span className="material-icons">rocket_launch</span>
-            Start Deployment
+            {isPending || isPolling ? (
+              <>
+                <span className="material-icons spinning">sync</span>
+                {isPolling ? 'Deployment in Progress...' : 'Starting Deployment...'}
+              </>
+            ) : (
+              <>
+                <span className="material-icons">rocket_launch</span>
+                Start Deployment
+              </>
+            )}
           </button>
         </div>
       </form>
