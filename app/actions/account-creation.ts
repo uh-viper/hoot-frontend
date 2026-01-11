@@ -80,14 +80,14 @@ export async function createJob(
     // Create job via backend API
     const jobResponse = await createAccountsJob(accounts, region, currency)
 
-    // Deduct credits from user
-    const { error: updateError } = await supabase
-      .from('user_credits')
-      .update({ credits: creditsCheck.currentCredits - accounts })
-      .eq('user_id', user.id)
+    // Deduct credits from user using RPC function
+    const { error: deductError } = await supabase.rpc('deduct_credits_from_user', {
+      p_user_id: user.id,
+      p_credits_to_deduct: accounts,
+    })
 
-    if (updateError) {
-      console.error('Failed to deduct credits:', updateError)
+    if (deductError) {
+      console.error('Failed to deduct credits:', deductError)
       // Note: Job was created but credits weren't deducted
       // In production, you might want to cancel the job or handle this differently
       return {
