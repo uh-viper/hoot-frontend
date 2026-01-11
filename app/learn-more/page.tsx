@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import Link from "next/link";
 import Image from "next/image";
+import { getSessionUser } from '@/lib/auth/validate-session'
 import Footer from "../components/Footer";
 import "../styles/footer.css";
 import "./page.css";
@@ -9,13 +10,15 @@ export const metadata: Metadata = {
   title: 'Hoot - Learn More',
 }
 
-export default function LearnMore() {
+export default async function LearnMore() {
+  const user = await getSessionUser()
+
   return (
     <div className="learn-more-page">
       {/* Header */}
       <header className="header">
         <div className="header-container">
-          <Link href="/" className="logo-link">
+          <Link href={user ? "/dashboard" : "/"} className="logo-link">
             <Image
               src="/hootlogo.png"
               alt="Hoot Logo"
@@ -27,12 +30,20 @@ export default function LearnMore() {
           </Link>
           
           <nav className="header-nav">
-            <Link href="/login" className="nav-link">
-              Sign In
-            </Link>
-            <Link href="/signup" className="nav-button">
-              Sign Up
-            </Link>
+            {user ? (
+              <Link href="/dashboard" className="nav-button">
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link href="/login" className="nav-link">
+                  Sign In
+                </Link>
+                <Link href="/signup" className="nav-button">
+                  Sign Up
+                </Link>
+              </>
+            )}
           </nav>
         </div>
       </header>

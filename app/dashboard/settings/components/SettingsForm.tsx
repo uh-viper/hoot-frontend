@@ -351,6 +351,50 @@ export default function SettingsForm({ initialName, initialEmail, initialDiscord
           </Link>
         </div>
       </div>
+
+      {/* Additional Links */}
+      <div className="settings-section-box">
+        <div className="settings-section-header">
+          <div className="settings-section-icon">
+            <span className="material-icons">info</span>
+          </div>
+          <h2 className="settings-section-title">More Information</h2>
+        </div>
+
+        <div className="settings-policies-grid">
+          <Link href="/learn-more" className="settings-policy-link">
+            <span className="material-icons">article</span>
+            <div className="settings-policy-link-content">
+              <span className="settings-policy-link-title">Learn More</span>
+              <span className="settings-policy-link-subtitle">Discover more about Hoot</span>
+            </div>
+            <span className="material-icons settings-policy-link-arrow">chevron_right</span>
+          </Link>
+
+          <Link href="/contact" className="settings-policy-link">
+            <span className="material-icons">mail</span>
+            <div className="settings-policy-link-content">
+              <span className="settings-policy-link-title">Contact</span>
+              <span className="settings-policy-link-subtitle">Get in touch with our team</span>
+            </div>
+            <span className="material-icons settings-policy-link-arrow">chevron_right</span>
+          </Link>
+
+          <a
+            href="https://discord.gg/6xEjW6SYxj"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="settings-policy-link"
+          >
+            <span className="material-icons">forum</span>
+            <div className="settings-policy-link-content">
+              <span className="settings-policy-link-title">Discord</span>
+              <span className="settings-policy-link-subtitle">Join our community server</span>
+            </div>
+            <span className="material-icons settings-policy-link-arrow">chevron_right</span>
+          </a>
+        </div>
+      </div>
     </div>
   )
 }
