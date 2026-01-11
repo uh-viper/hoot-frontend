@@ -447,6 +447,36 @@
   white-space: nowrap;
 }
 
+.purchase-history-view-more {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.purchase-history-view-more-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 0.625rem 1.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-family: var(--font-poppins);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.purchase-history-view-more-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.purchase-history-view-more-btn:active {
+  transform: translateY(0);
+}
+
 /* Responsive for Purchase History */
 @media (max-width: 768px) {
   .purchase-history-box {
