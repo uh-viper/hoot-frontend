@@ -308,10 +308,32 @@ export default function CreationForm() {
           pollingTimeoutRef = setTimeout(pollStatus, 60000);
           return;
         }
+        
+        // Handle "Job not found" - job was deleted/terminated, stop polling
+        if (errorMessage.toLowerCase().includes('not found') || errorMessage.toLowerCase().includes('job not found')) {
+          addMessage('error', 'Job no longer exists. Deployment has been terminated.');
+          setIsPolling(false);
+          setActive(false);
+          setCurrentJobId(null);
+          if (typeof window !== 'undefined') {
+            try {
+              localStorage.removeItem('hoot_current_job_id');
+              localStorage.removeItem('hoot_is_polling');
+            } catch (error) {
+              console.error('Failed to clear job state from localStorage:', error);
+            }
+          }
+          if (pollingTimeoutRef) {
+            clearTimeout(pollingTimeoutRef);
+            pollingTimeoutRef = null;
+          }
+          return;
+        }
+        
         // Log error but don't stop polling - schedule next poll
         console.error('Error polling job status:', error);
         addMessage('warning', `Polling error: ${errorMessage}. Will retry in ${POLL_INTERVAL / 1000} seconds...`);
-        // Schedule next poll even on error
+        // Schedule next poll even on error (but not for "not found" errors)
         if (pollingTimeoutRef) {
           clearTimeout(pollingTimeoutRef);
         }
