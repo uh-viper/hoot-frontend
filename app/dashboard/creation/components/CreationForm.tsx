@@ -140,7 +140,11 @@ export default function CreationForm() {
     const POLL_INTERVAL = 10000; // 10 seconds (API limit: 60 requests/minute)
     const MAX_POLL_TIME = 10 * 60 * 1000; // 10 minutes max
     const startTime = Date.now();
-    let lastProgress = { created: 0, requested: 0 };
+    let lastProgress: { created: number; requested: number; lastUpdateTime?: number } = { 
+      created: 0, 
+      requested: 0,
+      lastUpdateTime: Date.now()
+    };
     let initialTimeoutRef: NodeJS.Timeout | null = null;
 
     const pollStatus = async () => {
@@ -275,10 +279,21 @@ export default function CreationForm() {
             pollingIntervalRef.current = null;
           }
         } else if (status.status === 'running' || status.status === 'pending') {
-          // Only log progress if it actually changed
+          // Log progress if it changed, or log a heartbeat every 30 seconds to show we're still polling
+          const now = Date.now();
+          const timeSinceLastProgress = now - (lastProgress as any).lastUpdateTime || 0;
+          
           if (status.total_created !== lastProgress.created || status.total_requested !== lastProgress.requested) {
             addMessage('info', `Progress: ${status.total_created} / ${status.total_requested} accounts created...`);
-            lastProgress = { created: status.total_created, requested: status.total_requested };
+            lastProgress = { 
+              created: status.total_created, 
+              requested: status.total_requested,
+              lastUpdateTime: now
+            } as any;
+          } else if (timeSinceLastProgress > 30000) {
+            // Log a heartbeat every 30 seconds if no progress update
+            addMessage('info', `Still processing... ${status.total_created} / ${status.total_requested} accounts created`);
+            (lastProgress as any).lastUpdateTime = now;
           }
         }
       } catch (error) {
@@ -298,9 +313,10 @@ export default function CreationForm() {
           }, 60000);
           return;
         }
-        addMessage('error', `Error polling job status: ${errorMessage}`);
-        setIsPolling(false);
-        setActive(false);
+        // Log error but don't stop polling - keep trying
+        console.error('Error polling job status:', error);
+        addMessage('warning', `Polling error: ${errorMessage}. Will retry in ${POLL_INTERVAL / 1000} seconds...`);
+        // Don't stop polling on transient errors - the interval will continue
       }
     };
 
