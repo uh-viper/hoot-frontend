@@ -1,6 +1,8 @@
 import { Metadata } from 'next'
 import Link from "next/link";
 import Image from "next/image";
+import { redirect } from 'next/navigation'
+import { getSessionUser } from '@/lib/auth/validate-session'
 import Footer from "./components/Footer";
 import EmailCodeHandler from "./components/EmailCodeHandler";
 import "./styles/hero.css";
