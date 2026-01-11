@@ -6,6 +6,7 @@ import { useState, useTransition, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "../contexts/ToastContext";
 import { verifyPasswordResetToken, updatePasswordFromReset } from "../actions/auth";
+import { exchangeCodeForSession } from "../actions/exchange-code";
 import "../login/page.css";
 
 function ResetPasswordPageContent() {
@@ -28,15 +29,28 @@ function ResetPasswordPageContent() {
 
     const verifyToken = async () => {
       if (code) {
-        // If we have a code, we need to exchange it for a session via callback
-        // Redirect to auth callback which will handle the exchange and redirect back
-        const callbackUrl = `/auth/callback?code=${code}&type=recovery&next=/reset-password`;
-        window.location.href = callbackUrl;
+        // Exchange the code for a session directly using server action
+        const result = await exchangeCodeForSession(code);
+        
+        if (result?.error) {
+          showError(result.error || "Invalid or expired reset link. Please request a new password reset.");
+          setIsVerifying(false);
+          setIsTokenValid(false);
+          setTimeout(() => {
+            router.push("/forgot-password");
+          }, 3000);
+        } else {
+          // Session created successfully, user can now reset password
+          // Remove code from URL to prevent re-use
+          window.history.replaceState({}, '', '/reset-password');
+          setIsVerifying(false);
+          setIsTokenValid(true);
+        }
         return;
       }
 
       if (tokenHash && type === "recovery") {
-        // Verify the token
+        // Verify the token using verifyOtp
         const formData = new FormData();
         formData.append("token_hash", tokenHash);
         formData.append("type", type);
@@ -55,14 +69,13 @@ function ResetPasswordPageContent() {
           setIsTokenValid(true);
         }
       } else {
-        // No code or token_hash - check if user has a valid session from callback
-        // After callback redirects here, user should have a session
+        // No code or token_hash - check if user has a valid session already
         try {
           const response = await fetch('/api/auth/check-session');
           const data = await response.json();
           
           if (data.hasSession) {
-            // User has valid session from callback, allow password reset
+            // User has valid session, allow password reset
             setIsVerifying(false);
             setIsTokenValid(true);
           } else {

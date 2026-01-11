@@ -48,24 +48,25 @@ export async function GET(request: NextRequest) {
     }
 
     if (data.user) {
-      // Handle password recovery flow
-      // Check multiple ways to detect if this is a password recovery:
-      // 1. type parameter explicitly set to 'recovery'
-      // 2. next parameter set to '/reset-password'
-      // 3. Check session AMR (Authentication Methods Reference) for recovery
-      // 4. Check if user's recovery_sent_at is recent (within last 10 minutes)
-      const isRecovery = type === 'recovery' || 
-                         next === '/reset-password' ||
-                         data.session?.user?.recovery_sent_at !== null ||
-                         (data.session?.user?.aud === 'authenticated' && 
-                          data.session?.user?.app_metadata?.provider === 'email' &&
-                          !data.session?.user?.email_confirmed_at)
+      // Log session info for debugging
+      console.log('Callback - Session AMR:', JSON.stringify((data.session as any)?.amr))
+      console.log('Callback - User recovery_sent_at:', data.user?.recovery_sent_at)
+      console.log('Callback - type param:', type)
+      console.log('Callback - next param:', next)
       
-      // Also check AMR claims if available
-      const amr = (data.session as any)?.amr
-      const hasRecoveryAmr = amr?.some((claim: any) => claim.method === 'recovery')
+      // Check AMR claims for recovery - this is the most reliable indicator
+      const amr = (data.session as any)?.amr as Array<{ method: string; timestamp: number }> | undefined
+      const hasRecoveryAmr = Array.isArray(amr) && amr.some(claim => claim.method === 'recovery')
       
-      if (isRecovery || hasRecoveryAmr) {
+      // Also check explicit parameters and recovery_sent_at
+      const hasRecoverySentAt = data.user?.recovery_sent_at != null
+      const isRecoveryParam = type === 'recovery' || next === '/reset-password'
+      
+      console.log('Callback - hasRecoveryAmr:', hasRecoveryAmr)
+      console.log('Callback - hasRecoverySentAt:', hasRecoverySentAt)
+      console.log('Callback - isRecoveryParam:', isRecoveryParam)
+      
+      if (hasRecoveryAmr || isRecoveryParam || hasRecoverySentAt) {
         // For password reset, redirect to reset password page (without code, session is already set)
         const resetUrl = new URL('/reset-password', requestUrl.origin)
         const forwardedHost = request.headers.get('x-forwarded-host')
