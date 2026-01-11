@@ -313,6 +313,39 @@ export default function SettingsForm({ initialName, initialEmail, initialDiscord
         </form>
       </div>
 
+      {/* API Key Settings */}
+      <div className="settings-section-box">
+        <div className="settings-section-header">
+          <div className="settings-section-icon">
+            <span className="material-icons">key</span>
+          </div>
+          <h2 className="settings-section-title">API Access</h2>
+        </div>
+
+        <div className="settings-api-content">
+          <div className="settings-api-badge">
+            <span className="material-icons">schedule</span>
+            <span>Coming Soon</span>
+          </div>
+          
+          <p className="settings-api-description">
+            API access will allow you to integrate Hoot's services directly into your applications and workflows.
+          </p>
+
+          <button
+            type="button"
+            className="settings-api-request-btn"
+            onClick={() => {
+              // TODO: Implement API access request functionality
+              window.open('mailto:support@hootservices.com?subject=API Access Request', '_blank')
+            }}
+          >
+            <span className="material-icons">mail</span>
+            <span>Request API Access</span>
+          </button>
+        </div>
+      </div>
+
       {/* Policy Links */}
       <div className="settings-section-box">
         <div className="settings-section-header">
