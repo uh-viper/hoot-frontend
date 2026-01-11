@@ -1,10 +1,20 @@
 /**
  * Backend API Client
  * Handles communication with api.hootservices.com
+ * 
+ * IMPORTANT: This file should ONLY be imported in server-side code (server actions, API routes)
+ * Never import this in client components - it contains the API key!
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.hootservices.com';
-const API_KEY = process.env.NEXT_PUBLIC_API_KEY || ''; // Temporary - will use JWT later
+// API_BASE_URL can be public (just the domain)
+// But we default to the known URL if not set
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'https://api.hootservices.com';
+// API_KEY is server-side only (no NEXT_PUBLIC_ prefix) - never exposed to browser
+const API_KEY = process.env.API_KEY || process.env.BACKEND_API_KEY || '';
+
+if (!API_KEY) {
+  console.warn('⚠️  API_KEY not set - backend API calls will fail');
+}
 
 export interface CreateJobRequest {
   accounts: number;
