@@ -107,7 +107,6 @@ export default function CreationForm() {
   });
   const countryDropdownRef = useRef<HTMLDivElement>(null);
   const currencyDropdownRef = useRef<HTMLDivElement>(null);
-  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Check credits when form values change
   useEffect(() => {
@@ -125,10 +124,6 @@ export default function CreationForm() {
   // Poll job status when jobId is set
   useEffect(() => {
     if (!currentJobId || !isPolling) {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
-        pollingIntervalRef.current = null;
-      }
       return;
     }
 
@@ -145,19 +140,23 @@ export default function CreationForm() {
       requested: 0,
       lastUpdateTime: Date.now()
     };
-    let initialTimeoutRef: NodeJS.Timeout | null = null;
+    let pollingTimeoutRef: NodeJS.Timeout | null = null;
 
     const pollStatus = async () => {
+      // Don't poll if we're no longer supposed to be polling
+      if (!currentJobId || !isPolling) {
+        return;
+      }
       try {
         // Check timeout
         const elapsed = Date.now() - startTime;
         if (elapsed > MAX_POLL_TIME) {
-          addMessage('error', 'Job polling timeout after 30 minutes. Please check job status manually.');
+          addMessage('error', 'Job polling timeout after 10 minutes. Please check job status manually.');
           setIsPolling(false);
           setActive(false);
-          if (pollingIntervalRef.current) {
-            clearInterval(pollingIntervalRef.current);
-            pollingIntervalRef.current = null;
+          if (pollingTimeoutRef) {
+            clearTimeout(pollingTimeoutRef);
+            pollingTimeoutRef = null;
           }
           return;
         }
@@ -167,22 +166,19 @@ export default function CreationForm() {
           // Handle rate limit error
           if (result.error && result.error.toLowerCase().includes('rate limit')) {
             addMessage('error', 'Rate limit exceeded. Polling will resume in 1 minute...');
-            // Wait 60 seconds before resuming
-            if (pollingIntervalRef.current) {
-              clearInterval(pollingIntervalRef.current);
-              pollingIntervalRef.current = null;
+            // Wait 60 seconds before next poll
+            if (pollingTimeoutRef) {
+              clearTimeout(pollingTimeoutRef);
             }
-            setTimeout(() => {
-              if (currentJobId && isPolling) {
-                pollingIntervalRef.current = setInterval(pollStatus, POLL_INTERVAL);
-                pollStatus(); // Poll immediately after resume
-              }
-            }, 60000);
+            pollingTimeoutRef = setTimeout(pollStatus, 60000);
             return;
           }
           addMessage('error', result.error || 'Failed to fetch job status');
-          setIsPolling(false);
-          setActive(false);
+          // Schedule next poll even on error
+          if (pollingTimeoutRef) {
+            clearTimeout(pollingTimeoutRef);
+          }
+          pollingTimeoutRef = setTimeout(pollStatus, POLL_INTERVAL);
           return;
         }
 
@@ -203,9 +199,9 @@ export default function CreationForm() {
             setIsPolling(false);
             setActive(false);
             setCurrentJobId(null);
-            if (pollingIntervalRef.current) {
-              clearInterval(pollingIntervalRef.current);
-              pollingIntervalRef.current = null;
+            if (pollingTimeoutRef) {
+              clearTimeout(pollingTimeoutRef);
+              pollingTimeoutRef = null;
             }
             return;
           }
@@ -216,9 +212,9 @@ export default function CreationForm() {
             setIsPolling(false);
             setActive(false);
             setCurrentJobId(null);
-            if (pollingIntervalRef.current) {
-              clearInterval(pollingIntervalRef.current);
-              pollingIntervalRef.current = null;
+            if (pollingTimeoutRef) {
+              clearTimeout(pollingTimeoutRef);
+              pollingTimeoutRef = null;
             }
             return;
           }
@@ -257,9 +253,9 @@ export default function CreationForm() {
               console.error('Failed to clear job state from localStorage:', error);
             }
           }
-          if (pollingIntervalRef.current) {
-            clearInterval(pollingIntervalRef.current);
-            pollingIntervalRef.current = null;
+          if (pollingTimeoutRef) {
+            clearTimeout(pollingTimeoutRef);
+            pollingTimeoutRef = null;
           }
         } else if (status.status === 'failed') {
           addMessage('error', status.error || 'Job failed');
@@ -274,11 +270,16 @@ export default function CreationForm() {
               console.error('Failed to clear job state from localStorage:', error);
             }
           }
-          if (pollingIntervalRef.current) {
-            clearInterval(pollingIntervalRef.current);
-            pollingIntervalRef.current = null;
+          if (pollingTimeoutRef) {
+            clearTimeout(pollingTimeoutRef);
+            pollingTimeoutRef = null;
           }
         } else if (status.status === 'running' || status.status === 'pending') {
+          // Schedule next poll for running/pending jobs
+          if (pollingTimeoutRef) {
+            clearTimeout(pollingTimeoutRef);
+          }
+          pollingTimeoutRef = setTimeout(pollStatus, POLL_INTERVAL);
           // Log progress if it changed, or log a heartbeat every 30 seconds to show we're still polling
           const now = Date.now();
           const timeSinceLastProgress = now - (lastProgress as any).lastUpdateTime || 0;
@@ -301,22 +302,20 @@ export default function CreationForm() {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         if (errorMessage.toLowerCase().includes('rate limit')) {
           addMessage('error', 'Rate limit exceeded. Polling will resume in 1 minute...');
-          if (pollingIntervalRef.current) {
-            clearInterval(pollingIntervalRef.current);
-            pollingIntervalRef.current = null;
+          if (pollingTimeoutRef) {
+            clearTimeout(pollingTimeoutRef);
           }
-          setTimeout(() => {
-            if (currentJobId && isPolling) {
-              pollingIntervalRef.current = setInterval(pollStatus, POLL_INTERVAL);
-              pollStatus();
-            }
-          }, 60000);
+          pollingTimeoutRef = setTimeout(pollStatus, 60000);
           return;
         }
-        // Log error but don't stop polling - keep trying
+        // Log error but don't stop polling - schedule next poll
         console.error('Error polling job status:', error);
         addMessage('warning', `Polling error: ${errorMessage}. Will retry in ${POLL_INTERVAL / 1000} seconds...`);
-        // Don't stop polling on transient errors - the interval will continue
+        // Schedule next poll even on error
+        if (pollingTimeoutRef) {
+          clearTimeout(pollingTimeoutRef);
+        }
+        pollingTimeoutRef = setTimeout(pollStatus, POLL_INTERVAL);
       }
     };
 
@@ -330,22 +329,15 @@ export default function CreationForm() {
           }
         }
 
-        // Start polling - wait 10 seconds before first poll, then poll every 10 seconds
-        // This prevents hitting rate limits from immediate polling after job creation
-        initialTimeoutRef = setTimeout(() => {
-          pollStatus();
-          pollingIntervalRef.current = setInterval(pollStatus, POLL_INTERVAL);
-        }, POLL_INTERVAL);
+        // Start polling - wait 10 seconds before first poll, then use recursive setTimeout
+        // This ensures consistent 10-second intervals even if polls take time or fail
+        pollingTimeoutRef = setTimeout(pollStatus, POLL_INTERVAL);
 
     return () => {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
-        pollingIntervalRef.current = null;
-      }
-      // Also clear the initial timeout if component unmounts
-      if (initialTimeoutRef) {
-        clearTimeout(initialTimeoutRef);
-        initialTimeoutRef = null;
+      // Clear any pending polling timeout
+      if (pollingTimeoutRef) {
+        clearTimeout(pollingTimeoutRef);
+        pollingTimeoutRef = null;
       }
     };
     // Only re-run when currentJobId or isPolling changes
