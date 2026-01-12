@@ -306,8 +306,24 @@ export default function CreationForm() {
 
         // Job completed
         if (status.status === 'completed') {
+          // Calculate failures count (always update stats, even if no accounts created)
+          const failedCount = status.total_failed || (status.total_requested - status.total_created);
+          
           if (status.total_created === 0) {
             addMessage('error', `No accounts created. ${status.error || 'Check backend logs.'}`);
+            
+            // Still update failure stats even if no accounts were created
+            if (failedCount > 0) {
+              addMessage('info', 'Updating statistics...');
+              await saveAccounts(
+                currentJobId,
+                [],
+                selectedCountry?.code || '',
+                selectedCurrency || '',
+                failedCount
+              );
+            }
+            
             clearJobState();
             return;
           }
@@ -317,7 +333,6 @@ export default function CreationForm() {
           
           // Save accounts and update stats (including failures)
           // The accounts array is always returned when total_created > 0
-          const failedCount = status.total_failed || (status.total_requested - status.total_created);
           
           // Check if accounts array exists and has items
           if (status.accounts && status.accounts.length > 0) {
