@@ -78,11 +78,19 @@ export async function createJob(
 
   try {
     // Get JWT token from Supabase session
-    // In server actions, we need to ensure the session is fresh
-    let session = (await supabase.auth.getSession()).data.session
+    // In server actions with SSR, we need to get the session properly
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
     
-    // If no session, try refreshing
-    if (!session?.access_token) {
+    if (sessionError) {
+      console.error('[createJob] Session error:', sessionError)
+      return { success: false, error: 'Authentication error. Please log in again.' }
+    }
+    
+    let accessToken = session?.access_token
+    
+    // If no token, try refreshing the session
+    if (!accessToken) {
+      console.log('[createJob] No session token, attempting to refresh...')
       const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession()
       
       if (refreshError) {
@@ -90,17 +98,17 @@ export async function createJob(
         return { success: false, error: 'Authentication error. Please log in again.' }
       }
       
-      session = refreshedSession
+      accessToken = refreshedSession?.access_token
     }
     
-    if (!session?.access_token) {
-      console.error('[createJob] No valid session or access token available')
+    if (!accessToken) {
+      console.error('[createJob] No valid access token available after refresh attempt')
       return { success: false, error: 'Authentication required. Please log in again.' }
     }
 
     // Create job via backend API
     console.log('[createJob] Creating job with:', { accounts, region, currency })
-    const jobResponse = await createAccountsJob(accounts, region, currency, session.access_token)
+    const jobResponse = await createAccountsJob(accounts, region, currency, accessToken)
     console.log('[createJob] Job created successfully:', jobResponse)
 
     // Deduct credits from user using RPC function
