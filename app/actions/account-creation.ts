@@ -122,6 +122,37 @@ export async function createJob(
       return { success: false, error: 'Invalid authentication token. Please log in again.' }
     }
     
+    // Decode JWT header to verify algorithm (should be HS256 for Supabase)
+    try {
+      const tokenParts = accessToken.split('.');
+      if (tokenParts.length >= 1) {
+        // Decode base64url header (Node.js Buffer supports base64url in newer versions)
+        const headerBase64 = tokenParts[0].replace(/-/g, '+').replace(/_/g, '/');
+        const headerJson = Buffer.from(headerBase64, 'base64').toString('utf-8');
+        const header = JSON.parse(headerJson);
+        
+        console.log('[createJob] Token algorithm:', header.alg);
+        console.log('[createJob] Token type:', header.typ || 'not in header');
+        
+        // Verify it's a Supabase token (should use HS256)
+        if (header.alg && header.alg !== 'HS256') {
+          console.error(`[createJob] WARNING: Token uses ${header.alg}, but Supabase uses HS256. This might not be a Supabase Auth token!`);
+          console.error('[createJob] Token header:', JSON.stringify(header, null, 2));
+          return { 
+            success: false, 
+            error: `Invalid token algorithm. Expected HS256 (Supabase), but got ${header.alg}. Please log in again.` 
+          };
+        }
+        
+        if (!header.alg || header.alg === 'HS256') {
+          console.log('[createJob] ✓ Token algorithm is correct (HS256 - Supabase Auth)');
+        }
+      }
+    } catch (e) {
+      console.warn('[createJob] Could not decode token header:', e);
+      // Continue anyway - let the backend validate
+    }
+    
     console.log('[createJob] Successfully retrieved access token (JWT format verified)')
 
     // Create job via backend API
