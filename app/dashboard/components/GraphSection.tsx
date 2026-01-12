@@ -147,7 +147,7 @@ export default function GraphSection() {
     svg.appendChild(defs);
 
     // Draw area under curve
-    if (points.length > 0) {
+    if (path && points.length > 1) {
       const areaPath = path + ` L ${points[points.length - 1].x} ${padding.top + graphHeight} L ${points[0].x} ${padding.top + graphHeight} Z`;
       const area = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       area.setAttribute('d', areaPath);
@@ -227,7 +227,19 @@ export default function GraphSection() {
   useEffect(() => {
     if (graphData.length > 0) {
       // Small delay to ensure SVG is rendered
-      setTimeout(drawGraph, 100);
+      const timer = setTimeout(drawGraph, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [graphData]);
+
+  // Handle window resize
+  useEffect(() => {
+    if (graphData.length > 0) {
+      const handleResize = () => {
+        drawGraph();
+      };
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
     }
   }, [graphData]);
 
