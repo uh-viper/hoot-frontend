@@ -255,13 +255,17 @@ export default function GraphSection() {
       hoverArea.setAttribute('cursor', 'pointer');
       hoverArea.style.pointerEvents = 'all';
       
-      hoverArea.addEventListener('mouseenter', (e) => {
-        const rect = svg.getBoundingClientRect();
-        setHoveredPoint({
-          x: rect.left + point.x,
-          y: rect.top + point.y - 30,
-          data: graphData[index]
-        });
+      hoverArea.addEventListener('mouseenter', () => {
+        const rect = containerRef.current?.getBoundingClientRect();
+        if (rect) {
+          // Calculate actual x position based on container
+          const actualX = (point.x / width) * rect.width;
+          setHoveredPoint({
+            x: rect.left + actualX,
+            y: rect.top + point.y - 40,
+            data: graphData[index]
+          });
+        }
       });
       
       hoverArea.addEventListener('mouseleave', () => {
