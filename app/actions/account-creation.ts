@@ -270,7 +270,7 @@ export async function updateUserStatsIncremental(
   try {
     const { data: statsData } = await supabase
       .from('user_stats')
-      .select('business_centers, successful, failures')
+      .select('successful, failures')
       .eq('user_id', user.id)
       .single()
 
@@ -278,7 +278,6 @@ export async function updateUserStatsIncremental(
       await supabase
         .from('user_stats')
         .update({
-          business_centers: (statsData.business_centers ?? 0) + accountsCreated,
           successful: (statsData.successful ?? 0) + accountsCreated,
           failures: (statsData.failures ?? 0) + failures,
         })
@@ -289,7 +288,6 @@ export async function updateUserStatsIncremental(
         .from('user_stats')
         .insert({
           user_id: user.id,
-          business_centers: accountsCreated,
           successful: accountsCreated,
           failures: failures,
           requested: 0,

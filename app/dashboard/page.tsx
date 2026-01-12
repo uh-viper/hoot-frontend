@@ -29,12 +29,18 @@ export default async function DashboardPage() {
   // Fetch user stats from database
   const { data: statsData } = await supabase
     .from('user_stats')
-    .select('business_centers, requested, successful, failures')
+    .select('requested, successful, failures')
     .eq('user_id', user.id)
     .single()
 
+  // Business Centers = count of accounts in vault (same as successful)
+  const { count: businessCentersCount } = await supabase
+    .from('user_accounts')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+
   const stats = {
-    businessCenters: statsData?.business_centers ?? 0,
+    businessCenters: businessCentersCount ?? 0,
     requested: statsData?.requested ?? 0,
     successful: statsData?.successful ?? 0,
     failures: statsData?.failures ?? 0,
