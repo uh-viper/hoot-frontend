@@ -318,6 +318,15 @@ export default function CreationForm() {
 
         // Job completed
         if (status.status === 'completed') {
+          // Prevent duplicate completion logging
+          if (lastProgress.completionLogged) {
+            scheduleNextPoll();
+            return;
+          }
+          
+          // Mark as logged to prevent duplicates
+          lastProgress.completionLogged = true;
+          
           // Calculate final counts
           const finalAccountCount = status.accounts?.length || status.total_created || 0;
           const finalFailureCount = status.total_failed || (status.total_requested - status.total_created);
@@ -346,7 +355,7 @@ export default function CreationForm() {
           // Job completion message
           addMessage('success', `Job Completed - ${status.total_created}/${status.total_requested} created.`);
           
-          // Display credit deduction info from backend
+          // Display credit deduction info from backend (only once)
           if (status.credits) {
             if (status.credits.deducted) {
               const creditMsg = status.credits.new_balance !== undefined
