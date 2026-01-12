@@ -29,103 +29,117 @@ export default function AccountCard({ id, email, password, region, currency }: A
 
   return (
     <div className="account-card">
-      {(region || currency) && (
-        <div className="account-info-section">
-          {region && (
-            <div className="account-info-item">
-              <span className="material-icons">location_on</span>
-              <span className="account-info-text">{region}</span>
-            </div>
-          )}
-          {currency && (
-            <div className="account-info-item">
-              <span className="material-icons">attach_money</span>
-              <span className="account-info-text">{currency}</span>
-            </div>
-          )}
-        </div>
-      )}
-      
-      <div className="account-card-content">
-        <div className="account-email-section">
-          <label className="account-label">Email</label>
-          <div className="account-value-group">
-            <span className="account-value">{email}</span>
-            <button
-              type="button"
-              className="account-copy-btn"
-              onClick={() => copyToClipboard(email, 'email')}
-              aria-label="Copy email"
-            >
-              <span className="material-icons">content_copy</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="account-password-section">
-          <label className="account-label">Password</label>
-          <div className="account-value-group">
-            <span className="account-value">{password}</span>
-            <button
-              type="button"
-              className="account-copy-btn"
-              onClick={() => copyToClipboard(password, 'password')}
-              aria-label="Copy password"
-            >
-              <span className="material-icons">content_copy</span>
-            </button>
-          </div>
-        </div>
-
-            <div className="account-fetch-section">
-              <label className="account-label">Actions</label>
-              <div className="account-actions-group">
-                <button
-                  type="button"
-                  className="action-btn"
-                  onClick={handleFetchCode}
-                  aria-label="Fetch Code"
-                >
-                  <span className="material-icons">mail</span>
-                </button>
-                <button
-                  type="button"
-                  className="action-btn coming-soon"
-                  disabled
-                  aria-label="Coming Soon"
-                  title="Coming Soon"
-                >
-                  <span className="material-icons">schedule</span>
-                </button>
-                <button
-                  type="button"
-                  className="action-btn coming-soon"
-                  disabled
-                  aria-label="Coming Soon"
-                  title="Coming Soon"
-                >
-                  <span className="material-icons">schedule</span>
-                </button>
-                <button
-                  type="button"
-                  className="action-btn coming-soon"
-                  disabled
-                  aria-label="Coming Soon"
-                  title="Coming Soon"
-                >
-                  <span className="material-icons">schedule</span>
-                </button>
-                <button
-                  type="button"
-                  className="action-btn coming-soon"
-                  disabled
-                  aria-label="Coming Soon"
-                  title="Coming Soon"
-                >
-                  <span className="material-icons">schedule</span>
-                </button>
+      <div className="account-card-header">
+        {(region || currency) && (
+          <div className="account-info-section">
+            {region && (
+              <div className="account-info-item">
+                <span className="material-icons">location_on</span>
+                <span className="account-info-text">{region}</span>
               </div>
+            )}
+            {currency && (
+              <div className="account-info-item">
+                <span className="material-icons">attach_money</span>
+                <span className="account-info-text">{currency}</span>
+              </div>
+            )}
+          </div>
+        )}
+        <div className="account-card-icon">
+          <span className="material-icons">account_balance</span>
+        </div>
+      </div>
+      
+      <div className="account-card-body">
+        <div className="account-credential-row">
+          <div className="account-credential-item">
+            <div className="credential-label-wrapper">
+              <span className="material-icons credential-icon">email</span>
+              <label className="account-label">Email</label>
             </div>
+            <div className="account-value-group">
+              <span className="account-value">{email}</span>
+              <button
+                type="button"
+                className="account-copy-btn"
+                onClick={() => copyToClipboard(email, 'email')}
+                aria-label="Copy email"
+              >
+                <span className="material-icons">content_copy</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="account-credential-item">
+            <div className="credential-label-wrapper">
+              <span className="material-icons credential-icon">lock</span>
+              <label className="account-label">Password</label>
+            </div>
+            <div className="account-value-group">
+              <span className="account-value">{password}</span>
+              <button
+                type="button"
+                className="account-copy-btn"
+                onClick={() => copyToClipboard(password, 'password')}
+                aria-label="Copy password"
+              >
+                <span className="material-icons">content_copy</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="account-actions-section">
+          <label className="account-label">Quick Actions</label>
+          <div className="account-actions-group">
+            <button
+              type="button"
+              className="action-btn"
+              onClick={handleFetchCode}
+              aria-label="Fetch Code"
+              title="Fetch Code"
+            >
+              <span className="material-icons">mail</span>
+            </button>
+            <button
+              type="button"
+              className="action-btn coming-soon"
+              disabled
+              aria-label="Coming Soon"
+              title="Coming Soon"
+            >
+              <span className="material-icons">schedule</span>
+            </button>
+            <button
+              type="button"
+              className="action-btn coming-soon"
+              disabled
+              aria-label="Coming Soon"
+              title="Coming Soon"
+            >
+              <span className="material-icons">schedule</span>
+            </button>
+            <button
+              type="button"
+              className="action-btn coming-soon"
+              disabled
+              aria-label="Coming Soon"
+              title="Coming Soon"
+            >
+              <span className="material-icons">schedule</span>
+            </button>
+            <button
+              type="button"
+              className="action-btn coming-soon"
+              disabled
+              aria-label="Coming Soon"
+              title="Coming Soon"
+            >
+              <span className="material-icons">schedule</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
