@@ -173,17 +173,33 @@ export default function GraphSection() {
     defs.appendChild(gradient);
     svg.appendChild(defs);
 
-    // Draw area under curve (clipped at baseline)
+    // Draw area under curve - extend to baseline even when curve dips below
     if (path && points.length > 1) {
       const baselineY = padding.top + graphHeight;
-      // Close the area by going to baseline
-      const areaPath = path + ` L ${points[points.length - 1].x} ${baselineY} L ${points[0].x} ${baselineY} Z`;
+      
+      // Create area path that follows the curve but extends to baseline
+      // For points where curve might dip below, we'll draw a line to baseline
+      let areaPath = path;
+      
+      // Add lines from curve endpoints to baseline to ensure fill
+      areaPath += ` L ${points[points.length - 1].x} ${baselineY} L ${points[0].x} ${baselineY} Z`;
+      
       const area = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       area.setAttribute('d', areaPath);
       area.setAttribute('fill', 'url(#lineGradient)');
       area.setAttribute('opacity', '0.2');
       area.setAttribute('clip-path', 'url(#graphClip)');
       svg.appendChild(area);
+      
+      // Draw a solid fill rectangle from baseline down to cover any clipped area
+      const fillRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      fillRect.setAttribute('x', padding.left.toString());
+      fillRect.setAttribute('y', baselineY.toString());
+      fillRect.setAttribute('width', graphWidth.toString());
+      fillRect.setAttribute('height', (height - baselineY).toString());
+      fillRect.setAttribute('fill', 'url(#lineGradient)');
+      fillRect.setAttribute('opacity', '0.2');
+      svg.appendChild(fillRect);
     }
 
     // Draw line (clipped at baseline so it doesn't go below 0)
