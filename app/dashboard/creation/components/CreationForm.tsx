@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useToast } from '../../../contexts/ToastContext';
 import { useConsole } from '../contexts/ConsoleContext';
-import { checkCredits, createJob, fetchJobStatus, saveAccounts, updateUserStatsIncremental } from '../../../actions/account-creation';
+import { checkCredits, createJob, fetchJobStatus, updateUserStatsIncremental } from '../../../actions/account-creation';
 import { useTransition } from 'react';
 
 interface Country {
@@ -361,36 +361,10 @@ export default function CreationForm() {
             }
           }
           
-          // Save accounts to database
-          if (status.accounts && status.accounts.length > 0) {
-            const region = selectedCountry?.code || '';
-            const currency = selectedCurrency || '';
-            
-            addMessage('info', 'Saving to vault...');
-            const saveResult = await saveAccounts(
-              currentJobId,
-              status.accounts,
-              region,
-              currency,
-              0 // Stats already updated above
-            );
-            if (saveResult.success) {
-              addMessage('success', `Saved ${saveResult.savedCount} account(s)!`);
-              showSuccess(`Created and saved ${saveResult.savedCount} business center accounts!`);
-            } else {
-              addMessage('error', saveResult.error || 'Failed to save');
-              showError(saveResult.error || 'Failed to save');
-            }
-          } else if (status.total_created > 0) {
-            // This should rarely happen - accounts array should always be returned
-            console.warn('Job completed with accounts but accounts array is empty or missing', {
-              total_created: status.total_created,
-              accounts_length: status.accounts?.length || 0,
-              has_accounts: !!status.accounts,
-              status_keys: Object.keys(status)
-            });
-            addMessage('info', 'Accounts were created and saved by backend.');
-            addMessage('success', `${status.total_created} account(s) created successfully!`);
+          // Backend automatically saves accounts to vault - just confirm
+          if (status.total_created > 0) {
+            addMessage('success', `${status.total_created} account(s) saved to vault!`);
+            showSuccess(`Created and saved ${status.total_created} business center accounts!`);
           }
           
           clearJobState();
