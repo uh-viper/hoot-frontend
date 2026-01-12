@@ -348,8 +348,13 @@ export default function CreationForm() {
           return;
         }
 
-        // Job running/pending - schedule next poll
-        // Progress is logged above when it changes, no need to log here
+        // Job running/pending - show heartbeat message every 10 seconds
+        const now = Date.now();
+        if (now - (lastProgress.lastLogTime || 0) >= 10000) {
+          addMessage('info', 'Creating your accounts...');
+          lastProgress.lastLogTime = now;
+        }
+        
         scheduleNextPoll();
         
       } catch (error) {
