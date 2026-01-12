@@ -262,38 +262,13 @@ export default function CreationForm() {
 
         const status = result.status;
 
-        // Helper function to get error description from code
-        const getErrorDescription = (code: string): string => {
-          const errorDescriptions: Record<string, string> = {
-            'E001': 'Invalid credentials or authentication failed',
-            'E002': 'Account already exists',
-            'E003': 'Rate limit exceeded',
-            'E004': 'Network/connection error',
-            'E005': 'Captcha/verification challenge',
-            'E006': 'Invalid email format',
-            'E007': 'Invalid password format',
-            'E008': 'Business verification failed',
-            'E009': 'Payment method required',
-            'E010': 'Account blocked',
-            'E011': 'Account needs stabilization',
-            'E012': 'Error detected on self-serve',
-            'E013': 'Failed to save account',
-            'E014': 'Timeout',
-            'E015': 'No credentials found',
-            'E016': 'No accounts file',
-            'E099': 'Unknown error'
-          };
-          return errorDescriptions[code] || 'Unknown error';
-        };
-
         // Log any failures from the API with error codes
-        // Format: "Account Failed - Error Code: E001 (Description)"
+        // Format: "Account Failed - Error Code: E001"
         // Don't expose email addresses or other sensitive information
         if (status.failures && status.failures.length > 0) {
           status.failures.forEach((failure) => {
             const errorCode = failure.code || 'E099';
-            const errorDesc = getErrorDescription(errorCode);
-            addMessage('error', `Account Failed - Error Code: ${errorCode} (${errorDesc})`);
+            addMessage('error', `Account Failed - Error Code: ${errorCode}`);
           });
         }
 
@@ -305,47 +280,41 @@ export default function CreationForm() {
             return;
           }
           
-          // Check if all accounts were created
-          if (status.total_created < status.total_requested) {
-            const failedCount = status.total_failed || (status.total_requested - status.total_created);
-            addMessage('warning', `Job completed: ${status.total_created}/${status.total_requested} accounts created. ${failedCount} account(s) failed.`);
-            
-            if (status.error) {
-              // Only log generic backend errors, not sensitive details
-              addMessage('error', `Backend error occurred. Check failure details above.`);
-            }
-            
-            if (status.failures && status.failures.length > 0) {
-              addMessage('info', `Review ${status.failures.length} failure(s) listed above with error codes.`);
-            } else if (failedCount > 0) {
-              addMessage('warning', `${failedCount} account(s) failed but no detailed error information available.`);
-            }
-          } else {
-            addMessage('success', `Completed! Created ${status.total_created}/${status.total_requested} accounts.`);
-          }
+          // Job completion message
+          addMessage('success', `Job Completed - ${status.total_created}/${status.total_requested} created.`);
           
-          // Save accounts (even if partial)
+          // Save accounts and update stats (including failures)
           if (status.accounts && status.accounts.length > 0 && selectedCountry) {
             addMessage('info', 'Saving to vault...');
+            const failedCount = status.total_failed || (status.total_requested - status.total_created);
             const saveResult = await saveAccounts(
               currentJobId,
               status.accounts,
               selectedCountry.code,
-              selectedCurrency
+              selectedCurrency,
+              failedCount
             );
             if (saveResult.success) {
               addMessage('success', `Saved ${saveResult.savedCount} account(s)!`);
-              if (status.total_created === status.total_requested) {
-                showSuccess(`Created and saved ${saveResult.savedCount} business center accounts!`);
-              } else {
-                showSuccess(`Saved ${saveResult.savedCount} account(s). ${status.total_requested - status.total_created} account(s) failed.`);
-              }
+              showSuccess(`Created and saved ${saveResult.savedCount} business center accounts!`);
             } else {
               addMessage('error', saveResult.error || 'Failed to save');
               showError(saveResult.error || 'Failed to save');
             }
           } else if (status.total_created > 0) {
             addMessage('warning', 'Accounts were created but not returned by API. They may not be saved to your vault.');
+          } else {
+            // Even if no accounts were created, update failures count
+            const failedCount = status.total_failed || status.total_requested;
+            if (failedCount > 0) {
+              await saveAccounts(
+                currentJobId,
+                [],
+                selectedCountry?.code || '',
+                selectedCurrency,
+                failedCount
+              );
+            }
           }
           
           clearJobState();

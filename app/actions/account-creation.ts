@@ -260,7 +260,8 @@ export async function saveAccounts(
   jobId: string,
   accounts: Array<{ email: string; password: string }>,
   region: string,
-  currency: string
+  currency: string,
+  failedCount: number = 0
 ): Promise<{ success: boolean; error?: string; savedCount?: number }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -294,11 +295,11 @@ export async function saveAccounts(
       return { success: false, error: error.message }
     }
 
-    // Update user stats
+    // Update user stats (including failures)
     const savedCount = data?.length ?? 0
     const { data: statsData } = await supabase
       .from('user_stats')
-      .select('business_centers, successful')
+      .select('business_centers, successful, failures')
       .eq('user_id', user.id)
       .single()
 
@@ -308,6 +309,7 @@ export async function saveAccounts(
         .update({
           business_centers: (statsData.business_centers ?? 0) + savedCount,
           successful: (statsData.successful ?? 0) + savedCount,
+          failures: (statsData.failures ?? 0) + failedCount,
         })
         .eq('user_id', user.id)
     }
