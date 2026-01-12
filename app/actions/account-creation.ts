@@ -139,19 +139,16 @@ export async function createJob(
         console.log('[createJob] Token algorithm:', header.alg);
         console.log('[createJob] Token type:', header.typ || 'not in header');
         
-        // Verify it's a Supabase token (should use HS256)
-        if (header.alg && header.alg !== 'HS256') {
-          console.error(`[createJob] Token uses ${header.alg}, but backend expects HS256`);
-          console.error('[createJob] Your Supabase project JWT algorithm setting needs to be changed');
-          return { 
-            success: false, 
-            error: `JWT Algorithm Mismatch: Your Supabase project uses ${header.alg}, but the backend expects HS256. Please go to Supabase Dashboard > Authentication > Settings > JWT Algorithm and change it to HS256.` 
-          };
+        // Log token algorithm for debugging
+        // Note: Supabase now uses ES256 (ECC P-256) by default for new projects
+        // Legacy projects may still use HS256
+        if (header.alg) {
+          console.log(`[createJob] Token algorithm: ${header.alg} (${header.alg === 'HS256' ? 'Legacy' : 'Modern'})`);
         }
         
-        if (!header.alg || header.alg === 'HS256') {
-          console.log('[createJob] ✓ Token algorithm is correct (HS256 - Supabase Auth)');
-        }
+        // Note: We don't reject ES256 tokens here - Supabase uses ES256 by default now
+        // The backend must be configured to validate ES256 tokens using Supabase's JWKS endpoint:
+        // https://<project-ref>.supabase.co/auth/v1/.well-known/jwks.json
       }
     } catch (e) {
       console.warn('[createJob] Could not decode token header:', e);

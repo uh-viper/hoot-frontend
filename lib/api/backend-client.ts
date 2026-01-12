@@ -8,8 +8,11 @@
  * Authentication:
  * - Uses JWT tokens from Supabase Auth (session.access_token)
  * - Sends token in Authorization: Bearer <token> header
- * - Backend must validate the JWT using Supabase's JWT secret
- * - Backend must accept Supabase's JWT algorithm (typically HS256)
+ * - Backend must validate the JWT:
+ *   - For HS256 (legacy): Use Supabase's JWT secret
+ *   - For ES256 (modern default): Use Supabase's JWKS endpoint:
+ *     https://<project-ref>.supabase.co/auth/v1/.well-known/jwks.json
+ * - Modern Supabase projects use ES256 (ECC P-256) by default
  */
 
 // API_BASE_URL can be public (just the domain)
@@ -86,7 +89,9 @@ export async function createAccountsJob(
     throw new Error('Invalid authentication token format');
   }
   
-  // Decode JWT header to verify algorithm (should be HS256 for Supabase)
+  // Decode JWT header to log algorithm for debugging
+  // Note: Supabase now uses ES256 (ECC P-256) by default for new projects
+  // Legacy projects may still use HS256
   try {
     const tokenParts = token.split('.');
     if (tokenParts.length >= 1) {
@@ -97,17 +102,15 @@ export async function createAccountsJob(
       console.log('[createAccountsJob] Token algorithm:', header.alg);
       console.log('[createAccountsJob] Token type:', header.typ || 'not in header');
       
-      if (header.alg && header.alg !== 'HS256') {
-        console.error(`[createAccountsJob] ERROR: Token uses ${header.alg}, but Supabase uses HS256!`);
-        console.error('[createAccountsJob] This is NOT a Supabase Auth token!');
-        throw new Error(`Invalid token algorithm: Expected HS256 (Supabase), but got ${header.alg}`);
-      }
+      // Note: Both HS256 and ES256 are valid Supabase algorithms
+      // ES256 is the modern default, HS256 is legacy
+      // Backend must validate using the appropriate method:
+      // - HS256: Use JWT secret
+      // - ES256: Use JWKS endpoint (https://<project-ref>.supabase.co/auth/v1/.well-known/jwks.json)
     }
   } catch (e) {
-    if (e instanceof Error && e.message.includes('Invalid token algorithm')) {
-      throw e; // Re-throw algorithm errors
-    }
     console.warn('[createAccountsJob] Could not decode token header:', e);
+    // Continue anyway - let backend validate
   }
   
   console.log('[createAccountsJob] Sending request to:', `${API_BASE_URL}/api/create-accounts`);
