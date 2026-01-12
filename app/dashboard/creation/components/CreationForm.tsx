@@ -333,6 +333,12 @@ export default function CreationForm() {
           
           if (status.total_created === 0) {
             addMessage('error', `No accounts created. ${status.error || 'Check backend logs.'}`);
+            
+            // Still update failure stats even if no accounts were created
+            if (failuresToUpdate > 0) {
+              await updateUserStatsIncremental(0, failuresToUpdate);
+            }
+            
             clearJobState();
             return;
           }
