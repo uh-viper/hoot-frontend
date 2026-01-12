@@ -80,8 +80,15 @@
   font-size: 1.5rem;
   font-weight: 600;
   color: #ffffff;
-  margin: 0;
+  margin: 0 0 0.25rem;
   font-family: var(--font-outfit);
+}
+
+.graph-subtitle {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  font-family: var(--font-poppins);
 }
 
 .time-selector {
@@ -127,6 +134,118 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.graph-svg {
+  width: 100%;
+  height: 100%;
+  min-height: 300px;
+}
+
+.graph-placeholder .spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.custom-date-picker {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  flex-wrap: wrap;
+}
+
+.date-picker-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 150px;
+}
+
+.date-picker-group label {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: var(--font-poppins);
+  font-weight: 500;
+}
+
+.date-picker-group input[type="date"] {
+  padding: 0.625rem 0.875rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-family: var(--font-poppins);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.date-picker-group input[type="date"]:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.date-picker-group input[type="date"]:focus {
+  outline: none;
+  border-color: #d4af37;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.apply-date-btn,
+.cancel-date-btn {
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: var(--font-poppins);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  border: 1px solid;
+}
+
+.apply-date-btn {
+  background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
+  border-color: #d4af37;
+  color: #0a0a0a;
+}
+
+.apply-date-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #e0c050 0%, #c5a02a 100%);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+}
+
+.apply-date-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancel-date-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.cancel-date-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .graph-placeholder {
