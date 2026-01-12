@@ -273,10 +273,11 @@
   align-items: center;
 }
 
-.account-actions-section .account-label {
-  font-size: 0.7rem;
-  margin: 0;
-  color: rgba(255, 255, 255, 0.5);
+.account-separator {
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 1rem;
+  font-weight: 300;
+  margin: 0 0.25rem;
 }
 
 .action-btn {
