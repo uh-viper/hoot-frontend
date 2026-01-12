@@ -91,51 +91,33 @@ export default function GraphSection() {
       points.push({ x, y });
     });
 
-    // Generate smooth path using cubic bezier curves
+    // Generate smooth path using cubic bezier curves (Catmull-Rom style)
     let path = '';
     if (points.length > 0) {
-      path = `M ${points[0].x} ${points[0].y}`;
-      
       if (points.length === 1) {
         // Single point - just a dot
         path = '';
       } else if (points.length === 2) {
         // Two points - straight line
-        path += ` L ${points[1].x} ${points[1].y}`;
+        path = `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`;
       } else {
         // Multiple points - smooth curve using cubic bezier
+        path = `M ${points[0].x} ${points[0].y}`;
+        
         for (let i = 0; i < points.length - 1; i++) {
-          const current = points[i];
-          const next = points[i + 1];
+          const p0 = i > 0 ? points[i - 1] : points[i];
+          const p1 = points[i];
+          const p2 = points[i + 1];
+          const p3 = i < points.length - 2 ? points[i + 2] : points[i + 1];
           
-          // Calculate control points for smooth curve
-          let cp1x, cp1y, cp2x, cp2y;
+          // Calculate control points for smooth curve (Catmull-Rom to Bezier conversion)
+          const tension = 0.5;
+          const cp1x = p1.x + (p2.x - p0.x) / 6 * tension;
+          const cp1y = p1.y + (p2.y - p0.y) / 6 * tension;
+          const cp2x = p2.x - (p3.x - p1.x) / 6 * tension;
+          const cp2y = p2.y - (p3.y - p1.y) / 6 * tension;
           
-          if (i === 0) {
-            // First segment
-            const nextNext = points[i + 2] || next;
-            cp1x = current.x + (next.x - current.x) / 3;
-            cp1y = current.y;
-            cp2x = next.x - (nextNext.x - current.x) / 3;
-            cp2y = next.y;
-          } else if (i === points.length - 2) {
-            // Last segment
-            const prev = points[i - 1];
-            cp1x = current.x + (next.x - prev.x) / 3;
-            cp1y = current.y;
-            cp2x = next.x - (next.x - current.x) / 3;
-            cp2y = next.y;
-          } else {
-            // Middle segments
-            const prev = points[i - 1];
-            const nextNext = points[i + 2];
-            cp1x = current.x + (next.x - prev.x) / 3;
-            cp1y = current.y;
-            cp2x = next.x - (nextNext.x - current.x) / 3;
-            cp2y = next.y;
-          }
-          
-          path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${next.x} ${next.y}`;
+          path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
         }
       }
     }
