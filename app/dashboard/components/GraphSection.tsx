@@ -189,8 +189,8 @@ export default function GraphSection() {
       svg.appendChild(area);
     }
 
-    // Draw line
-    if (path) {
+    // Draw line (only if path exists and has content)
+    if (path && path.trim().length > 0) {
       const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       line.setAttribute('d', path);
       line.setAttribute('fill', 'none');
@@ -198,6 +198,7 @@ export default function GraphSection() {
       line.setAttribute('stroke-width', '2.5');
       line.setAttribute('stroke-linecap', 'round');
       line.setAttribute('stroke-linejoin', 'round');
+      line.setAttribute('clip-path', 'url(#graphClip)');
       svg.appendChild(line);
     }
 
