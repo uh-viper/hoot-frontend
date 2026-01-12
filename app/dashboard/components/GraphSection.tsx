@@ -101,10 +101,10 @@ export default function GraphSection() {
     graphData.forEach((point, index) => {
       const x = padding.left + (index / (graphData.length - 1 || 1)) * graphWidth;
       // Calculate Y position - if count is 0, use baseline, otherwise calculate normally
-      const calculatedY = point.count === 0 
+      // Don't clamp here - let the curve control points handle the clamping
+      const y = point.count === 0 
         ? baselineY 
         : padding.top + graphHeight - (point.count * yScale);
-      const y = Math.max(calculatedY, baselineY); // Clamp to baseline or above
       points.push({ x, y });
     });
 
