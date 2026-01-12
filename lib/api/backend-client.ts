@@ -86,6 +86,30 @@ export async function createAccountsJob(
     throw new Error('Invalid authentication token format');
   }
   
+  // Decode JWT header to verify algorithm (should be HS256 for Supabase)
+  try {
+    const tokenParts = token.split('.');
+    if (tokenParts.length >= 1) {
+      const headerBase64 = tokenParts[0].replace(/-/g, '+').replace(/_/g, '/');
+      const headerJson = Buffer.from(headerBase64, 'base64').toString('utf-8');
+      const header = JSON.parse(headerJson);
+      
+      console.log('[createAccountsJob] Token algorithm:', header.alg);
+      console.log('[createAccountsJob] Token type:', header.typ || 'not in header');
+      
+      if (header.alg && header.alg !== 'HS256') {
+        console.error(`[createAccountsJob] ERROR: Token uses ${header.alg}, but Supabase uses HS256!`);
+        console.error('[createAccountsJob] This is NOT a Supabase Auth token!');
+        throw new Error(`Invalid token algorithm: Expected HS256 (Supabase), but got ${header.alg}`);
+      }
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes('Invalid token algorithm')) {
+      throw e; // Re-throw algorithm errors
+    }
+    console.warn('[createAccountsJob] Could not decode token header:', e);
+  }
+  
   console.log('[createAccountsJob] Sending request to:', `${API_BASE_URL}/api/create-accounts`);
   console.log('[createAccountsJob] Request payload:', payload);
   console.log('[createAccountsJob] Token length:', token.length);
