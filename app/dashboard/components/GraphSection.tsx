@@ -193,10 +193,9 @@ export default function GraphSection() {
       line.setAttribute('d', path);
       line.setAttribute('fill', 'none');
       line.setAttribute('stroke', '#d4af37');
-      line.setAttribute('stroke-width', '2.5');
+      line.setAttribute('stroke-width', '3');
       line.setAttribute('stroke-linecap', 'round');
       line.setAttribute('stroke-linejoin', 'round');
-      line.setAttribute('clip-path', 'url(#graphClip)');
       svg.appendChild(line);
     }
 
