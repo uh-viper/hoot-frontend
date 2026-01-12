@@ -365,8 +365,9 @@ export default function CreationForm() {
         const now = Date.now();
         if (now - (lastProgress.lastLogTime || 0) >= 10000) {
           // Show progress if we have real-time updates
-          if (status.total_created > 0 || status.total_failed > 0) {
-            const totalProcessed = status.total_created + (status.total_failed || 0);
+          const totalFailed = status.total_failed || 0;
+          if (status.total_created > 0 || totalFailed > 0) {
+            const totalProcessed = status.total_created + totalFailed;
             addMessage('info', `Creating your accounts... (${totalProcessed}/${status.total_requested})`);
           } else {
             addMessage('info', 'Creating your accounts...');
