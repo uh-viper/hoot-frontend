@@ -100,9 +100,10 @@ export default function GraphSection() {
 
     graphData.forEach((point, index) => {
       const x = padding.left + (index / (graphData.length - 1 || 1)) * graphWidth;
-      // Calculate Y position - ensure it never goes below baseline
+      // Calculate Y position normally - only clamp if it would go below baseline
       const calculatedY = padding.top + graphHeight - (point.count * yScale);
-      const y = Math.max(calculatedY, baselineY);
+      // Only clamp to baseline if calculated Y is below it (shouldn't happen with proper scaling, but safety check)
+      const y = calculatedY < baselineY ? baselineY : calculatedY;
       points.push({ x, y });
     });
 
