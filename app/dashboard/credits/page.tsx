@@ -26,11 +26,7 @@ const creditPackages: CreditPackage[] = [
   { id: '10', credits: 10, price: 10 },
   { id: '25', credits: 25, price: 20 },
   { id: '50', credits: 50, price: 35 },
-  { id: '100', credits: 100, price: 65 },
-  { id: '250', credits: 250, price: 125, popular: true },
-  { id: '500', credits: 500, price: 200 },
-  { id: '1000', credits: 1000, price: 350 },
-  { id: '2000', credits: 2000, price: 600 },
+  { id: '100', credits: 100, price: 50, popular: true },
 ]
 
 interface PageProps {
