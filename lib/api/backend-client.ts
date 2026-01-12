@@ -74,8 +74,16 @@ export async function createAccountsJob(
     currency,
   };
   
+  // Validate token format (should be a JWT)
+  if (!token || typeof token !== 'string' || token.split('.').length !== 3) {
+    console.error('[createAccountsJob] Invalid token format - expected JWT with 3 parts');
+    throw new Error('Invalid authentication token format');
+  }
+  
   console.log('[createAccountsJob] Sending request to:', `${API_BASE_URL}/api/create-accounts`);
   console.log('[createAccountsJob] Request payload:', payload);
+  console.log('[createAccountsJob] Token length:', token.length);
+  console.log('[createAccountsJob] Token preview:', token.substring(0, 20) + '...');
   
   const response = await fetch(`${API_BASE_URL}/api/create-accounts`, {
     method: 'POST',

@@ -116,7 +116,13 @@ export async function createJob(
       return { success: false, error: 'Authentication required. Please log in again.' }
     }
     
-    console.log('[createJob] Successfully retrieved access token')
+    // Validate token format
+    if (typeof accessToken !== 'string' || accessToken.split('.').length !== 3) {
+      console.error('[createJob] Invalid token format - not a valid JWT');
+      return { success: false, error: 'Invalid authentication token. Please log in again.' }
+    }
+    
+    console.log('[createJob] Successfully retrieved access token (JWT format verified)')
 
     // Create job via backend API
     console.log('[createJob] Creating job with:', { accounts, region, currency })
