@@ -14,18 +14,6 @@
   gap: 2rem;
   width: 100%;
   align-items: end;
-  position: relative;
-}
-
-.insufficient-credits-message {
-  position: absolute;
-  top: 2.5rem;
-  right: 2.5rem;
-  font-size: 0.875rem;
-  color: #ff6b6b;
-  font-family: var(--font-poppins);
-  font-weight: 500;
-  z-index: 10;
 }
 
 .form-field {
