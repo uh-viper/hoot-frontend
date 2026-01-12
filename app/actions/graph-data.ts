@@ -131,15 +131,20 @@ export async function getBusinessCentersGraphData(
       let label: string
       
       if (groupBy === 'hour') {
+        // Format as "3:00 PM" or "03:00" for 24h
         label = date.toLocaleTimeString('en-US', {
           hour: 'numeric',
+          minute: '2-digit',
           hour12: true,
         })
       } else {
-        label = date.toLocaleDateString('en-US', {
+        // Format as "Jan 15" or "Mon, Jan 15"
+        const dayName = date.toLocaleDateString('en-US', { weekday: 'short' })
+        const monthDay = date.toLocaleDateString('en-US', {
           month: 'short',
           day: 'numeric',
         })
+        label = `${dayName}, ${monthDay}`
       }
 
       return {

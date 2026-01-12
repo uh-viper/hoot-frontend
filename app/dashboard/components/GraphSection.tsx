@@ -13,7 +13,9 @@ export default function GraphSection() {
   const [customStartDate, setCustomStartDate] = useState<string>('');
   const [customEndDate, setCustomEndDate] = useState<string>('');
   const [showCustomPicker, setShowCustomPicker] = useState(false);
+  const [hoveredPoint, setHoveredPoint] = useState<{ x: number; y: number; data: GraphDataPoint } | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const fetchGraphData = async (period: TimePeriod, start?: Date, end?: Date) => {
     setIsLoading(true);
@@ -69,16 +71,25 @@ export default function GraphSection() {
     if (!svgRef.current || graphData.length === 0) return;
 
     const svg = svgRef.current;
-    const width = svg.clientWidth || 800;
-    const height = svg.clientHeight || 300;
-    const padding = { top: 20, right: 20, bottom: 40, left: 50 };
+    const container = containerRef.current;
+    if (!container) return;
+
+    const containerWidth = container.clientWidth;
+    const width = containerWidth || 800;
+    const height = 350;
+    const padding = { top: 30, right: 30, bottom: 50, left: 60 };
     const graphWidth = width - padding.left - padding.right;
     const graphHeight = height - padding.top - padding.bottom;
+
+    // Set SVG dimensions
+    svg.setAttribute('width', width.toString());
+    svg.setAttribute('height', height.toString());
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
 
     // Clear previous content
     svg.innerHTML = '';
 
-    // Find max value for scaling
+    // Find max value for scaling (min is always 0)
     const maxCount = Math.max(...graphData.map(d => d.count), 1);
     const yScale = graphHeight / maxCount;
 
@@ -180,7 +191,7 @@ export default function GraphSection() {
       svg.appendChild(circle);
     });
 
-    // Draw Y-axis labels
+    // Draw Y-axis labels (always start from 0)
     const ySteps = 5;
     for (let i = 0; i <= ySteps; i++) {
       const value = Math.round((maxCount / ySteps) * i);
@@ -206,11 +217,22 @@ export default function GraphSection() {
       svg.appendChild(text);
     }
 
-    // Draw X-axis labels
-    const labelStep = Math.max(1, Math.floor(graphData.length / 8));
+    // Draw X-axis labels with better formatting
+    const labelStep = Math.max(1, Math.floor(graphData.length / 10));
     graphData.forEach((point, index) => {
       if (index % labelStep === 0 || index === graphData.length - 1) {
         const x = padding.left + (index / (graphData.length - 1 || 1)) * graphWidth;
+        
+        // Draw tick mark
+        const tick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        tick.setAttribute('x1', x.toString());
+        tick.setAttribute('y1', (padding.top + graphHeight).toString());
+        tick.setAttribute('x2', x.toString());
+        tick.setAttribute('y2', (padding.top + graphHeight + 5).toString());
+        tick.setAttribute('stroke', 'rgba(255, 255, 255, 0.3)');
+        tick.setAttribute('stroke-width', '1');
+        svg.appendChild(tick);
+        
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         text.setAttribute('x', x.toString());
         text.setAttribute('y', (height - padding.bottom + 20).toString());
@@ -221,6 +243,32 @@ export default function GraphSection() {
         text.textContent = point.label;
         svg.appendChild(text);
       }
+    });
+
+    // Add invisible hover areas for each point
+    points.forEach((point, index) => {
+      const hoverArea = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      hoverArea.setAttribute('cx', point.x.toString());
+      hoverArea.setAttribute('cy', point.y.toString());
+      hoverArea.setAttribute('r', '20');
+      hoverArea.setAttribute('fill', 'transparent');
+      hoverArea.setAttribute('cursor', 'pointer');
+      hoverArea.style.pointerEvents = 'all';
+      
+      hoverArea.addEventListener('mouseenter', (e) => {
+        const rect = svg.getBoundingClientRect();
+        setHoveredPoint({
+          x: rect.left + point.x,
+          y: rect.top + point.y - 30,
+          data: graphData[index]
+        });
+      });
+      
+      hoverArea.addEventListener('mouseleave', () => {
+        setHoveredPoint(null);
+      });
+      
+      svg.appendChild(hoverArea);
     });
   };
 
@@ -328,7 +376,7 @@ export default function GraphSection() {
         </div>
       )}
 
-      <div className="graph-container">
+      <div className="graph-container" ref={containerRef}>
         {isLoading ? (
           <div className="graph-placeholder">
             <span className="material-icons spinning">sync</span>
@@ -340,12 +388,31 @@ export default function GraphSection() {
             <p>No data available for this period</p>
           </div>
         ) : (
-          <svg
-            ref={svgRef}
-            className="graph-svg"
-            viewBox="0 0 800 300"
-            preserveAspectRatio="xMidYMid meet"
-          />
+          <>
+            <svg
+              ref={svgRef}
+              className="graph-svg"
+              style={{ width: '100%', height: '350px' }}
+            />
+            {hoveredPoint && (
+              <div
+                className="graph-tooltip"
+                style={{
+                  position: 'fixed',
+                  left: `${hoveredPoint.x}px`,
+                  top: `${hoveredPoint.y}px`,
+                  transform: 'translateX(-50%)',
+                  pointerEvents: 'none',
+                  zIndex: 1000,
+                }}
+              >
+                <div className="tooltip-content">
+                  <div className="tooltip-value">{hoveredPoint.data.count} BCs</div>
+                  <div className="tooltip-time">{hoveredPoint.data.label}</div>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
