@@ -194,12 +194,14 @@ export default function CreationForm() {
       accountCount: number;
       failureCount: number;
       lastLogTime?: number;
+      completionLogged?: boolean;
     } = { 
       created: 0, 
       requested: 0,
       accountCount: 0,
       failureCount: 0,
-      lastLogTime: Date.now()
+      lastLogTime: Date.now(),
+      completionLogged: false
     };
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
     let isCancelled = false;
