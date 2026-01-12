@@ -92,23 +92,27 @@ export async function getBusinessCentersGraphData(
     // Group accounts by time period
     const dataMap = new Map<string, number>()
 
-    // Initialize all time slots with 0
+    // Initialize all time slots with 0 (using UTC)
     const timeSlots: string[] = []
     if (groupBy === 'hour') {
       const current = new Date(start)
-      while (current <= end) {
-        const key = current.toISOString().slice(0, 13) + ':00:00' // YYYY-MM-DDTHH:00:00
+      const endTime = end.getTime()
+      while (current.getTime() <= endTime) {
+        const key = current.toISOString().slice(0, 13) + ':00:00' // YYYY-MM-DDTHH:00:00 (UTC)
         timeSlots.push(key)
         dataMap.set(key, 0)
-        current.setHours(current.getHours() + 1)
+        current.setUTCHours(current.getUTCHours() + 1)
       }
     } else {
       const current = new Date(start)
-      while (current <= end) {
-        const key = current.toISOString().slice(0, 10) // YYYY-MM-DD
+      const endDateStr = end.toISOString().slice(0, 10)
+      while (current.getTime() <= end.getTime()) {
+        const key = current.toISOString().slice(0, 10) // YYYY-MM-DD (UTC)
         timeSlots.push(key)
         dataMap.set(key, 0)
-        current.setDate(current.getDate() + 1)
+        // Break if we've reached the end date
+        if (key === endDateStr) break
+        current.setUTCDate(current.getUTCDate() + 1)
       }
     }
 

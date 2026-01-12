@@ -36,28 +36,31 @@ export default function CalendarModal({ isOpen, onClose, onSelect, initialStartD
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   const handleDateClick = (date: Date) => {
-    const dateStr = date.toDateString();
+    // Create new Date objects to avoid timezone issues
+    const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     
     if (!selectedStart || (selectedStart && selectedEnd)) {
       // Start new selection
-      setSelectedStart(date);
+      setSelectedStart(normalizedDate);
       setSelectedEnd(null);
     } else if (selectedStart && !selectedEnd) {
       // Complete selection
-      if (date < selectedStart) {
+      const normalizedStart = new Date(selectedStart.getFullYear(), selectedStart.getMonth(), selectedStart.getDate());
+      if (normalizedDate < normalizedStart) {
         // If clicked date is before start, swap them
-        setSelectedEnd(selectedStart);
-        setSelectedStart(date);
+        setSelectedEnd(normalizedStart);
+        setSelectedStart(normalizedDate);
       } else {
-        setSelectedEnd(date);
+        setSelectedEnd(normalizedDate);
       }
     }
   };
 
   const handleDateDoubleClick = (date: Date) => {
     // Double click sets both start and end to the same date
-    setSelectedStart(date);
-    setSelectedEnd(date);
+    const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    setSelectedStart(normalizedDate);
+    setSelectedEnd(normalizedDate);
   };
 
   const handleApply = () => {
