@@ -328,7 +328,6 @@ export async function saveAccounts(
 
     // Insert accounts (if any) - use upsert to handle duplicates gracefully
     let savedCount = 0
-    let newAccountsCount = 0
 
     if (accounts.length > 0) {
       const accountsToInsert = accounts.map((account) => ({
@@ -362,25 +361,22 @@ export async function saveAccounts(
             .eq('job_id', jobId)
           
           savedCount = finalCount ?? 0
-          // Calculate new accounts: final count minus what existed before
-          newAccountsCount = savedCount - (existingAccountsCount ?? 0)
         } else {
           return { success: false, error: error.message }
         }
       } else {
         savedCount = data?.length ?? 0
-        // If accounts weren't already saved, all saved accounts are new
-        newAccountsCount = accountsAlreadySaved ? savedCount - (existingAccountsCount ?? 0) : savedCount
       }
     }
 
     // Deduct credits ONLY for newly saved accounts (1 BC = 1 credit)
     // Only deduct if this is the first time saving accounts from this job_id
-    if (!accountsAlreadySaved && newAccountsCount > 0) {
-      console.log(`[saveAccounts] Deducting ${newAccountsCount} credits for ${newAccountsCount} accounts saved`)
+    // Deduct based on actual number of accounts saved
+    if (!accountsAlreadySaved && savedCount > 0) {
+      console.log(`[saveAccounts] Deducting ${savedCount} credits for ${savedCount} accounts saved`)
       const { error: deductError } = await supabase.rpc('deduct_credits_from_user', {
         p_user_id: user.id,
-        p_credits_to_deduct: newAccountsCount,
+        p_credits_to_deduct: savedCount,
       })
 
       if (deductError) {
@@ -389,10 +385,12 @@ export async function saveAccounts(
         // In production, you might want to handle this differently
         console.warn('[saveAccounts] Accounts were saved but credits were not deducted. Manual intervention may be required.')
       } else {
-        console.log(`[saveAccounts] Successfully deducted ${newAccountsCount} credits`)
+        console.log(`[saveAccounts] Successfully deducted ${savedCount} credits`)
       }
     } else if (accountsAlreadySaved) {
       console.log('[saveAccounts] Accounts from this job_id already exist - skipping credit deduction to prevent double charge')
+    } else if (savedCount === 0) {
+      console.log('[saveAccounts] No accounts were saved - skipping credit deduction')
     }
 
     // Note: Stats are updated in real-time via updateUserStatsIncremental()
