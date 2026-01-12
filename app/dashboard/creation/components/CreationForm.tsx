@@ -262,31 +262,63 @@ export default function CreationForm() {
 
         const status = result.status;
 
+        // Log any failures from the API (only new ones)
+        if (status.failures && status.failures.length > 0) {
+          status.failures.forEach((failure) => {
+            addMessage('error', `Failed to create account ${failure.email}: ${failure.error || failure.code || 'Unknown error'}`);
+          });
+        }
+
         // Job completed
         if (status.status === 'completed') {
           if (status.total_created === 0) {
             addMessage('error', `No accounts created. ${status.error || 'Check backend logs.'}`);
+            clearJobState();
+            return;
+          }
+          
+          // Check if all accounts were created
+          if (status.total_created < status.total_requested) {
+            const failedCount = status.total_requested - status.total_created;
+            addMessage('warning', `Job completed but only created ${status.total_created}/${status.total_requested} accounts. ${failedCount} account(s) failed.`);
+            
+            if (status.error) {
+              addMessage('error', `Backend error: ${status.error}`);
+            }
+            
+            if (status.failures && status.failures.length > 0) {
+              addMessage('info', `See errors above for details on ${status.failures.length} failed account(s).`);
+            } else {
+              addMessage('warning', 'No failure details provided by backend. Check backend logs.');
+            }
           } else {
             addMessage('success', `Completed! Created ${status.total_created}/${status.total_requested} accounts.`);
-            
-            // Save accounts
-            if (status.accounts && status.accounts.length > 0 && selectedCountry) {
-              addMessage('info', 'Saving to vault...');
-              const saveResult = await saveAccounts(
-                currentJobId,
-                status.accounts,
-                selectedCountry.code,
-                selectedCurrency
-              );
-              if (saveResult.success) {
-                addMessage('success', `Saved ${saveResult.savedCount} accounts!`);
-                showSuccess(`Created and saved ${saveResult.savedCount} accounts!`);
-              } else {
-                addMessage('error', saveResult.error || 'Failed to save');
-                showError(saveResult.error || 'Failed to save');
-              }
-            }
           }
+          
+          // Save accounts (even if partial)
+          if (status.accounts && status.accounts.length > 0 && selectedCountry) {
+            addMessage('info', 'Saving to vault...');
+            const saveResult = await saveAccounts(
+              currentJobId,
+              status.accounts,
+              selectedCountry.code,
+              selectedCurrency
+            );
+            if (saveResult.success) {
+              addMessage('success', `Saved ${saveResult.savedCount} account(s)!`);
+              if (status.total_created === status.total_requested) {
+                showSuccess(`Created and saved ${saveResult.savedCount} business center accounts!`);
+              } else {
+                showSuccess(`Saved ${saveResult.savedCount} account(s). ${status.total_requested - status.total_created} account(s) failed.`);
+              }
+            } else {
+              addMessage('error', saveResult.error || 'Failed to save');
+              showError(saveResult.error || 'Failed to save');
+            }
+          } else if (status.total_created > 0) {
+            addMessage('warning', 'Accounts were created but not returned by API. They may not be saved to your vault.');
+          }
+          
           clearJobState();
           return;
         }
