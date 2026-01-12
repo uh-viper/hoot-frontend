@@ -346,6 +346,21 @@ export default function CreationForm() {
           // Job completion message
           addMessage('success', `Job Completed - ${status.total_created}/${status.total_requested} created.`);
           
+          // Display credit deduction info from backend
+          if (status.credits) {
+            if (status.credits.deducted) {
+              const creditMsg = status.credits.new_balance !== undefined
+                ? `${status.credits.amount} credits deducted (New balance: ${status.credits.new_balance})`
+                : `${status.credits.amount} credits deducted`;
+              addMessage('success', `✓ ${creditMsg}`);
+            } else {
+              addMessage('warning', `⚠ Credit deduction failed: ${status.credits.error || 'Unknown error'}`);
+              if (status.credits.amount_should_have_been_deducted) {
+                addMessage('warning', `Accounts were created but ${status.credits.amount_should_have_been_deducted} credits were not deducted. Please contact support.`);
+              }
+            }
+          }
+          
           // Save accounts to database
           if (status.accounts && status.accounts.length > 0) {
             const region = selectedCountry?.code || '';

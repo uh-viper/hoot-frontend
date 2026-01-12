@@ -50,6 +50,14 @@ export interface JobStatus {
     email: string;
     code: string;
   }>;
+  credits?: {
+    deducted: boolean;
+    amount?: number;
+    new_balance?: number;
+    previous_balance?: number;
+    error?: string;
+    amount_should_have_been_deducted?: number;
+  };
   error?: string;
 }
 

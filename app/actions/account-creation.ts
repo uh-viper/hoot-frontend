@@ -292,9 +292,9 @@ export async function updateUserStatsIncremental(
 
 /**
  * Save accounts to database after job completion
- * Credits are deducted here based on actual accounts saved (1 BC = 1 credit)
+ * NOTE: Credits are now deducted by the backend automatically - frontend should NOT deduct credits
  * Note: Stats are updated in real-time as accounts/failures happen, so we don't update them here
- * to avoid double-counting. This function saves accounts and deducts credits.
+ * to avoid double-counting. This function only saves accounts to the vault.
  */
 export async function saveAccounts(
   jobId: string,
@@ -317,15 +317,6 @@ export async function saveAccounts(
   }
 
   try {
-    // Check if accounts from this job_id already exist to prevent double credit deduction
-    const { count: existingAccountsCount } = await supabase
-      .from('user_accounts')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .eq('job_id', jobId)
-
-    const accountsAlreadySaved = (existingAccountsCount ?? 0) > 0
-
     // Insert accounts (if any) - use upsert to handle duplicates gracefully
     let savedCount = 0
 
@@ -369,33 +360,13 @@ export async function saveAccounts(
       }
     }
 
-    // Deduct credits ONLY for newly saved accounts (1 BC = 1 credit)
-    // Only deduct if this is the first time saving accounts from this job_id
-    // Deduct based on actual number of accounts saved
-    if (!accountsAlreadySaved && savedCount > 0) {
-      console.log(`[saveAccounts] Deducting ${savedCount} credits for ${savedCount} accounts saved`)
-      const { error: deductError } = await supabase.rpc('deduct_credits_from_user', {
-        p_user_id: user.id,
-        p_credits_to_deduct: savedCount,
-      })
-
-      if (deductError) {
-        console.error('[saveAccounts] Failed to deduct credits:', deductError)
-        // Don't fail the save operation, but log the error
-        // In production, you might want to handle this differently
-        console.warn('[saveAccounts] Accounts were saved but credits were not deducted. Manual intervention may be required.')
-      } else {
-        console.log(`[saveAccounts] Successfully deducted ${savedCount} credits`)
-      }
-    } else if (accountsAlreadySaved) {
-      console.log('[saveAccounts] Accounts from this job_id already exist - skipping credit deduction to prevent double charge')
-    } else if (savedCount === 0) {
-      console.log('[saveAccounts] No accounts were saved - skipping credit deduction')
-    }
+    // NOTE: Credits are now deducted by the backend automatically
+    // The backend handles credit deduction when accounts are saved
+    // Frontend should NOT deduct credits anymore
 
     // Note: Stats are updated in real-time via updateUserStatsIncremental()
     // as accounts/failures happen, so we don't update them here to avoid double-counting.
-    // This function saves accounts and deducts credits.
+    // This function only saves accounts to the database.
 
     revalidatePath('/dashboard')
     revalidatePath('/dashboard/vault')
