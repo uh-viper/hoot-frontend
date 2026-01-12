@@ -93,11 +93,21 @@ export async function createJob(
       return { success: false, error: 'No active session. Please log in again.' }
     }
     
-    // CRITICAL: Use session.access_token - this is the Supabase Auth JWT token (HS256)
+    // CRITICAL: Use session.access_token - this is the Supabase Auth JWT token
     // Do NOT use any other token source
     if (!session.access_token) {
       console.error('[createJob] Session exists but has no access_token')
-      return { success: false, error: 'Invalid session. Please log in again.' }
+      // Try refreshing the session
+      console.log('[createJob] Attempting to refresh session...')
+      const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession()
+      
+      if (refreshError || !refreshedSession?.access_token) {
+        console.error('[createJob] Refresh error:', refreshError)
+        return { success: false, error: 'Authentication error. Please log in again.' }
+      }
+      
+      // Use refreshed session token
+      session.access_token = refreshedSession.access_token
     }
     
     let accessToken = session.access_token
@@ -105,24 +115,6 @@ export async function createJob(
     // Verify this is actually a Supabase token by checking session type
     console.log('[createJob] Session token_type:', session.token_type || 'not specified')
     console.log('[createJob] Session user ID:', session.user?.id || 'not in session')
-    
-    // If no token, try refreshing the session
-    if (!accessToken) {
-      console.log('[createJob] No access token in session, attempting to refresh...')
-      const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession()
-      
-      if (refreshError) {
-        console.error('[createJob] Session refresh error:', refreshError)
-        return { success: false, error: 'Authentication error. Please log in again.' }
-      }
-      
-      if (!refreshedSession?.access_token) {
-        console.error('[createJob] Refreshed session has no access token')
-        return { success: false, error: 'Authentication required. Please log in again.' }
-      }
-      
-      accessToken = refreshedSession.access_token
-    }
     
     if (!accessToken) {
       console.error('[createJob] No valid access token available')
