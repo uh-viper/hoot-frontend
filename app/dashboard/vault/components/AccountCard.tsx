@@ -6,9 +6,11 @@ interface AccountCardProps {
   id: string;
   email: string;
   password: string;
+  region?: string | null;
+  currency?: string | null;
 }
 
-export default function AccountCard({ id, email, password }: AccountCardProps) {
+export default function AccountCard({ id, email, password, region, currency }: AccountCardProps) {
   const { showSuccess } = useToast();
 
   const copyToClipboard = async (text: string, type: 'email' | 'password') => {
@@ -27,6 +29,23 @@ export default function AccountCard({ id, email, password }: AccountCardProps) {
 
   return (
     <div className="account-card">
+      {(region || currency) && (
+        <div className="account-info-section">
+          {region && (
+            <div className="account-info-item">
+              <span className="material-icons">location_on</span>
+              <span className="account-info-text">{region}</span>
+            </div>
+          )}
+          {currency && (
+            <div className="account-info-item">
+              <span className="material-icons">attach_money</span>
+              <span className="account-info-text">{currency}</span>
+            </div>
+          )}
+        </div>
+      )}
+      
       <div className="account-email-section">
         <label className="account-label">Email</label>
         <div className="account-value-group">
