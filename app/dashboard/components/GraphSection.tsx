@@ -125,14 +125,29 @@ export default function GraphSection() {
           const p2 = points[i + 1];
           const p3 = i < points.length - 2 ? points[i + 2] : points[i + 1];
           
-          // Calculate control points for smooth curve (Catmull-Rom to Bezier conversion)
-          const tension = 0.5;
-          const cp1x = p1.x + (p2.x - p0.x) / 6 * tension;
-          const cp1y = p1.y + (p2.y - p0.y) / 6 * tension;
-          const cp2x = p2.x - (p3.x - p1.x) / 6 * tension;
-          const cp2y = p2.y - (p3.y - p1.y) / 6 * tension;
+          const baselineY = padding.top + graphHeight;
           
-          path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+          // If both points are at baseline, draw a straight line
+          if (p1.y >= baselineY && p2.y >= baselineY) {
+            path += ` L ${p2.x} ${baselineY}`;
+          } else {
+            // Calculate control points for smooth curve (Catmull-Rom to Bezier conversion)
+            const tension = 0.5;
+            let cp1x = p1.x + (p2.x - p0.x) / 6 * tension;
+            let cp1y = p1.y + (p2.y - p0.y) / 6 * tension;
+            let cp2x = p2.x - (p3.x - p1.x) / 6 * tension;
+            let cp2y = p2.y - (p3.y - p1.y) / 6 * tension;
+            
+            // Clamp control points to baseline - if they would go below, keep at baseline
+            if (cp1y > baselineY) cp1y = baselineY;
+            if (cp2y > baselineY) cp2y = baselineY;
+            
+            // Clamp actual points to baseline
+            const finalP1y = p1.y > baselineY ? baselineY : p1.y;
+            const finalP2y = p2.y > baselineY ? baselineY : p2.y;
+            
+            path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${finalP2y}`;
+          }
         }
       }
     }
