@@ -77,9 +77,15 @@ export async function createJob(
   }
 
   try {
+    // Get JWT token from Supabase session
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.access_token) {
+      return { success: false, error: 'Authentication required. Please log in again.' }
+    }
+
     // Create job via backend API
     console.log('[createJob] Creating job with:', { accounts, region, currency })
-    const jobResponse = await createAccountsJob(accounts, region, currency)
+    const jobResponse = await createAccountsJob(accounts, region, currency, session.access_token)
     console.log('[createJob] Job created successfully:', jobResponse)
 
     // Deduct credits from user using RPC function
@@ -140,8 +146,19 @@ export async function createJob(
  * Get job status from backend API
  */
 export async function fetchJobStatus(jobId: string): Promise<{ success: boolean; status?: JobStatus; error?: string }> {
+  const supabase = await createClient()
+  
   try {
-    const status = await getJobStatus(jobId)
+    // Get JWT token from Supabase session
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.access_token) {
+      return {
+        success: false,
+        error: 'Authentication required. Please log in again.',
+      }
+    }
+
+    const status = await getJobStatus(jobId, session.access_token)
     // Log the status for debugging
     console.log('[fetchJobStatus] Job status response:', JSON.stringify(status, null, 2))
     return { success: true, status }

@@ -3,18 +3,11 @@
  * Handles communication with api.hootservices.com
  * 
  * IMPORTANT: This file should ONLY be imported in server-side code (server actions, API routes)
- * Never import this in client components - it contains the API key!
+ * Uses JWT authentication from Supabase Auth - token must be passed from server actions
  */
 
 // API_BASE_URL can be public (just the domain)
-// But we default to the known URL if not set
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'https://api.hootservices.com';
-// API_KEY is server-side only (no NEXT_PUBLIC_ prefix) - never exposed to browser
-const API_KEY = process.env.API_KEY || process.env.BACKEND_API_KEY || '';
-
-if (!API_KEY) {
-  console.warn('⚠️  API_KEY not set - backend API calls will fail');
-}
 
 export interface CreateJobRequest {
   accounts: number;
@@ -60,12 +53,21 @@ export interface Region {
 
 /**
  * Create a new accounts job
+ * @param accounts - Number of accounts to create
+ * @param region - Region code (e.g., 'US')
+ * @param currency - Currency code (e.g., 'USD')
+ * @param token - JWT token from Supabase Auth session
  */
 export async function createAccountsJob(
   accounts: number,
   region: string,
-  currency: string
+  currency: string,
+  token: string
 ): Promise<CreateJobResponse> {
+  if (!token) {
+    throw new Error('Authentication required - JWT token is missing');
+  }
+
   const payload = {
     accounts,
     region,
@@ -74,16 +76,22 @@ export async function createAccountsJob(
   
   console.log('[createAccountsJob] Sending request to:', `${API_BASE_URL}/api/create-accounts`);
   console.log('[createAccountsJob] Request payload:', payload);
-  console.log('[createAccountsJob] API_KEY set:', !!API_KEY);
   
   const response = await fetch(`${API_BASE_URL}/api/create-accounts`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-API-Key': API_KEY,
+      'Authorization': `Bearer ${token}`,
     },
     body: JSON.stringify(payload),
   });
+
+  // Handle 401 Unauthorized (token expired/invalid)
+  if (response.status === 401) {
+    const errorMsg = 'Authentication failed. Please log in again.';
+    console.error('[createAccountsJob] Authentication failed (401)');
+    throw new Error(errorMsg);
+  }
 
   const result = await response.json();
   console.log('[createAccountsJob] API response:', result);
@@ -107,13 +115,26 @@ export async function createAccountsJob(
 
 /**
  * Get job status
+ * @param jobId - Job ID to check status for
+ * @param token - JWT token from Supabase Auth session
  */
-export async function getJobStatus(jobId: string): Promise<JobStatus> {
+export async function getJobStatus(jobId: string, token: string): Promise<JobStatus> {
+  if (!token) {
+    throw new Error('Authentication required - JWT token is missing');
+  }
+
   const response = await fetch(`${API_BASE_URL}/api/job/${jobId}`, {
     headers: {
-      'X-API-Key': API_KEY,
+      'Authorization': `Bearer ${token}`,
     },
   });
+
+  // Handle 401 Unauthorized (token expired/invalid)
+  if (response.status === 401) {
+    const errorMsg = 'Authentication failed. Please log in again.';
+    console.error('[getJobStatus] Authentication failed (401):', jobId);
+    throw new Error(errorMsg);
+  }
 
   const result = await response.json();
   console.log('[getJobStatus] API response:', { jobId, result });
