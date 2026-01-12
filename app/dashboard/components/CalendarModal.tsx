@@ -179,23 +179,6 @@ export default function CalendarModal({ isOpen, onClose, onSelect, initialStartD
             {renderCalendarDays()}
           </div>
 
-          <div className="calendar-selection-info">
-            {selectedStart && (
-              <div className="selection-item">
-                <span className="selection-label">Start:</span>
-                <span className="selection-date">{selectedStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-              </div>
-            )}
-            {selectedEnd && (
-              <div className="selection-item">
-                <span className="selection-label">End:</span>
-                <span className="selection-date">{selectedEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-              </div>
-            )}
-            {!selectedEnd && selectedStart && (
-              <div className="selection-hint">Double-click a date to select same day, or click another date for range</div>
-            )}
-          </div>
         </div>
 
         <div className="calendar-modal-footer">
