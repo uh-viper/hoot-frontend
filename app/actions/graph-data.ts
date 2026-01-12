@@ -105,26 +105,19 @@ export async function getBusinessCentersGraphData(
       }
     }
 
-    // Count accounts in each time slot (using local time, not UTC)
+    // Count accounts in each time slot (using UTC)
     accounts?.forEach((account) => {
       const createdAt = new Date(account.created_at)
       let key: string
       
       if (groupBy === 'hour') {
-        // Round down to the hour using local time
+        // Round down to the hour using UTC
         const hourDate = new Date(createdAt)
-        hourDate.setMinutes(0, 0, 0)
-        const year = hourDate.getFullYear()
-        const month = String(hourDate.getMonth() + 1).padStart(2, '0')
-        const day = String(hourDate.getDate()).padStart(2, '0')
-        const hour = String(hourDate.getHours()).padStart(2, '0')
-        key = `${year}-${month}-${day}T${hour}:00:00`
+        hourDate.setUTCMinutes(0, 0, 0)
+        key = hourDate.toISOString().slice(0, 13) + ':00:00'
       } else {
-        // Round down to the day using local time
-        const year = createdAt.getFullYear()
-        const month = String(createdAt.getMonth() + 1).padStart(2, '0')
-        const day = String(createdAt.getDate()).padStart(2, '0')
-        key = `${year}-${month}-${day}`
+        // Round down to the day using UTC
+        key = createdAt.toISOString().slice(0, 10)
       }
 
       if (dataMap.has(key)) {
@@ -132,23 +125,24 @@ export async function getBusinessCentersGraphData(
       }
     })
 
-    // Convert to array format (using local time for labels)
+    // Convert to array format (using UTC for labels, displayed in 24-hour format)
     const data: GraphDataPoint[] = timeSlots.map((time) => {
-      // Parse the time string as local time
+      // Parse the time string as UTC
       const date = new Date(time)
       let label: string
       
       if (groupBy === 'hour') {
-        // Format as "15:00" (24-hour military time) using local time
-        const hours = date.getHours().toString().padStart(2, '0')
-        const minutes = date.getMinutes().toString().padStart(2, '0')
+        // Format as "15:00" (24-hour military time) using UTC
+        const hours = date.getUTCHours().toString().padStart(2, '0')
+        const minutes = date.getUTCMinutes().toString().padStart(2, '0')
         label = `${hours}:${minutes}`
       } else {
-        // Format as "Mon, Jan 15" using local time
-        const dayName = date.toLocaleDateString('en-US', { weekday: 'short' })
+        // Format as "Mon, Jan 15" using UTC
+        const dayName = date.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' })
         const monthDay = date.toLocaleDateString('en-US', {
           month: 'short',
           day: 'numeric',
+          timeZone: 'UTC',
         })
         label = `${dayName}, ${monthDay}`
       }
