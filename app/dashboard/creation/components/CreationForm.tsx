@@ -318,24 +318,21 @@ export default function CreationForm() {
 
         // Job completed
         if (status.status === 'completed') {
-          // Calculate failures count (always update stats, even if no accounts created)
-          const failedCount = status.total_failed || (status.total_requested - status.total_created);
+          // Calculate final counts
+          const finalAccountCount = status.accounts?.length || status.total_created || 0;
+          const finalFailureCount = status.total_failed || (status.total_requested - status.total_created);
+          
+          // Calculate how many accounts/failures we haven't tracked yet in real-time
+          const accountsToUpdate = Math.max(0, finalAccountCount - lastProgress.accountCount);
+          const failuresToUpdate = Math.max(0, finalFailureCount - lastProgress.failureCount);
+          
+          // Update any remaining stats that weren't tracked in real-time
+          if (accountsToUpdate > 0 || failuresToUpdate > 0) {
+            await updateUserStatsIncremental(accountsToUpdate, failuresToUpdate);
+          }
           
           if (status.total_created === 0) {
             addMessage('error', `No accounts created. ${status.error || 'Check backend logs.'}`);
-            
-            // Still update failure stats even if no accounts were created
-            if (failedCount > 0) {
-              addMessage('info', 'Updating statistics...');
-              await saveAccounts(
-                currentJobId,
-                [],
-                selectedCountry?.code || '',
-                selectedCurrency || '',
-                failedCount
-              );
-            }
-            
             clearJobState();
             return;
           }
@@ -343,14 +340,8 @@ export default function CreationForm() {
           // Job completion message
           addMessage('success', `Job Completed - ${status.total_created}/${status.total_requested} created.`);
           
-          // Save accounts and update stats (including failures)
-          // The accounts array is always returned when total_created > 0
-          
-          // Check if accounts array exists and has items
+          // Save accounts to database
           if (status.accounts && status.accounts.length > 0) {
-            // Accounts are available - save them
-            // Use selectedCountry/selectedCurrency if available, otherwise use empty strings
-            // The backend already saved accounts, we're just updating our local database
             const region = selectedCountry?.code || '';
             const currency = selectedCurrency || '';
             
@@ -360,7 +351,7 @@ export default function CreationForm() {
               status.accounts,
               region,
               currency,
-              failedCount
+              0 // Stats already updated above
             );
             if (saveResult.success) {
               addMessage('success', `Saved ${saveResult.savedCount} account(s)!`);
@@ -371,39 +362,14 @@ export default function CreationForm() {
             }
           } else if (status.total_created > 0) {
             // This should rarely happen - accounts array should always be returned
-            // But handle it gracefully - accounts are already saved by backend
             console.warn('Job completed with accounts but accounts array is empty or missing', {
               total_created: status.total_created,
               accounts_length: status.accounts?.length || 0,
               has_accounts: !!status.accounts,
               status_keys: Object.keys(status)
             });
-            addMessage('info', 'Accounts were created and saved by backend. Updating statistics...');
-            
-            // Update stats even if accounts array is missing
-            // Call saveAccounts with empty array to update stats only
-            const saveResult = await saveAccounts(
-              currentJobId,
-              [],
-              selectedCountry?.code || '',
-              selectedCurrency || '',
-              failedCount
-            );
-            
-            if (saveResult.success) {
-              addMessage('success', `${status.total_created} account(s) created successfully!`);
-            }
-          } else {
-            // No accounts created, but update failures count
-            if (failedCount > 0) {
-              await saveAccounts(
-                currentJobId,
-                [],
-                selectedCountry?.code || '',
-                selectedCurrency || '',
-                failedCount
-              );
-            }
+            addMessage('info', 'Accounts were created and saved by backend.');
+            addMessage('success', `${status.total_created} account(s) created successfully!`);
           }
           
           clearJobState();
