@@ -100,11 +100,9 @@ export default function GraphSection() {
 
     graphData.forEach((point, index) => {
       const x = padding.left + (index / (graphData.length - 1 || 1)) * graphWidth;
-      // Calculate Y position - if count is 0, use baseline, otherwise calculate normally
-      // Don't clamp here - let the curve control points handle the clamping
-      const y = point.count === 0 
-        ? baselineY 
-        : padding.top + graphHeight - (point.count * yScale);
+      // Calculate Y position - ensure it never goes below baseline
+      const calculatedY = padding.top + graphHeight - (point.count * yScale);
+      const y = Math.max(calculatedY, baselineY);
       points.push({ x, y });
     });
 
@@ -130,9 +128,20 @@ export default function GraphSection() {
           // Calculate control points for smooth curve (Catmull-Rom to Bezier conversion)
           const tension = 0.5;
           const cp1x = p1.x + (p2.x - p0.x) / 6 * tension;
-          const cp1y = p1.y + (p2.y - p0.y) / 6 * tension;
+          let cp1y = p1.y + (p2.y - p0.y) / 6 * tension;
           const cp2x = p2.x - (p3.x - p1.x) / 6 * tension;
-          const cp2y = p2.y - (p3.y - p1.y) / 6 * tension;
+          let cp2y = p2.y - (p3.y - p1.y) / 6 * tension;
+          
+          // Ensure control points never go below baseline - adjust smoothly
+          const baselineY = padding.top + graphHeight;
+          if (cp1y < baselineY) {
+            // Bring it up to baseline but maintain horizontal position
+            cp1y = baselineY;
+          }
+          if (cp2y < baselineY) {
+            // Bring it up to baseline but maintain horizontal position
+            cp2y = baselineY;
+          }
           
           path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
         }
@@ -141,17 +150,6 @@ export default function GraphSection() {
 
     // Create gradient for the line
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-    
-    // Create clipPath to prevent graph from going below baseline
-    const clipPath = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
-    clipPath.setAttribute('id', 'graphClip');
-    const clipRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    clipRect.setAttribute('x', padding.left.toString());
-    clipRect.setAttribute('y', padding.top.toString());
-    clipRect.setAttribute('width', graphWidth.toString());
-    clipRect.setAttribute('height', (graphHeight + 1).toString()); // +1 to include baseline
-    clipPath.appendChild(clipRect);
-    defs.appendChild(clipPath);
     
     const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
     gradient.setAttribute('id', 'lineGradient');
@@ -168,7 +166,7 @@ export default function GraphSection() {
     const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
     stop2.setAttribute('offset', '100%');
     stop2.setAttribute('stop-color', '#d4af37');
-    stop2.setAttribute('stop-opacity', '0.6');
+    stop2.setAttribute('stop-opacity', '0.4');
     
     gradient.appendChild(stop1);
     gradient.appendChild(stop2);
