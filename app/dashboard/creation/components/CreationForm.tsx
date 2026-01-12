@@ -165,7 +165,7 @@ export default function CreationForm() {
 
   // Check credits when form values change
   useEffect(() => {
-    if (bcsAmount >= 5 && bcsAmount <= 25) {
+    if (bcsAmount >= 5 && bcsAmount <= 100) {
       setIsCheckingCredits(true);
       checkCredits(bcsAmount).then((result) => {
         setCurrentCredits(result.currentCredits);
@@ -497,7 +497,7 @@ export default function CreationForm() {
     
     // Update bcsAmount for button state, but only if it's a valid number
     const numValue = parseInt(value);
-    if (!isNaN(numValue) && numValue >= 5 && numValue <= 25) {
+    if (!isNaN(numValue) && numValue >= 5 && numValue <= 100) {
       setBcsAmount(numValue);
     }
   };
@@ -510,10 +510,10 @@ export default function CreationForm() {
       setBcsAmount(5);
       setBcsInputValue('5');
       showError('Business Centers must be at least 5.');
-    } else if (numValue > 25) {
-      setBcsAmount(25);
-      setBcsInputValue('25');
-      showError('Business Centers can\'t be more than 25.');
+    } else if (numValue > 100) {
+      setBcsAmount(100);
+      setBcsInputValue('100');
+      showError('Business Centers can\'t be more than 100.');
     } else {
       setBcsAmount(numValue);
       setBcsInputValue(numValue.toString());
@@ -538,11 +538,11 @@ export default function CreationForm() {
       setBcsInputValue('5');
       showError('Business Centers must be at least 5.');
       return;
-    } else if (numValue > 25) {
-      validBcsAmount = 25;
-      setBcsAmount(25);
-      setBcsInputValue('25');
-      showError('Business Centers can\'t be more than 25.');
+    } else if (numValue > 100) {
+      validBcsAmount = 100;
+      setBcsAmount(100);
+      setBcsInputValue('100');
+      showError('Business Centers can\'t be more than 100.');
       return;
     } else if (numValue === 0) {
       validBcsAmount = 5;
@@ -552,7 +552,7 @@ export default function CreationForm() {
       return;
     }
     
-    if (!selectedCountry || !selectedCurrency || validBcsAmount < 5 || validBcsAmount > 25) {
+    if (!selectedCountry || !selectedCurrency || validBcsAmount < 5 || validBcsAmount > 100) {
       return;
     }
 
@@ -620,7 +620,7 @@ export default function CreationForm() {
 
   // Calculate if user has enough credits
   const hasEnoughCredits = currentCredits !== null && currentCredits >= bcsAmount;
-  const canDeploy = !isPending && !isPolling && hasEnoughCredits && selectedCountry && selectedCurrency && bcsAmount >= 5 && bcsAmount <= 25;
+  const canDeploy = !isPending && !isPolling && hasEnoughCredits && selectedCountry && selectedCurrency && bcsAmount >= 5 && bcsAmount <= 100;
   
   // Prevent form submission if already deploying
   const isDeploying = isPending || isPolling;
@@ -753,7 +753,7 @@ export default function CreationForm() {
             }}
             onBlur={handleBcsBlur}
             className="bcs-input-simple"
-            placeholder="Enter amount (5-25)"
+            placeholder="Enter amount (5-100)"
             disabled={isPending || isPolling}
           />
           {currentCredits !== null && !hasEnoughCredits && bcsAmount >= 5 && (
