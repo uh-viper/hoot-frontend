@@ -45,6 +45,7 @@ export default function AccountCard({ id, email, password, region, currency }: A
           )}
         </div>
         <div className="account-actions-section">
+          <label className="account-label">Quick Actions</label>
           <div className="account-actions-group">
             <button
               type="button"
