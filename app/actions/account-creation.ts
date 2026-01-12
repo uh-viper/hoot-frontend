@@ -291,10 +291,10 @@ export async function updateUserStatsIncremental(
 }
 
 /**
- * Save accounts to database after job completion
- * NOTE: Credits are now deducted by the backend automatically - frontend should NOT deduct credits
- * Note: Stats are updated in real-time as accounts/failures happen, so we don't update them here
- * to avoid double-counting. This function only saves accounts to the vault.
+ * @deprecated This function is no longer used.
+ * Backend now handles all account saving automatically when jobs complete.
+ * Accounts are saved to user_accounts table by the backend, even if user closes tab.
+ * Frontend should only display accounts from API response or fetch from database (read-only).
  */
 export async function saveAccounts(
   jobId: string,
@@ -303,80 +303,11 @@ export async function saveAccounts(
   currency: string,
   failedCount: number = 0
 ): Promise<{ success: boolean; error?: string; savedCount?: number }> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    return { success: false, error: 'Not authenticated' }
-  }
-
-  // Allow saving even if no accounts (to update failures count)
-  // But require accounts array to be provided (can be empty)
-  if (!accounts) {
-    return { success: false, error: 'Invalid accounts data' }
-  }
-
-  try {
-    // Insert accounts (if any) - use upsert to handle duplicates gracefully
-    let savedCount = 0
-
-    if (accounts.length > 0) {
-      const accountsToInsert = accounts.map((account) => ({
-        user_id: user.id,
-        job_id: jobId,
-        email: account.email,
-        password: account.password,
-        region,
-        currency,
-      }))
-
-      // Use upsert to handle duplicates - update if exists, insert if not
-      const { data, error } = await supabase
-        .from('user_accounts')
-        .upsert(accountsToInsert, {
-          onConflict: 'user_id,email',
-          ignoreDuplicates: false
-        })
-        .select()
-
-      if (error) {
-        console.error('Failed to save accounts:', error)
-        // If it's a duplicate key error, that's okay - account already exists
-        if (error.code === '23505' || error.message.includes('duplicate key')) {
-          console.log('Some accounts already exist, continuing...')
-          // Check how many accounts from this job_id now exist
-          const { count: finalCount } = await supabase
-            .from('user_accounts')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id)
-            .eq('job_id', jobId)
-          
-          savedCount = finalCount ?? 0
-        } else {
-          return { success: false, error: error.message }
-        }
-      } else {
-        savedCount = data?.length ?? 0
-      }
-    }
-
-    // NOTE: Credits are now deducted by the backend automatically
-    // The backend handles credit deduction when accounts are saved
-    // Frontend should NOT deduct credits anymore
-
-    // Note: Stats are updated in real-time via updateUserStatsIncremental()
-    // as accounts/failures happen, so we don't update them here to avoid double-counting.
-    // This function only saves accounts to the database.
-
-    revalidatePath('/dashboard')
-    revalidatePath('/dashboard/vault')
-
-    return { success: true, savedCount }
-  } catch (error) {
-    console.error('Failed to save accounts:', error)
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to save accounts',
-    }
+  // This function is deprecated - backend handles account saving
+  console.warn('[DEPRECATED] saveAccounts called - backend should handle account saving')
+  return {
+    success: false,
+    error: 'Account saving is now handled by backend. This function should not be called.',
+    savedCount: 0
   }
 }
