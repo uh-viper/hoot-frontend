@@ -316,9 +316,12 @@ export default function CreationForm() {
           addMessage('success', `Job Completed - ${status.total_created}/${status.total_requested} created.`);
           
           // Save accounts and update stats (including failures)
+          // The accounts array is always returned when total_created > 0
+          const failedCount = status.total_failed || (status.total_requested - status.total_created);
+          
           if (status.accounts && status.accounts.length > 0 && selectedCountry) {
+            // Accounts are available - save them
             addMessage('info', 'Saving to vault...');
-            const failedCount = status.total_failed || (status.total_requested - status.total_created);
             const saveResult = await saveAccounts(
               currentJobId,
               status.accounts,
@@ -334,10 +337,23 @@ export default function CreationForm() {
               showError(saveResult.error || 'Failed to save');
             }
           } else if (status.total_created > 0) {
-            addMessage('warning', 'Accounts were created but not returned by API. They may not be saved to your vault.');
+            // This should rarely happen - accounts array should always be returned
+            // But handle it gracefully - accounts are already saved by backend
+            console.warn('Job completed with accounts but accounts array is empty or missing', status);
+            addMessage('warning', 'Accounts were created and saved by backend. Please refresh your vault to see them.');
+            
+            // Still update failure stats even if accounts array is missing
+            if (failedCount > 0) {
+              await saveAccounts(
+                currentJobId,
+                [],
+                selectedCountry?.code || '',
+                selectedCurrency,
+                failedCount
+              );
+            }
           } else {
-            // Even if no accounts were created, update failures count
-            const failedCount = status.total_failed || status.total_requested;
+            // No accounts created, but update failures count
             if (failedCount > 0) {
               await saveAccounts(
                 currentJobId,
