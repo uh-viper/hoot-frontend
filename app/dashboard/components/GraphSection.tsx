@@ -128,28 +128,28 @@ export default function GraphSection() {
           // Calculate control points for smooth curve (Catmull-Rom to Bezier conversion)
           const tension = 0.5;
           const cp1x = p1.x + (p2.x - p0.x) / 6 * tension;
-          let cp1y = p1.y + (p2.y - p0.y) / 6 * tension;
+          const cp1y = p1.y + (p2.y - p0.y) / 6 * tension;
           const cp2x = p2.x - (p3.x - p1.x) / 6 * tension;
-          let cp2y = p2.y - (p3.y - p1.y) / 6 * tension;
-          
-          // Ensure control points never go below baseline - adjust smoothly
-          const baselineY = padding.top + graphHeight;
-          if (cp1y < baselineY) {
-            // Bring it up to baseline but maintain horizontal position
-            cp1y = baselineY;
-          }
-          if (cp2y < baselineY) {
-            // Bring it up to baseline but maintain horizontal position
-            cp2y = baselineY;
-          }
+          const cp2y = p2.y - (p3.y - p1.y) / 6 * tension;
           
           path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
         }
       }
     }
 
-    // Create gradient for the line
+    // Create defs for gradient and clipPath
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    
+    // ClipPath to hide anything below the baseline (Y=0)
+    const clipPath = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
+    clipPath.setAttribute('id', 'graphClip');
+    const clipRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    clipRect.setAttribute('x', '0');
+    clipRect.setAttribute('y', '0');
+    clipRect.setAttribute('width', width.toString());
+    clipRect.setAttribute('height', (padding.top + graphHeight).toString());
+    clipPath.appendChild(clipRect);
+    defs.appendChild(clipPath);
     
     const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
     gradient.setAttribute('id', 'lineGradient');
@@ -173,29 +173,29 @@ export default function GraphSection() {
     defs.appendChild(gradient);
     svg.appendChild(defs);
 
-    // Draw area under curve (ensure it doesn't go below baseline)
+    // Draw area under curve (clipped at baseline)
     if (path && points.length > 1) {
       const baselineY = padding.top + graphHeight;
-      // Ensure all points in the area path are at or above baseline
-      let areaPath = path;
       // Close the area by going to baseline
-      areaPath += ` L ${points[points.length - 1].x} ${baselineY} L ${points[0].x} ${baselineY} Z`;
+      const areaPath = path + ` L ${points[points.length - 1].x} ${baselineY} L ${points[0].x} ${baselineY} Z`;
       const area = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       area.setAttribute('d', areaPath);
       area.setAttribute('fill', 'url(#lineGradient)');
       area.setAttribute('opacity', '0.2');
+      area.setAttribute('clip-path', 'url(#graphClip)');
       svg.appendChild(area);
     }
 
-    // Draw line (only if path exists and has content)
+    // Draw line (clipped at baseline so it doesn't go below 0)
     if (path && path.trim().length > 0) {
       const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       line.setAttribute('d', path);
       line.setAttribute('fill', 'none');
       line.setAttribute('stroke', '#d4af37');
-      line.setAttribute('stroke-width', '3');
+      line.setAttribute('stroke-width', '2.5');
       line.setAttribute('stroke-linecap', 'round');
       line.setAttribute('stroke-linejoin', 'round');
+      line.setAttribute('clip-path', 'url(#graphClip)');
       svg.appendChild(line);
     }
 
