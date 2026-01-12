@@ -31,7 +31,7 @@ export async function getBusinessCentersGraphData(
   const supabase = await createClient()
 
   try {
-    // Calculate date range based on period
+    // Calculate date range based on period (using UTC)
     const now = new Date()
     let start: Date
     let end: Date = new Date(now)
@@ -45,24 +45,24 @@ export async function getBusinessCentersGraphData(
       groupBy = daysDiff > 1 ? 'day' : 'hour'
     } else if (period === 'today') {
       start = new Date(now)
-      start.setHours(0, 0, 0, 0)
+      start.setUTCHours(0, 0, 0, 0)
       groupBy = 'hour'
     } else if (period === 'yesterday') {
       start = new Date(now)
-      start.setDate(start.getDate() - 1)
-      start.setHours(0, 0, 0, 0)
+      start.setUTCDate(start.getUTCDate() - 1)
+      start.setUTCHours(0, 0, 0, 0)
       end = new Date(start)
-      end.setHours(23, 59, 59, 999)
+      end.setUTCHours(23, 59, 59, 999)
       groupBy = 'hour'
     } else if (period === 'week') {
       start = new Date(now)
-      start.setDate(start.getDate() - 7)
-      start.setHours(0, 0, 0, 0)
+      start.setUTCDate(start.getUTCDate() - 7)
+      start.setUTCHours(0, 0, 0, 0)
       groupBy = 'day'
     } else if (period === 'month') {
       start = new Date(now)
-      start.setMonth(start.getMonth() - 1)
-      start.setHours(0, 0, 0, 0)
+      start.setUTCMonth(start.getUTCMonth() - 1)
+      start.setUTCHours(0, 0, 0, 0)
       groupBy = 'day'
     } else {
       return { success: false, error: 'Invalid period' }
