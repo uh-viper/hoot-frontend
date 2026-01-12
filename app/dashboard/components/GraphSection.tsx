@@ -292,22 +292,48 @@ export default function GraphSection() {
     });
     
     svg.appendChild(hoverArea);
-    
-    // Draw crosshair line if hovering
-    if (crosshairX !== null) {
-      const crosshair = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      crosshair.setAttribute('x1', crosshairX.toString());
-      crosshair.setAttribute('y1', padding.top.toString());
-      crosshair.setAttribute('x2', crosshairX.toString());
-      crosshair.setAttribute('y2', (padding.top + graphHeight).toString());
-      crosshair.setAttribute('stroke', 'rgba(212, 175, 55, 0.5)');
-      crosshair.setAttribute('stroke-width', '1');
-      crosshair.setAttribute('stroke-dasharray', '4,4');
-      crosshair.setAttribute('pointer-events', 'none');
-      crosshair.style.zIndex = '10';
-      svg.appendChild(crosshair);
-    }
   };
+  
+  // Draw crosshair separately when crosshairX changes
+  useEffect(() => {
+    if (!svgRef.current || crosshairX === null || graphData.length === 0) return;
+    
+    const svg = svgRef.current;
+    const padding = { top: 30, right: 30, bottom: 50, left: 60 };
+    const height = 350;
+    const container = containerRef.current;
+    if (!container) return;
+    
+    const containerWidth = container.clientWidth;
+    const width = containerWidth || 800;
+    const graphHeight = height - padding.top - padding.bottom;
+    
+    // Remove existing crosshair
+    const existingCrosshair = svg.querySelector('.crosshair-line');
+    if (existingCrosshair) {
+      existingCrosshair.remove();
+    }
+    
+    // Draw new crosshair
+    const crosshair = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    crosshair.setAttribute('class', 'crosshair-line');
+    crosshair.setAttribute('x1', crosshairX.toString());
+    crosshair.setAttribute('y1', padding.top.toString());
+    crosshair.setAttribute('x2', crosshairX.toString());
+    crosshair.setAttribute('y2', (padding.top + graphHeight).toString());
+    crosshair.setAttribute('stroke', 'rgba(212, 175, 55, 0.6)');
+    crosshair.setAttribute('stroke-width', '1.5');
+    crosshair.setAttribute('stroke-dasharray', '4,4');
+    crosshair.setAttribute('pointer-events', 'none');
+    svg.appendChild(crosshair);
+    
+    return () => {
+      const crosshairToRemove = svg.querySelector('.crosshair-line');
+      if (crosshairToRemove) {
+        crosshairToRemove.remove();
+      }
+    };
+  }, [crosshairX, graphData]);
 
   useEffect(() => {
     if (graphData.length > 0) {
@@ -317,7 +343,7 @@ export default function GraphSection() {
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [graphData, crosshairX]);
+  }, [graphData]);
 
   // Handle window resize
   useEffect(() => {
