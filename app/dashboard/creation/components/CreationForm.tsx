@@ -287,15 +287,26 @@ export default function CreationForm() {
         };
 
         // Log any failures from the API with error codes
+        // Track which failures we've already logged to avoid duplicates
         if (status.failures && status.failures.length > 0) {
           status.failures.forEach((failure) => {
             const errorCode = failure.code || 'E099';
             const errorDesc = getErrorDescription(errorCode);
-            // Only show email if it's not "unknown" - sanitize to avoid exposing sensitive info
-            const displayEmail = failure.email && failure.email !== 'unknown' 
-              ? failure.email 
-              : 'Account';
-            addMessage('error', `Account Failed - ${displayEmail} | Error Code: ${errorCode} (${errorDesc})`);
+            // Sanitize email display - only show if it's a valid email format and not "unknown"
+            // Don't expose full email addresses to avoid sensitive info leakage
+            let displayEmail = 'Account';
+            if (failure.email && failure.email !== 'unknown' && failure.email.includes('@')) {
+              // Show partial email (first part before @) for identification without exposing full address
+              const emailParts = failure.email.split('@');
+              if (emailParts.length === 2) {
+                const username = emailParts[0];
+                // Show first 8 chars of username + ... for privacy
+                displayEmail = username.length > 8 
+                  ? `${username.substring(0, 8)}...@${emailParts[1].split('.')[0]}***`
+                  : `${username}@${emailParts[1].split('.')[0]}***`;
+              }
+            }
+            addMessage('error', `Account Failed - Error Code: ${errorCode} (${errorDesc})`);
           });
         }
 
