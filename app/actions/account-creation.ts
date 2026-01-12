@@ -307,8 +307,9 @@ export async function updateUserStatsIncremental(
 
 /**
  * Save accounts to database after job completion
+ * Credits are deducted here based on actual accounts saved (1 BC = 1 credit)
  * Note: Stats are updated in real-time as accounts/failures happen, so we don't update them here
- * to avoid double-counting. This function only saves accounts to the database.
+ * to avoid double-counting. This function saves accounts and deducts credits.
  */
 export async function saveAccounts(
   jobId: string,
@@ -331,8 +332,19 @@ export async function saveAccounts(
   }
 
   try {
+    // Check if accounts from this job_id already exist to prevent double credit deduction
+    const { count: existingAccountsCount } = await supabase
+      .from('user_accounts')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('job_id', jobId)
+
+    const accountsAlreadySaved = (existingAccountsCount ?? 0) > 0
+
     // Insert accounts (if any) - use upsert to handle duplicates gracefully
     let savedCount = 0
+    let newAccountsCount = 0
+
     if (accounts.length > 0) {
       const accountsToInsert = accounts.map((account) => ({
         user_id: user.id,
@@ -357,20 +369,50 @@ export async function saveAccounts(
         // If it's a duplicate key error, that's okay - account already exists
         if (error.code === '23505' || error.message.includes('duplicate key')) {
           console.log('Some accounts already exist, continuing...')
-          // Try to get the count of successfully saved accounts
-          // For now, assume all were saved (they already existed)
-          savedCount = accounts.length
+          // Check how many accounts from this job_id now exist
+          const { count: finalCount } = await supabase
+            .from('user_accounts')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .eq('job_id', jobId)
+          
+          savedCount = finalCount ?? 0
+          // Calculate new accounts: final count minus what existed before
+          newAccountsCount = savedCount - (existingAccountsCount ?? 0)
         } else {
           return { success: false, error: error.message }
         }
       } else {
         savedCount = data?.length ?? 0
+        // If accounts weren't already saved, all saved accounts are new
+        newAccountsCount = accountsAlreadySaved ? savedCount - (existingAccountsCount ?? 0) : savedCount
       }
+    }
+
+    // Deduct credits ONLY for newly saved accounts (1 BC = 1 credit)
+    // Only deduct if this is the first time saving accounts from this job_id
+    if (!accountsAlreadySaved && newAccountsCount > 0) {
+      console.log(`[saveAccounts] Deducting ${newAccountsCount} credits for ${newAccountsCount} accounts saved`)
+      const { error: deductError } = await supabase.rpc('deduct_credits_from_user', {
+        p_user_id: user.id,
+        p_credits_to_deduct: newAccountsCount,
+      })
+
+      if (deductError) {
+        console.error('[saveAccounts] Failed to deduct credits:', deductError)
+        // Don't fail the save operation, but log the error
+        // In production, you might want to handle this differently
+        console.warn('[saveAccounts] Accounts were saved but credits were not deducted. Manual intervention may be required.')
+      } else {
+        console.log(`[saveAccounts] Successfully deducted ${newAccountsCount} credits`)
+      }
+    } else if (accountsAlreadySaved) {
+      console.log('[saveAccounts] Accounts from this job_id already exist - skipping credit deduction to prevent double charge')
     }
 
     // Note: Stats are updated in real-time via updateUserStatsIncremental()
     // as accounts/failures happen, so we don't update them here to avoid double-counting.
-    // This function only saves accounts to the database.
+    // This function saves accounts and deducts credits.
 
     revalidatePath('/dashboard')
     revalidatePath('/dashboard/vault')
