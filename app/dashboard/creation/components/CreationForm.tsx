@@ -628,6 +628,12 @@ export default function CreationForm() {
   return (
     <div className="creation-form-container">
       <form onSubmit={handleSubmit} className="creation-form">
+        {/* Insufficient Credits Message */}
+        {currentCredits !== null && !hasEnoughCredits && bcsAmount >= 5 && (
+          <div className="insufficient-credits-message">
+            Insufficient credits. You need {bcsAmount} credits but only have {currentCredits}.
+          </div>
+        )}
         {/* Country Dropdown */}
         <div className="form-field">
           <label htmlFor="country" className="form-label">
@@ -756,16 +762,6 @@ export default function CreationForm() {
             placeholder="Enter amount (5-100)"
             disabled={isPending || isPolling}
           />
-          {currentCredits !== null && !hasEnoughCredits && bcsAmount >= 5 && (
-            <span style={{ 
-              fontSize: '0.875rem', 
-              color: '#ff6b6b', 
-              marginTop: '0.25rem', 
-              display: 'block' 
-            }}>
-              Insufficient credits. You need {bcsAmount} credits but only have {currentCredits}.
-            </span>
-          )}
         </div>
 
         {/* Submit Button */}
