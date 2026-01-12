@@ -4,6 +4,12 @@
  * 
  * IMPORTANT: This file should ONLY be imported in server-side code (server actions, API routes)
  * Uses JWT authentication from Supabase Auth - token must be passed from server actions
+ * 
+ * Authentication:
+ * - Uses JWT tokens from Supabase Auth (session.access_token)
+ * - Sends token in Authorization: Bearer <token> header
+ * - Backend must validate the JWT using Supabase's JWT secret
+ * - Backend must accept Supabase's JWT algorithm (typically HS256)
  */
 
 // API_BASE_URL can be public (just the domain)
