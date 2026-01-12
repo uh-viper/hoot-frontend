@@ -137,29 +137,41 @@ export default function CreationForm() {
           const err = result.error || '';
           if (err.toLowerCase().includes('not found')) {
             addMessage('info', 'Previous deployment no longer exists. Resetting...');
-            setIsPolling(false);
-            setActive(false);
-            setCurrentJobId(null);
-            if (typeof window !== 'undefined') {
-              localStorage.removeItem('hoot_current_job_id');
-              localStorage.removeItem('hoot_is_polling');
-            }
+          } else {
+            addMessage('info', 'Error verifying previous deployment. Resetting...');
+          }
+          setIsPolling(false);
+          setActive(false);
+          setCurrentJobId(null);
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('hoot_current_job_id');
+            localStorage.removeItem('hoot_is_polling');
           }
         }
       } catch (error) {
-        // If verification fails (auth error, etc), clear state to be safe
-        console.error('Failed to verify restored job state:', error);
+        // If verification fails (auth error, network error, etc), clear state to be safe
+        // This includes 401 errors where token expired
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+        console.error('Failed to verify restored job state:', errorMsg);
+        
+        // Always clear state on any error (including auth errors)
+        // Since we can't verify, assume job is done to prevent infinite polling
         setIsPolling(false);
         setActive(false);
         setCurrentJobId(null);
         if (typeof window !== 'undefined') {
-          localStorage.removeItem('hoot_current_job_id');
-          localStorage.removeItem('hoot_is_polling');
+          try {
+            localStorage.removeItem('hoot_current_job_id');
+            localStorage.removeItem('hoot_is_polling');
+          } catch (e) {
+            console.error('Failed to clear job state:', e);
+          }
         }
       }
     };
 
     verifyRestoredState();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run once on mount
 
   // Check credits when form values change
