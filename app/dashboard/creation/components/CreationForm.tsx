@@ -262,10 +262,40 @@ export default function CreationForm() {
 
         const status = result.status;
 
-        // Log any failures from the API (only new ones)
+        // Helper function to get error description from code
+        const getErrorDescription = (code: string): string => {
+          const errorDescriptions: Record<string, string> = {
+            'E001': 'Invalid credentials or authentication failed',
+            'E002': 'Account already exists',
+            'E003': 'Rate limit exceeded',
+            'E004': 'Network/connection error',
+            'E005': 'Captcha/verification challenge',
+            'E006': 'Invalid email format',
+            'E007': 'Invalid password format',
+            'E008': 'Business verification failed',
+            'E009': 'Payment method required',
+            'E010': 'Account blocked',
+            'E011': 'Account needs stabilization',
+            'E012': 'Error detected on self-serve',
+            'E013': 'Failed to save account',
+            'E014': 'Timeout',
+            'E015': 'No credentials found',
+            'E016': 'No accounts file',
+            'E099': 'Unknown error'
+          };
+          return errorDescriptions[code] || 'Unknown error';
+        };
+
+        // Log any failures from the API with error codes
         if (status.failures && status.failures.length > 0) {
           status.failures.forEach((failure) => {
-            addMessage('error', `Failed to create account ${failure.email}: ${failure.error || failure.code || 'Unknown error'}`);
+            const errorCode = failure.code || 'E099';
+            const errorDesc = getErrorDescription(errorCode);
+            // Only show email if it's not "unknown" - sanitize to avoid exposing sensitive info
+            const displayEmail = failure.email && failure.email !== 'unknown' 
+              ? failure.email 
+              : 'Account';
+            addMessage('error', `Account Failed - ${displayEmail} | Error Code: ${errorCode} (${errorDesc})`);
           });
         }
 
@@ -279,17 +309,18 @@ export default function CreationForm() {
           
           // Check if all accounts were created
           if (status.total_created < status.total_requested) {
-            const failedCount = status.total_requested - status.total_created;
-            addMessage('warning', `Job completed but only created ${status.total_created}/${status.total_requested} accounts. ${failedCount} account(s) failed.`);
+            const failedCount = status.total_failed || (status.total_requested - status.total_created);
+            addMessage('warning', `Job completed: ${status.total_created}/${status.total_requested} accounts created. ${failedCount} account(s) failed.`);
             
             if (status.error) {
-              addMessage('error', `Backend error: ${status.error}`);
+              // Only log generic backend errors, not sensitive details
+              addMessage('error', `Backend error occurred. Check failure details above.`);
             }
             
             if (status.failures && status.failures.length > 0) {
-              addMessage('info', `See errors above for details on ${status.failures.length} failed account(s).`);
-            } else {
-              addMessage('warning', 'No failure details provided by backend. Check backend logs.');
+              addMessage('info', `Review ${status.failures.length} failure(s) listed above with error codes.`);
+            } else if (failedCount > 0) {
+              addMessage('warning', `${failedCount} account(s) failed but no detailed error information available.`);
             }
           } else {
             addMessage('success', `Completed! Created ${status.total_created}/${status.total_requested} accounts.`);

@@ -48,8 +48,7 @@ export interface JobStatus {
   }>;
   failures?: Array<{
     email: string;
-    error: string;
-    code?: string;
+    code: string;
   }>;
   error?: string;
 }
