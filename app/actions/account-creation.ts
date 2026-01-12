@@ -270,33 +270,39 @@ export async function saveAccounts(
     return { success: false, error: 'Not authenticated' }
   }
 
-  if (!accounts || accounts.length === 0) {
-    return { success: false, error: 'No accounts to save' }
+  // Allow saving even if no accounts (to update failures count)
+  // But require accounts array to be provided (can be empty)
+  if (!accounts) {
+    return { success: false, error: 'Invalid accounts data' }
   }
 
   try {
-    // Insert accounts
-    const accountsToInsert = accounts.map((account) => ({
-      user_id: user.id,
-      job_id: jobId,
-      email: account.email,
-      password: account.password,
-      region,
-      currency,
-    }))
+    // Insert accounts (if any)
+    let savedCount = 0
+    if (accounts.length > 0) {
+      const accountsToInsert = accounts.map((account) => ({
+        user_id: user.id,
+        job_id: jobId,
+        email: account.email,
+        password: account.password,
+        region,
+        currency,
+      }))
 
-    const { data, error } = await supabase
-      .from('user_accounts')
-      .insert(accountsToInsert)
-      .select()
+      const { data, error } = await supabase
+        .from('user_accounts')
+        .insert(accountsToInsert)
+        .select()
 
-    if (error) {
-      console.error('Failed to save accounts:', error)
-      return { success: false, error: error.message }
+      if (error) {
+        console.error('Failed to save accounts:', error)
+        return { success: false, error: error.message }
+      }
+
+      savedCount = data?.length ?? 0
     }
 
     // Update user stats (including failures)
-    const savedCount = data?.length ?? 0
     const { data: statsData } = await supabase
       .from('user_stats')
       .select('business_centers, successful, failures')
