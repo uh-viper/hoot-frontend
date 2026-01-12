@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useToast } from '../../../contexts/ToastContext';
 import { useConsole } from '../contexts/ConsoleContext';
-import { checkCredits, createJob, fetchJobStatus, saveAccounts } from '../../../actions/account-creation';
+import { checkCredits, createJob, fetchJobStatus, saveAccounts, updateUserStatsIncremental } from '../../../actions/account-creation';
 import { useTransition } from 'react';
 
 interface Country {
@@ -282,6 +282,12 @@ export default function CreationForm() {
           for (let i = 0; i < newAccountCount; i++) {
             addMessage('success', 'Account Created');
           }
+          
+          // Update stats in real-time: +1 successful for each new account
+          if (newAccountCount > 0) {
+            await updateUserStatsIncremental(newAccountCount, 0);
+          }
+          
           lastProgress.accountCount = currentAccountCount;
         }
 
@@ -295,6 +301,12 @@ export default function CreationForm() {
             const errorCode = failure.code || 'E099';
             addMessage('error', `Account Failed - Error Code: ${errorCode}`);
           });
+          
+          // Update stats in real-time: +1 failure for each new failure
+          if (newFailureCount > 0) {
+            await updateUserStatsIncremental(0, newFailureCount);
+          }
+          
           lastProgress.failureCount = currentFailureCount;
         }
 

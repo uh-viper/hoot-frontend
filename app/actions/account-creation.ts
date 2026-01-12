@@ -254,6 +254,60 @@ export async function fetchJobStatus(jobId: string): Promise<{ success: boolean;
 }
 
 /**
+ * Update user stats incrementally (for real-time updates)
+ */
+export async function updateUserStatsIncremental(
+  accountsCreated: number = 0,
+  failures: number = 0
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, error: 'Not authenticated' }
+  }
+
+  try {
+    const { data: statsData } = await supabase
+      .from('user_stats')
+      .select('business_centers, successful, failures')
+      .eq('user_id', user.id)
+      .single()
+
+    if (statsData) {
+      await supabase
+        .from('user_stats')
+        .update({
+          business_centers: (statsData.business_centers ?? 0) + accountsCreated,
+          successful: (statsData.successful ?? 0) + accountsCreated,
+          failures: (statsData.failures ?? 0) + failures,
+        })
+        .eq('user_id', user.id)
+    } else {
+      // Stats don't exist - create them
+      await supabase
+        .from('user_stats')
+        .insert({
+          user_id: user.id,
+          business_centers: accountsCreated,
+          successful: accountsCreated,
+          failures: failures,
+          requested: 0,
+        })
+    }
+
+    revalidatePath('/dashboard')
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to update user stats:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to update stats',
+    }
+  }
+}
+
+/**
  * Save accounts to database after job completion
  */
 export async function saveAccounts(
