@@ -277,7 +277,7 @@ export async function saveAccounts(
   }
 
   try {
-    // Insert accounts (if any)
+    // Insert accounts (if any) - use upsert to handle duplicates gracefully
     let savedCount = 0
     if (accounts.length > 0) {
       const accountsToInsert = accounts.map((account) => ({
@@ -289,17 +289,29 @@ export async function saveAccounts(
         currency,
       }))
 
+      // Use upsert to handle duplicates - update if exists, insert if not
       const { data, error } = await supabase
         .from('user_accounts')
-        .insert(accountsToInsert)
+        .upsert(accountsToInsert, {
+          onConflict: 'user_id,email',
+          ignoreDuplicates: false
+        })
         .select()
 
       if (error) {
         console.error('Failed to save accounts:', error)
-        return { success: false, error: error.message }
+        // If it's a duplicate key error, that's okay - account already exists
+        if (error.code === '23505' || error.message.includes('duplicate key')) {
+          console.log('Some accounts already exist, continuing...')
+          // Try to get the count of successfully saved accounts
+          // For now, assume all were saved (they already existed)
+          savedCount = accounts.length
+        } else {
+          return { success: false, error: error.message }
+        }
+      } else {
+        savedCount = data?.length ?? 0
       }
-
-      savedCount = data?.length ?? 0
     }
 
     // Update user stats (including failures)

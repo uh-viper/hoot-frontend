@@ -262,6 +262,22 @@ export default function CreationForm() {
 
         const status = result.status;
 
+        // Log progress only when it actually changes
+        if (status.total_created !== lastProgress.created || status.total_requested !== lastProgress.requested) {
+          // Log new accounts created
+          if (status.total_created > lastProgress.created) {
+            const newAccounts = status.total_created - lastProgress.created;
+            for (let i = 0; i < newAccounts; i++) {
+              addMessage('success', 'Account Created');
+            }
+          }
+          
+          // Update last progress
+          lastProgress.created = status.total_created;
+          lastProgress.requested = status.total_requested;
+          lastProgress.lastLogTime = Date.now();
+        }
+
         // Log any failures from the API with error codes
         // Format: "Account Failed - Error Code: E001"
         // Don't expose email addresses or other sensitive information
@@ -328,13 +344,8 @@ export default function CreationForm() {
           return;
         }
 
-        // Job running/pending - log progress and schedule next poll
-        const now = Date.now();
-        if (now - lastLogTime > 10000) { // Log at most every 10 seconds
-          addMessage('info', `Progress: ${status.total_created}/${status.total_requested} accounts...`);
-          lastLogTime = now;
-        }
-        
+        // Job running/pending - schedule next poll
+        // Progress is logged above when it changes, no need to log here
         scheduleNextPoll();
         
       } catch (error) {
