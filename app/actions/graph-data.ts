@@ -38,8 +38,14 @@ export async function getBusinessCentersGraphData(
     let groupBy: 'hour' | 'day' = 'hour'
 
     if (period === 'custom' && startDate && endDate) {
+      // Set start to beginning of start date (UTC)
       start = new Date(startDate)
+      start.setUTCHours(0, 0, 0, 0)
+      
+      // Set end to end of end date (UTC)
       end = new Date(endDate)
+      end.setUTCHours(23, 59, 59, 999)
+      
       // If custom range is more than 1 day, use daily grouping
       const daysDiff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
       groupBy = daysDiff > 1 ? 'day' : 'hour'
