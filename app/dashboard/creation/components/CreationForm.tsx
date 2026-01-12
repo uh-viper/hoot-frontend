@@ -108,6 +108,60 @@ export default function CreationForm() {
   const countryDropdownRef = useRef<HTMLDivElement>(null);
   const currencyDropdownRef = useRef<HTMLDivElement>(null);
 
+  // Verify restored job state on mount - clear if job is completed/failed
+  useEffect(() => {
+    const verifyRestoredState = async () => {
+      if (!currentJobId || !isPolling) return;
+      
+      // Check if this was restored from localStorage
+      const storedJobId = typeof window !== 'undefined' ? localStorage.getItem('hoot_current_job_id') : null;
+      if (storedJobId !== currentJobId) return; // Not restored, skip verification
+      
+      try {
+        const result = await fetchJobStatus(currentJobId);
+        if (result.success && result.status) {
+          const status = result.status;
+          // If job is completed/failed, clear state
+          if (status.status === 'completed' || status.status === 'failed') {
+            addMessage('info', 'Previous deployment has finished. Resetting...');
+            setIsPolling(false);
+            setActive(false);
+            setCurrentJobId(null);
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('hoot_current_job_id');
+              localStorage.removeItem('hoot_is_polling');
+            }
+          }
+        } else {
+          // Job not found or error - clear state
+          const err = result.error || '';
+          if (err.toLowerCase().includes('not found')) {
+            addMessage('info', 'Previous deployment no longer exists. Resetting...');
+            setIsPolling(false);
+            setActive(false);
+            setCurrentJobId(null);
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('hoot_current_job_id');
+              localStorage.removeItem('hoot_is_polling');
+            }
+          }
+        }
+      } catch (error) {
+        // If verification fails (auth error, etc), clear state to be safe
+        console.error('Failed to verify restored job state:', error);
+        setIsPolling(false);
+        setActive(false);
+        setCurrentJobId(null);
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('hoot_current_job_id');
+          localStorage.removeItem('hoot_is_polling');
+        }
+      }
+    };
+
+    verifyRestoredState();
+  }, []); // Run once on mount
+
   // Check credits when form values change
   useEffect(() => {
     if (bcsAmount >= 5 && bcsAmount <= 25) {
