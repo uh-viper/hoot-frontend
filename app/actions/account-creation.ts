@@ -141,11 +141,11 @@ export async function createJob(
         
         // Verify it's a Supabase token (should use HS256)
         if (header.alg && header.alg !== 'HS256') {
-          console.error(`[createJob] WARNING: Token uses ${header.alg}, but Supabase uses HS256. This might not be a Supabase Auth token!`);
-          console.error('[createJob] Token header:', JSON.stringify(header, null, 2));
+          console.error(`[createJob] Token uses ${header.alg}, but backend expects HS256`);
+          console.error('[createJob] Your Supabase project JWT algorithm setting needs to be changed');
           return { 
             success: false, 
-            error: `Invalid token algorithm. Expected HS256 (Supabase), but got ${header.alg}. Please log in again.` 
+            error: `JWT Algorithm Mismatch: Your Supabase project uses ${header.alg}, but the backend expects HS256. Please go to Supabase Dashboard > Authentication > Settings > JWT Algorithm and change it to HS256.` 
           };
         }
         
