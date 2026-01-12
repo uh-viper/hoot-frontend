@@ -79,14 +79,50 @@ export default function AccountCard({ id, email, password, region, currency }: A
 
             <div className="account-fetch-section">
               <label className="account-label">Actions</label>
-              <div className="account-value-group">
+              <div className="account-actions-group">
                 <button
                   type="button"
-                  className="fetch-code-btn"
+                  className="action-btn"
                   onClick={handleFetchCode}
                   aria-label="Fetch Code"
                 >
                   <span className="material-icons">mail</span>
+                </button>
+                <button
+                  type="button"
+                  className="action-btn coming-soon"
+                  disabled
+                  aria-label="Coming Soon"
+                  title="Coming Soon"
+                >
+                  <span className="material-icons">schedule</span>
+                </button>
+                <button
+                  type="button"
+                  className="action-btn coming-soon"
+                  disabled
+                  aria-label="Coming Soon"
+                  title="Coming Soon"
+                >
+                  <span className="material-icons">schedule</span>
+                </button>
+                <button
+                  type="button"
+                  className="action-btn coming-soon"
+                  disabled
+                  aria-label="Coming Soon"
+                  title="Coming Soon"
+                >
+                  <span className="material-icons">schedule</span>
+                </button>
+                <button
+                  type="button"
+                  className="action-btn coming-soon"
+                  disabled
+                  aria-label="Coming Soon"
+                  title="Coming Soon"
+                >
+                  <span className="material-icons">schedule</span>
                 </button>
               </div>
             </div>
