@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { getBusinessCentersGraphData, type GraphDataPoint } from '../../actions/graph-data';
+import CalendarModal from './CalendarModal';
 
 type TimePeriod = 'today' | 'yesterday' | 'week' | 'month' | 'custom';
 
@@ -10,9 +11,9 @@ export default function GraphSection() {
   const [graphData, setGraphData] = useState<GraphDataPoint[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [customStartDate, setCustomStartDate] = useState<string>('');
-  const [customEndDate, setCustomEndDate] = useState<string>('');
-  const [showCustomPicker, setShowCustomPicker] = useState(false);
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
+  const [customStartDate, setCustomStartDate] = useState<Date | undefined>(undefined);
+  const [customEndDate, setCustomEndDate] = useState<Date | undefined>(undefined);
   const [hoveredPoint, setHoveredPoint] = useState<{ x: number; y: number; data: GraphDataPoint } | null>(null);
   const [crosshairX, setCrosshairX] = useState<number | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -40,7 +41,7 @@ export default function GraphSection() {
 
   useEffect(() => {
     if (activePeriod === 'custom' && customStartDate && customEndDate) {
-      fetchGraphData('custom', new Date(customStartDate), new Date(customEndDate));
+      fetchGraphData('custom', customStartDate, customEndDate);
     } else if (activePeriod !== 'custom') {
       fetchGraphData(activePeriod);
     }
@@ -49,22 +50,17 @@ export default function GraphSection() {
   const handlePeriodChange = (period: TimePeriod) => {
     setActivePeriod(period);
     if (period === 'custom') {
-      setShowCustomPicker(true);
+      setShowCalendarModal(true);
     } else {
-      setShowCustomPicker(false);
+      setShowCalendarModal(false);
       fetchGraphData(period);
     }
   };
 
-  const handleCustomDateSubmit = () => {
-    if (customStartDate && customEndDate) {
-      const start = new Date(customStartDate);
-      const end = new Date(customEndDate);
-      if (start <= end) {
-        fetchGraphData('custom', start, end);
-        setShowCustomPicker(false);
-      }
-    }
+  const handleCalendarSelect = (startDate: Date, endDate: Date) => {
+    setCustomStartDate(startDate);
+    setCustomEndDate(endDate);
+    fetchGraphData('custom', startDate, endDate);
   };
 
   // Calculate graph dimensions and draw smooth line
@@ -437,46 +433,13 @@ export default function GraphSection() {
         </div>
       </div>
 
-      {showCustomPicker && (
-        <div className="custom-date-picker">
-          <div className="date-picker-group">
-            <label>Start Date</label>
-            <input
-              type="date"
-              value={customStartDate}
-              onChange={(e) => setCustomStartDate(e.target.value)}
-              max={customEndDate || new Date().toISOString().split('T')[0]}
-            />
-          </div>
-          <div className="date-picker-group">
-            <label>End Date</label>
-            <input
-              type="date"
-              value={customEndDate}
-              onChange={(e) => setCustomEndDate(e.target.value)}
-              min={customStartDate}
-              max={new Date().toISOString().split('T')[0]}
-            />
-          </div>
-          <button
-            className="apply-date-btn"
-            onClick={handleCustomDateSubmit}
-            disabled={!customStartDate || !customEndDate}
-          >
-            Apply
-          </button>
-          <button
-            className="cancel-date-btn"
-            onClick={() => {
-              setShowCustomPicker(false);
-              setCustomStartDate('');
-              setCustomEndDate('');
-            }}
-          >
-            Cancel
-          </button>
-        </div>
-      )}
+      <CalendarModal
+        isOpen={showCalendarModal}
+        onClose={() => setShowCalendarModal(false)}
+        onSelect={handleCalendarSelect}
+        initialStartDate={customStartDate}
+        initialEndDate={customEndDate}
+      />
 
       <div className="graph-container" ref={containerRef}>
         {isLoading ? (
