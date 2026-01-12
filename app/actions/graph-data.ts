@@ -60,8 +60,9 @@ export async function getBusinessCentersGraphData(
       start.setUTCHours(0, 0, 0, 0)
       groupBy = 'day'
     } else if (period === 'month') {
+      // Month-to-date: from 1st of current month to today
       start = new Date(now)
-      start.setUTCMonth(start.getUTCMonth() - 1)
+      start.setUTCDate(1) // First day of current month
       start.setUTCHours(0, 0, 0, 0)
       groupBy = 'day'
     } else {
@@ -132,10 +133,12 @@ export async function getBusinessCentersGraphData(
       let label: string
       
       if (groupBy === 'hour') {
-        // Format as "15:00" (24-hour military time) using UTC
-        const hours = date.getUTCHours().toString().padStart(2, '0')
+        // Format as "3:00 PM" (12-hour format) using UTC
+        const hours = date.getUTCHours()
         const minutes = date.getUTCMinutes().toString().padStart(2, '0')
-        label = `${hours}:${minutes}`
+        const ampm = hours >= 12 ? 'PM' : 'AM'
+        const displayHours = hours % 12 || 12
+        label = `${displayHours}:${minutes} ${ampm}`
       } else {
         // Format as "Mon, Jan 15" using UTC
         const dayName = date.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' })

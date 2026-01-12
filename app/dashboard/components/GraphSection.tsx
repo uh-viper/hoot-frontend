@@ -94,12 +94,15 @@ export default function GraphSection() {
     const maxCount = Math.max(...graphData.map(d => d.count), 1);
     const yScale = graphHeight / maxCount;
 
-    // Calculate points
+    // Calculate points (ensure Y never goes below baseline)
     const points: Array<{ x: number; y: number }> = [];
+    const baselineY = padding.top + graphHeight; // Bottom of graph (Y = 0)
 
     graphData.forEach((point, index) => {
       const x = padding.left + (index / (graphData.length - 1 || 1)) * graphWidth;
-      const y = padding.top + graphHeight - (point.count * yScale);
+      // Calculate Y position, ensuring it never goes below baseline
+      const calculatedY = padding.top + graphHeight - (point.count * yScale);
+      const y = Math.max(calculatedY, baselineY); // Clamp to baseline or above
       points.push({ x, y });
     });
 
@@ -158,9 +161,13 @@ export default function GraphSection() {
     defs.appendChild(gradient);
     svg.appendChild(defs);
 
-    // Draw area under curve
+    // Draw area under curve (ensure it doesn't go below baseline)
     if (path && points.length > 1) {
-      const areaPath = path + ` L ${points[points.length - 1].x} ${padding.top + graphHeight} L ${points[0].x} ${padding.top + graphHeight} Z`;
+      const baselineY = padding.top + graphHeight;
+      // Ensure all points in the area path are at or above baseline
+      let areaPath = path;
+      // Close the area by going to baseline
+      areaPath += ` L ${points[points.length - 1].x} ${baselineY} L ${points[0].x} ${baselineY} Z`;
       const area = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       area.setAttribute('d', areaPath);
       area.setAttribute('fill', 'url(#lineGradient)');
