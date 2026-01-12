@@ -78,17 +78,23 @@ export async function createJob(
 
   try {
     // Get JWT token from Supabase session
-    // Try getSession first, if that fails try refreshing the session
+    // In server actions, we need to ensure the session is fresh
     let session = (await supabase.auth.getSession()).data.session
     
     // If no session, try refreshing
-    if (!session) {
-      const { data: { session: refreshedSession } } = await supabase.auth.refreshSession()
+    if (!session?.access_token) {
+      const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession()
+      
+      if (refreshError) {
+        console.error('[createJob] Session refresh error:', refreshError)
+        return { success: false, error: 'Authentication error. Please log in again.' }
+      }
+      
       session = refreshedSession
     }
     
     if (!session?.access_token) {
-      console.error('[createJob] No session or access token available')
+      console.error('[createJob] No valid session or access token available')
       return { success: false, error: 'Authentication required. Please log in again.' }
     }
 
