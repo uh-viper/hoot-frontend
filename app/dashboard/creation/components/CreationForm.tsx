@@ -188,7 +188,11 @@ export default function CreationForm() {
     const POLL_INTERVAL = 10000; // 10 seconds
     const MAX_POLL_TIME = 10 * 60 * 1000; // 10 minutes max
     const startTime = Date.now();
-    let lastLogTime = 0;
+    let lastProgress: { created: number; requested: number; lastLogTime?: number } = { 
+      created: 0, 
+      requested: 0,
+      lastLogTime: Date.now()
+    };
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
     let isCancelled = false;
 
