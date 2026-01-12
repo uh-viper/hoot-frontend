@@ -14,6 +14,7 @@ export default function GraphSection() {
   const [customEndDate, setCustomEndDate] = useState<string>('');
   const [showCustomPicker, setShowCustomPicker] = useState(false);
   const [hoveredPoint, setHoveredPoint] = useState<{ x: number; y: number; data: GraphDataPoint } | null>(null);
+  const [crosshairX, setCrosshairX] = useState<number | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -245,44 +246,78 @@ export default function GraphSection() {
       }
     });
 
-    // Add invisible hover areas for each point
-    points.forEach((point, index) => {
-      const hoverArea = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      hoverArea.setAttribute('cx', point.x.toString());
-      hoverArea.setAttribute('cy', point.y.toString());
-      hoverArea.setAttribute('r', '20');
-      hoverArea.setAttribute('fill', 'transparent');
-      hoverArea.setAttribute('cursor', 'pointer');
-      hoverArea.style.pointerEvents = 'all';
+    // Add invisible hover area for the entire graph
+    const hoverArea = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    hoverArea.setAttribute('x', padding.left.toString());
+    hoverArea.setAttribute('y', padding.top.toString());
+    hoverArea.setAttribute('width', graphWidth.toString());
+    hoverArea.setAttribute('height', graphHeight.toString());
+    hoverArea.setAttribute('fill', 'transparent');
+    hoverArea.setAttribute('cursor', 'crosshair');
+    hoverArea.style.pointerEvents = 'all';
+    
+    hoverArea.addEventListener('mousemove', (e) => {
+      const rect = svg.getBoundingClientRect();
+      const svgX = e.clientX - rect.left;
       
-      hoverArea.addEventListener('mouseenter', () => {
-        const rect = containerRef.current?.getBoundingClientRect();
-        if (rect) {
-          // Calculate actual x position based on container
-          const actualX = (point.x / width) * rect.width;
-          setHoveredPoint({
-            x: rect.left + actualX,
-            y: rect.top + point.y - 40,
-            data: graphData[index]
-          });
+      // Find the closest data point
+      let closestIndex = 0;
+      let minDistance = Math.abs(points[0].x - svgX);
+      
+      points.forEach((point, index) => {
+        const distance = Math.abs(point.x - svgX);
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestIndex = index;
         }
       });
       
-      hoverArea.addEventListener('mouseleave', () => {
-        setHoveredPoint(null);
-      });
+      const closestPoint = points[closestIndex];
+      const containerRect = containerRef.current?.getBoundingClientRect();
       
-      svg.appendChild(hoverArea);
+      if (containerRect) {
+        const actualX = (closestPoint.x / width) * containerRect.width;
+        setCrosshairX(closestPoint.x);
+        setHoveredPoint({
+          x: containerRect.left + actualX,
+          y: containerRect.top + closestPoint.y - 40,
+          data: graphData[closestIndex]
+        });
+      }
     });
+    
+    hoverArea.addEventListener('mouseleave', () => {
+      setHoveredPoint(null);
+      setCrosshairX(null);
+    });
+    
+    svg.appendChild(hoverArea);
+    
+    // Draw crosshair line if hovering
+    if (crosshairX !== null) {
+      const crosshair = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      crosshair.setAttribute('x1', crosshairX.toString());
+      crosshair.setAttribute('y1', padding.top.toString());
+      crosshair.setAttribute('x2', crosshairX.toString());
+      crosshair.setAttribute('y2', (padding.top + graphHeight).toString());
+      crosshair.setAttribute('stroke', 'rgba(212, 175, 55, 0.5)');
+      crosshair.setAttribute('stroke-width', '1');
+      crosshair.setAttribute('stroke-dasharray', '4,4');
+      crosshair.setAttribute('pointer-events', 'none');
+      crosshair.style.zIndex = '10';
+      svg.appendChild(crosshair);
+    }
   };
 
   useEffect(() => {
     if (graphData.length > 0) {
       // Small delay to ensure SVG is rendered
-      const timer = setTimeout(drawGraph, 100);
+      const timer = setTimeout(() => {
+        drawGraph();
+      }, 100);
       return () => clearTimeout(timer);
     }
-  }, [graphData]);
+  }, [graphData, crosshairX]);
 
   // Handle window resize
   useEffect(() => {
