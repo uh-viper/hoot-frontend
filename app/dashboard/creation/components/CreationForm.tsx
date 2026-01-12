@@ -287,7 +287,7 @@ export default function CreationForm() {
 
         // Track failures array to detect new failures in real-time
         const currentFailureCount = status.failures?.length || 0;
-        if (currentFailureCount > lastProgress.failureCount) {
+        if (currentFailureCount > lastProgress.failureCount && status.failures) {
           // New failures were added - show error messages for each new one
           const newFailureCount = currentFailureCount - lastProgress.failureCount;
           const failuresToShow = status.failures.slice(lastProgress.failureCount);
