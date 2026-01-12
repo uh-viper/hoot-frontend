@@ -188,9 +188,17 @@ export default function CreationForm() {
     const POLL_INTERVAL = 10000; // 10 seconds
     const MAX_POLL_TIME = 10 * 60 * 1000; // 10 minutes max
     const startTime = Date.now();
-    let lastProgress: { created: number; requested: number; lastLogTime?: number } = { 
+    let lastProgress: { 
+      created: number; 
+      requested: number; 
+      accountCount: number;
+      failureCount: number;
+      lastLogTime?: number;
+    } = { 
       created: 0, 
       requested: 0,
+      accountCount: 0,
+      failureCount: 0,
       lastLogTime: Date.now()
     };
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -266,30 +274,34 @@ export default function CreationForm() {
 
         const status = result.status;
 
-        // Log progress only when it actually changes
-        if (status.total_created !== lastProgress.created || status.total_requested !== lastProgress.requested) {
-          // Log new accounts created
-          if (status.total_created > lastProgress.created) {
-            const newAccounts = status.total_created - lastProgress.created;
-            for (let i = 0; i < newAccounts; i++) {
-              addMessage('success', 'Account Created');
-            }
+        // Track accounts array to detect new accounts in real-time
+        const currentAccountCount = status.accounts?.length || 0;
+        if (currentAccountCount > lastProgress.accountCount) {
+          // New accounts were added - show "Account Created" for each new one
+          const newAccountCount = currentAccountCount - lastProgress.accountCount;
+          for (let i = 0; i < newAccountCount; i++) {
+            addMessage('success', 'Account Created');
           }
-          
-          // Update last progress
-          lastProgress.created = status.total_created;
-          lastProgress.requested = status.total_requested;
-          lastProgress.lastLogTime = Date.now();
+          lastProgress.accountCount = currentAccountCount;
         }
 
-        // Log any failures from the API with error codes
-        // Format: "Account Failed - Error Code: E001"
-        // Don't expose email addresses or other sensitive information
-        if (status.failures && status.failures.length > 0) {
-          status.failures.forEach((failure) => {
+        // Track failures array to detect new failures in real-time
+        const currentFailureCount = status.failures?.length || 0;
+        if (currentFailureCount > lastProgress.failureCount) {
+          // New failures were added - show error messages for each new one
+          const newFailureCount = currentFailureCount - lastProgress.failureCount;
+          const failuresToShow = status.failures.slice(lastProgress.failureCount);
+          failuresToShow.forEach((failure) => {
             const errorCode = failure.code || 'E099';
             addMessage('error', `Account Failed - Error Code: ${errorCode}`);
           });
+          lastProgress.failureCount = currentFailureCount;
+        }
+
+        // Update progress counts (for real-time progress display)
+        if (status.total_created !== lastProgress.created || status.total_requested !== lastProgress.requested) {
+          lastProgress.created = status.total_created;
+          lastProgress.requested = status.total_requested;
         }
 
         // Job completed
@@ -349,9 +361,16 @@ export default function CreationForm() {
         }
 
         // Job running/pending - show heartbeat message every 10 seconds
+        // Also show real-time progress if available
         const now = Date.now();
         if (now - (lastProgress.lastLogTime || 0) >= 10000) {
-          addMessage('info', 'Creating your accounts...');
+          // Show progress if we have real-time updates
+          if (status.total_created > 0 || status.total_failed > 0) {
+            const totalProcessed = status.total_created + (status.total_failed || 0);
+            addMessage('info', `Creating your accounts... (${totalProcessed}/${status.total_requested})`);
+          } else {
+            addMessage('info', 'Creating your accounts...');
+          }
           lastProgress.lastLogTime = now;
         }
         
