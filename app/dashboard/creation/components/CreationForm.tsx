@@ -322,43 +322,25 @@ export default function CreationForm() {
           // Check if accounts array exists and has items
           if (status.accounts && status.accounts.length > 0) {
             // Accounts are available - save them
-            if (selectedCountry && selectedCurrency) {
-              addMessage('info', 'Saving to vault...');
-              const saveResult = await saveAccounts(
-                currentJobId,
-                status.accounts,
-                selectedCountry.code,
-                selectedCurrency,
-                failedCount
-              );
-              if (saveResult.success) {
-                addMessage('success', `Saved ${saveResult.savedCount} account(s)!`);
-                showSuccess(`Created and saved ${saveResult.savedCount} business center accounts!`);
-              } else {
-                addMessage('error', saveResult.error || 'Failed to save');
-                showError(saveResult.error || 'Failed to save');
-              }
+            // Use selectedCountry/selectedCurrency if available, otherwise use empty strings
+            // The backend already saved accounts, we're just updating our local database
+            const region = selectedCountry?.code || '';
+            const currency = selectedCurrency || '';
+            
+            addMessage('info', 'Saving to vault...');
+            const saveResult = await saveAccounts(
+              currentJobId,
+              status.accounts,
+              region,
+              currency,
+              failedCount
+            );
+            if (saveResult.success) {
+              addMessage('success', `Saved ${saveResult.savedCount} account(s)!`);
+              showSuccess(`Created and saved ${saveResult.savedCount} business center accounts!`);
             } else {
-              // selectedCountry or selectedCurrency is missing - still update stats
-              console.warn('Job completed but selectedCountry/selectedCurrency is missing', { selectedCountry, selectedCurrency });
-              addMessage('info', 'Accounts created successfully. Updating statistics...');
-              
-              // Update stats with failures even if we can't save accounts (missing country/currency)
-              if (failedCount > 0) {
-                await saveAccounts(
-                  currentJobId,
-                  [],
-                  '',
-                  '',
-                  failedCount
-                );
-              }
-              
-              // Accounts are already saved by backend, just update stats
-              // Note: We need to import createClient for this, but it's a server action
-              // So we'll handle stats update in saveAccounts function instead
-              // For now, just log that accounts were created
-              addMessage('success', `${status.total_created} account(s) created successfully!`);
+              addMessage('error', saveResult.error || 'Failed to save');
+              showError(saveResult.error || 'Failed to save');
             }
           } else if (status.total_created > 0) {
             // This should rarely happen - accounts array should always be returned
@@ -366,22 +348,23 @@ export default function CreationForm() {
             console.warn('Job completed with accounts but accounts array is empty or missing', {
               total_created: status.total_created,
               accounts_length: status.accounts?.length || 0,
-              status
+              has_accounts: !!status.accounts,
+              status_keys: Object.keys(status)
             });
             addMessage('info', 'Accounts were created and saved by backend. Updating statistics...');
             
             // Update stats even if accounts array is missing
-            // Stats will be updated via saveAccounts call below
+            // Call saveAccounts with empty array to update stats only
+            const saveResult = await saveAccounts(
+              currentJobId,
+              [],
+              selectedCountry?.code || '',
+              selectedCurrency || '',
+              failedCount
+            );
             
-            // Still update failure stats
-            if (failedCount > 0) {
-              await saveAccounts(
-                currentJobId,
-                [],
-                selectedCountry?.code || '',
-                selectedCurrency,
-                failedCount
-              );
+            if (saveResult.success) {
+              addMessage('success', `${status.total_created} account(s) created successfully!`);
             }
           } else {
             // No accounts created, but update failures count
@@ -390,7 +373,7 @@ export default function CreationForm() {
                 currentJobId,
                 [],
                 selectedCountry?.code || '',
-                selectedCurrency,
+                selectedCurrency || '',
                 failedCount
               );
             }

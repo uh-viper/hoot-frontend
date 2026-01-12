@@ -315,6 +315,10 @@ export async function saveAccounts(
     }
 
     // Update user stats (including failures)
+    // Calculate how many accounts were actually created (even if not saved to our DB)
+    // If accounts array was provided, use its length; otherwise use savedCount
+    const accountsCreated = accounts.length > 0 ? accounts.length : savedCount;
+    
     const { data: statsData } = await supabase
       .from('user_stats')
       .select('business_centers, successful, failures')
@@ -325,11 +329,26 @@ export async function saveAccounts(
       await supabase
         .from('user_stats')
         .update({
-          business_centers: (statsData.business_centers ?? 0) + savedCount,
-          successful: (statsData.successful ?? 0) + savedCount,
+          business_centers: (statsData.business_centers ?? 0) + accountsCreated,
+          successful: (statsData.successful ?? 0) + accountsCreated,
           failures: (statsData.failures ?? 0) + failedCount,
         })
         .eq('user_id', user.id)
+    } else {
+      // Stats don't exist - create them
+      const { error: createError } = await supabase
+        .from('user_stats')
+        .insert({
+          user_id: user.id,
+          business_centers: accountsCreated,
+          successful: accountsCreated,
+          failures: failedCount,
+          requested: 0, // Will be updated by createJob
+        })
+      
+      if (createError) {
+        console.error('Failed to create user stats:', createError)
+      }
     }
 
     revalidatePath('/dashboard')
