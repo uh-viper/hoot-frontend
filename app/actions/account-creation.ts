@@ -78,8 +78,17 @@ export async function createJob(
 
   try {
     // Get JWT token from Supabase session
-    const { data: { session } } = await supabase.auth.getSession()
+    // Try getSession first, if that fails try refreshing the session
+    let session = (await supabase.auth.getSession()).data.session
+    
+    // If no session, try refreshing
+    if (!session) {
+      const { data: { session: refreshedSession } } = await supabase.auth.refreshSession()
+      session = refreshedSession
+    }
+    
     if (!session?.access_token) {
+      console.error('[createJob] No session or access token available')
       return { success: false, error: 'Authentication required. Please log in again.' }
     }
 
@@ -150,7 +159,15 @@ export async function fetchJobStatus(jobId: string): Promise<{ success: boolean;
   
   try {
     // Get JWT token from Supabase session
-    const { data: { session } } = await supabase.auth.getSession()
+    // Try getSession first, if that fails try refreshing the session
+    let session = (await supabase.auth.getSession()).data.session
+    
+    // If no session, try refreshing
+    if (!session) {
+      const { data: { session: refreshedSession } } = await supabase.auth.refreshSession()
+      session = refreshedSession
+    }
+    
     if (!session?.access_token) {
       return {
         success: false,
