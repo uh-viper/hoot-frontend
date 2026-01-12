@@ -100,10 +100,9 @@ export default function GraphSection() {
 
     graphData.forEach((point, index) => {
       const x = padding.left + (index / (graphData.length - 1 || 1)) * graphWidth;
-      // Calculate Y position normally - only clamp if it would go below baseline
-      const calculatedY = padding.top + graphHeight - (point.count * yScale);
-      // Only clamp to baseline if calculated Y is below it (shouldn't happen with proper scaling, but safety check)
-      const y = calculatedY < baselineY ? baselineY : calculatedY;
+      // Calculate Y position - in SVG, smaller Y is higher on screen
+      // baselineY is at the bottom (Y=0), so points with count > 0 should be above it
+      const y = padding.top + graphHeight - (point.count * yScale);
       points.push({ x, y });
     });
 
