@@ -78,7 +78,9 @@ export async function createJob(
 
   try {
     // Get JWT token from Supabase session
+    // CRITICAL: Must use session.access_token from supabase.auth.getSession()
     // In server actions with SSR, getSession should work with cookies
+    console.log('[createJob] Getting Supabase session...')
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
     
     if (sessionError) {
@@ -91,7 +93,18 @@ export async function createJob(
       return { success: false, error: 'No active session. Please log in again.' }
     }
     
+    // CRITICAL: Use session.access_token - this is the Supabase Auth JWT token (HS256)
+    // Do NOT use any other token source
+    if (!session.access_token) {
+      console.error('[createJob] Session exists but has no access_token')
+      return { success: false, error: 'Invalid session. Please log in again.' }
+    }
+    
     let accessToken = session.access_token
+    
+    // Verify this is actually a Supabase token by checking session type
+    console.log('[createJob] Session token_type:', session.token_type || 'not specified')
+    console.log('[createJob] Session user ID:', session.user?.id || 'not in session')
     
     // If no token, try refreshing the session
     if (!accessToken) {
