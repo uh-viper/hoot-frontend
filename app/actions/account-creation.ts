@@ -78,7 +78,7 @@ export async function createJob(
 
   try {
     // Get JWT token from Supabase session
-    // In server actions with SSR, we need to get the session properly
+    // In server actions with SSR, getSession should work with cookies
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
     
     if (sessionError) {
@@ -86,11 +86,16 @@ export async function createJob(
       return { success: false, error: 'Authentication error. Please log in again.' }
     }
     
-    let accessToken = session?.access_token
+    if (!session) {
+      console.error('[createJob] No session returned from getSession()')
+      return { success: false, error: 'No active session. Please log in again.' }
+    }
+    
+    let accessToken = session.access_token
     
     // If no token, try refreshing the session
     if (!accessToken) {
-      console.log('[createJob] No session token, attempting to refresh...')
+      console.log('[createJob] No access token in session, attempting to refresh...')
       const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession()
       
       if (refreshError) {
@@ -98,13 +103,20 @@ export async function createJob(
         return { success: false, error: 'Authentication error. Please log in again.' }
       }
       
-      accessToken = refreshedSession?.access_token
+      if (!refreshedSession?.access_token) {
+        console.error('[createJob] Refreshed session has no access token')
+        return { success: false, error: 'Authentication required. Please log in again.' }
+      }
+      
+      accessToken = refreshedSession.access_token
     }
     
     if (!accessToken) {
-      console.error('[createJob] No valid access token available after refresh attempt')
+      console.error('[createJob] No valid access token available')
       return { success: false, error: 'Authentication required. Please log in again.' }
     }
+    
+    console.log('[createJob] Successfully retrieved access token')
 
     // Create job via backend API
     console.log('[createJob] Creating job with:', { accounts, region, currency })
