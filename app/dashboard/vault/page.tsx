@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Metadata } from 'next'
 import { initializeUserData } from '@/lib/api/user-initialization'
-import AccountCard from './components/AccountCard'
+import VaultClient from './components/VaultClient'
 import '../../styles/dashboard.css'
 import '../../styles/vault.css'
 
@@ -42,37 +42,7 @@ export default async function VaultPage() {
         <p className="dashboard-subtitle">Access and manage your accounts</p>
       </div>
 
-      <div className="vault-accounts-container">
-        <div className="vault-section-box">
-          <div className="vault-section-header">
-            <h2 className="vault-section-title">Accounts</h2>
-            {userAccounts.length > 0 && (
-              <span className="vault-account-count">{userAccounts.length} account{userAccounts.length !== 1 ? 's' : ''}</span>
-            )}
-          </div>
-          
-          {userAccounts.length === 0 ? (
-            <div className="vault-empty">
-              <span className="material-icons">account_circle</span>
-              <p>No accounts yet</p>
-              <span className="vault-empty-hint">Your business center accounts will appear here after deployment</span>
-            </div>
-          ) : (
-            <div className="vault-accounts-list">
-              {userAccounts.map((account) => (
-                <AccountCard
-                  key={account.id}
-                  id={account.id}
-                  email={account.email}
-                  password={account.password}
-                  region={account.region}
-                  currency={account.currency}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      <VaultClient accounts={userAccounts} />
     </div>
   )
 }
