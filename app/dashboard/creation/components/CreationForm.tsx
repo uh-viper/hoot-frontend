@@ -109,6 +109,7 @@ export default function CreationForm() {
   const currencyDropdownRef = useRef<HTMLDivElement>(null);
 
   // Verify restored job state on mount - clear if job is completed/failed
+  // This runs silently in the background - no console messages
   useEffect(() => {
     const verifyRestoredState = async () => {
       if (!currentJobId || !isPolling) return;
@@ -121,9 +122,8 @@ export default function CreationForm() {
         const result = await fetchJobStatus(currentJobId);
         if (result.success && result.status) {
           const status = result.status;
-          // If job is completed/failed, clear state
+          // If job is completed/failed, silently clear state
           if (status.status === 'completed' || status.status === 'failed') {
-            addMessage('info', 'Previous deployment has finished. Resetting...');
             setIsPolling(false);
             setActive(false);
             setCurrentJobId(null);
@@ -133,13 +133,7 @@ export default function CreationForm() {
             }
           }
         } else {
-          // Job not found or error - clear state
-          const err = result.error || '';
-          if (err.toLowerCase().includes('not found')) {
-            addMessage('info', 'Previous deployment no longer exists. Resetting...');
-          } else {
-            addMessage('info', 'Error verifying previous deployment. Resetting...');
-          }
+          // Job not found or error - silently clear state
           setIsPolling(false);
           setActive(false);
           setCurrentJobId(null);
@@ -149,12 +143,7 @@ export default function CreationForm() {
           }
         }
       } catch (error) {
-        // If verification fails (auth error, network error, etc), clear state to be safe
-        // This includes 401 errors where token expired
-        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-        console.error('Failed to verify restored job state:', errorMsg);
-        
-        // Always clear state on any error (including auth errors)
+        // If verification fails (auth error, network error, etc), silently clear state
         // Since we can't verify, assume job is done to prevent infinite polling
         setIsPolling(false);
         setActive(false);
@@ -164,7 +153,7 @@ export default function CreationForm() {
             localStorage.removeItem('hoot_current_job_id');
             localStorage.removeItem('hoot_is_polling');
           } catch (e) {
-            console.error('Failed to clear job state:', e);
+            // Silent - don't log background verification errors
           }
         }
       }
