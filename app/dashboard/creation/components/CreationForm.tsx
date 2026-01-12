@@ -572,7 +572,7 @@ export default function CreationForm() {
       addMessage('info', `Country: ${selectedCountry.name} (${selectedCountry.code})`);
       addMessage('info', `Currency: ${selectedCurrency}`);
       addMessage('info', `Business Centers: ${validBcsAmount}`);
-      addMessage('info', `Credits: ${creditsCheck.currentCredits} → ${creditsCheck.currentCredits - validBcsAmount} (deducting ${validBcsAmount})`);
+      addMessage('info', `Credits will be deducted when accounts are created (1 BC = 1 credit)`);
 
       try {
         // Create job via API
