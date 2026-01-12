@@ -363,7 +363,7 @@ export default function CreationForm() {
               const creditMsg = status.credits.new_balance !== undefined
                 ? `${status.credits.amount} credits deducted (New balance: ${status.credits.new_balance})`
                 : `${status.credits.amount} credits deducted`;
-              addMessage('success', `✓ ${creditMsg}`);
+              addMessage('success', creditMsg);
             } else {
               addMessage('warning', `⚠ Credit deduction failed: ${status.credits.error || 'Unknown error'}`);
               if (status.credits.amount_should_have_been_deducted) {
