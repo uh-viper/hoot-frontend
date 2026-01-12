@@ -26,10 +26,7 @@
 .vault-section-title {
   font-size: 2rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #ffffff 0%, rgba(212, 175, 55, 0.8) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #ffffff;
   margin: 0;
   font-family: var(--font-outfit);
   letter-spacing: -0.5px;
@@ -48,8 +45,8 @@
 
 .vault-accounts-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 1.25rem;
 }
 
 .vault-empty {
@@ -129,7 +126,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.25rem 1.5rem;
+  padding: 1rem 1.25rem;
   background: rgba(0, 0, 0, 0.2);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -164,26 +161,26 @@
 }
 
 .account-card-icon {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(212, 175, 55, 0.1) 100%);
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid rgba(212, 175, 55, 0.3);
 }
 
 .account-card-icon .material-icons {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   color: rgba(212, 175, 55, 0.9);
 }
 
 .account-card-body {
-  padding: 1.5rem;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1rem;
 }
 
 .account-credential-row {
@@ -224,11 +221,11 @@
   gap: 0.5rem;
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  padding: 0.625rem 0.875rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-sizing: border-box;
-  min-height: 48px;
+  min-height: 42px;
   height: auto;
 }
 
@@ -280,8 +277,8 @@
 .account-actions-section {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding-top: 1rem;
+  gap: 0.625rem;
+  padding-top: 0.875rem;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -299,13 +296,13 @@
   margin: 0;
   background: linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0.1) 100%);
   border: 1px solid rgba(212, 175, 55, 0.3);
-  border-radius: 10px;
+  border-radius: 8px;
   color: #d4af37;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  width: 48px;
-  height: 48px;
-  min-height: 48px;
+  width: 42px;
+  height: 42px;
+  min-height: 42px;
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
@@ -356,9 +353,9 @@
 }
 
 .action-btn .material-icons {
-  font-size: 1.3rem;
-  width: 1.3rem;
-  height: 1.3rem;
+  font-size: 1.15rem;
+  width: 1.15rem;
+  height: 1.15rem;
   display: flex;
   align-items: center;
   justify-content: center;
