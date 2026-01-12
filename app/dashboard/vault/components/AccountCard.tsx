@@ -46,47 +46,49 @@ export default function AccountCard({ id, email, password, region, currency }: A
         </div>
       )}
       
-      <div className="account-email-section">
-        <label className="account-label">Email</label>
-        <div className="account-value-group">
-          <span className="account-value">{email}</span>
-          <button
-            type="button"
-            className="account-copy-btn"
-            onClick={() => copyToClipboard(email, 'email')}
-            aria-label="Copy email"
-          >
-            <span className="material-icons">content_copy</span>
-          </button>
+      <div className="account-card-content">
+        <div className="account-email-section">
+          <label className="account-label">Email</label>
+          <div className="account-value-group">
+            <span className="account-value">{email}</span>
+            <button
+              type="button"
+              className="account-copy-btn"
+              onClick={() => copyToClipboard(email, 'email')}
+              aria-label="Copy email"
+            >
+              <span className="material-icons">content_copy</span>
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div className="account-password-section">
-        <label className="account-label">Password</label>
-        <div className="account-value-group">
-          <span className="account-value">{password}</span>
-          <button
-            type="button"
-            className="account-copy-btn"
-            onClick={() => copyToClipboard(password, 'password')}
-            aria-label="Copy password"
-          >
-            <span className="material-icons">content_copy</span>
-          </button>
+        <div className="account-password-section">
+          <label className="account-label">Password</label>
+          <div className="account-value-group">
+            <span className="account-value">{password}</span>
+            <button
+              type="button"
+              className="account-copy-btn"
+              onClick={() => copyToClipboard(password, 'password')}
+              aria-label="Copy password"
+            >
+              <span className="material-icons">content_copy</span>
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div className="account-fetch-section">
-        <label className="account-label">Actions</label>
-        <div className="account-value-group">
-          <button
-            type="button"
-            className="fetch-code-btn"
-            onClick={handleFetchCode}
-          >
-            <span className="material-icons">sync</span>
-            Fetch Code
-          </button>
+        <div className="account-fetch-section">
+          <label className="account-label">Actions</label>
+          <div className="account-value-group">
+            <button
+              type="button"
+              className="fetch-code-btn"
+              onClick={handleFetchCode}
+            >
+              <span className="material-icons">sync</span>
+              Fetch Code
+            </button>
+          </div>
         </div>
       </div>
     </div>
