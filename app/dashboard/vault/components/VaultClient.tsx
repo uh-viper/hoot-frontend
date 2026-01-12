@@ -17,12 +17,12 @@ interface VaultClientProps {
 }
 
 export default function VaultClient({ accounts }: VaultClientProps) {
-  const [displayCount, setDisplayCount] = useState(5);
+  const [displayCount, setDisplayCount] = useState(6);
   const accountsToShow = accounts.slice(0, displayCount);
   const hasMore = accounts.length > displayCount;
 
   const loadMore = () => {
-    setDisplayCount(prev => prev + 5);
+    setDisplayCount(prev => prev + 6);
   };
 
   return (
@@ -63,7 +63,7 @@ export default function VaultClient({ accounts }: VaultClientProps) {
                   className="load-more-btn"
                   onClick={loadMore}
                 >
-                  Load More ({accounts.length - displayCount} remaining)
+                  View More ({accounts.length - displayCount} remaining)
                 </button>
               </div>
             )}

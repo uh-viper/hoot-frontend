@@ -186,7 +186,7 @@
 .account-credential-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 0.875rem;
 }
 
 .account-credential-item {
@@ -222,11 +222,12 @@
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  padding: 0.625rem 0.875rem;
+  padding: 0.5rem 0.75rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-sizing: border-box;
-  min-height: 42px;
+  min-height: 38px;
   height: auto;
+  max-width: 100%;
 }
 
 .account-value-group:hover {
@@ -236,15 +237,17 @@
 
 .account-value {
   flex: 1;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.95);
   font-family: 'Courier New', monospace;
   word-break: break-all;
   min-width: 0;
-  line-height: 1.5;
+  line-height: 1.4;
   display: flex;
   align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .account-copy-btn {
