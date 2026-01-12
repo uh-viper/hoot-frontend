@@ -158,25 +158,10 @@ export async function createJob(
     console.log('[createJob] Successfully retrieved access token (JWT format verified)')
 
     // Create job via backend API
+    // NOTE: Credits are NOT deducted here - they will be deducted when accounts are actually saved
     console.log('[createJob] Creating job with:', { accounts, region, currency })
     const jobResponse = await createAccountsJob(accounts, region, currency, accessToken)
     console.log('[createJob] Job created successfully:', jobResponse)
-
-    // Deduct credits from user using RPC function
-    const { error: deductError } = await supabase.rpc('deduct_credits_from_user', {
-      p_user_id: user.id,
-      p_credits_to_deduct: accounts,
-    })
-
-    if (deductError) {
-      console.error('Failed to deduct credits:', deductError)
-      // Note: Job was created but credits weren't deducted
-      // In production, you might want to cancel the job or handle this differently
-      return {
-        success: false,
-        error: 'Job created but failed to deduct credits. Please contact support.',
-      }
-    }
 
     // Update user stats
     const { data: statsData } = await supabase
