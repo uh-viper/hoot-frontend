@@ -101,11 +101,30 @@ export default function CalendarModal({ isOpen, onClose, onSelect, initialStartD
 
   const renderCalendarDays = () => {
     const days = [];
-    const currentDate = new Date(startDate);
+    const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    const lastDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+    const startDate = new Date(firstDayOfMonth);
+    startDate.setDate(startDate.getDate() - startDate.getDay()); // Start from Sunday
+    
+    // Calculate how many days to show (full weeks)
+    const totalDays = lastDayOfMonth.getDate();
+    const firstDayWeekday = firstDayOfMonth.getDay();
+    const weeksToShow = Math.ceil((totalDays + firstDayWeekday) / 7);
+    const totalCells = weeksToShow * 7;
 
-    for (let i = 0; i < 42; i++) {
-      const date = new Date(currentDate);
+    for (let i = 0; i < totalCells; i++) {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
       const isCurrentMonth = date.getMonth() === currentMonth.getMonth();
+      
+      // Only render dates from the current month
+      if (!isCurrentMonth) {
+        days.push(
+          <div key={i} className="calendar-day-empty"></div>
+        );
+        continue;
+      }
+      
       const isToday = date.toDateString() === today.toDateString();
       const isSelected = isDateSelected(date);
       const inRange = isDateInRange(date);
@@ -116,7 +135,7 @@ export default function CalendarModal({ isOpen, onClose, onSelect, initialStartD
         <button
           key={i}
           type="button"
-          className={`calendar-day ${!isCurrentMonth ? 'other-month' : ''} ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${inRange ? 'in-range' : ''} ${isHovered ? 'hovered' : ''} ${disabled ? 'disabled' : ''}`}
+          className={`calendar-day ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${inRange ? 'in-range' : ''} ${isHovered ? 'hovered' : ''} ${disabled ? 'disabled' : ''}`}
           onClick={() => !disabled && handleDateClick(date)}
           onDoubleClick={() => !disabled && handleDateDoubleClick(date)}
           onMouseEnter={() => !disabled && !selectedEnd && selectedStart && setHoveredDate(date)}
@@ -126,8 +145,6 @@ export default function CalendarModal({ isOpen, onClose, onSelect, initialStartD
           {date.getDate()}
         </button>
       );
-
-      currentDate.setDate(currentDate.getDate() + 1);
     }
 
     return days;

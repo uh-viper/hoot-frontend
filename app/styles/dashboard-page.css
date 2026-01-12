@@ -332,8 +332,10 @@
   color: #d4af37;
 }
 
-.calendar-day.other-month {
-  opacity: 0.3;
+.calendar-day-empty {
+  aspect-ratio: 1;
+  background: transparent;
+  border: none;
 }
 
 .calendar-day.today {
