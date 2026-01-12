@@ -77,19 +77,19 @@ export default function AccountCard({ id, email, password, region, currency }: A
           </div>
         </div>
 
-        <div className="account-fetch-section">
-          <label className="account-label">Actions</label>
-          <div className="account-value-group">
-            <button
-              type="button"
-              className="fetch-code-btn"
-              onClick={handleFetchCode}
-            >
-              <span className="material-icons">sync</span>
-              Fetch Code
-            </button>
-          </div>
-        </div>
+            <div className="account-fetch-section">
+              <label className="account-label">Actions</label>
+              <div className="account-value-group">
+                <button
+                  type="button"
+                  className="fetch-code-btn"
+                  onClick={handleFetchCode}
+                  aria-label="Fetch Code"
+                >
+                  <span className="material-icons">mail</span>
+                </button>
+              </div>
+            </div>
       </div>
     </div>
   );
