@@ -103,23 +103,31 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
       return
     }
 
-    const today = new Date()
+    const now = new Date()
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
     const start = new Date(today)
+    const end = new Date(today)
 
     switch (range) {
       case 'today':
+        // Start and end are both today (00:00:00 to 23:59:59)
         start.setUTCHours(0, 0, 0, 0)
-        setDateRange({ start, end: today })
+        end.setUTCHours(23, 59, 59, 999)
+        setDateRange({ start, end })
         break
       case 'week':
-        start.setDate(today.getDate() - 7)
+        // Last 7 days including today
+        start.setUTCDate(today.getUTCDate() - 6) // 7 days including today = 6 days back
         start.setUTCHours(0, 0, 0, 0)
-        setDateRange({ start, end: today })
+        end.setUTCHours(23, 59, 59, 999)
+        setDateRange({ start, end })
         break
       case 'month':
-        start.setDate(1)
+        // First day of current month to today
+        start.setUTCDate(1)
         start.setUTCHours(0, 0, 0, 0)
-        setDateRange({ start, end: today })
+        end.setUTCHours(23, 59, 59, 999)
+        setDateRange({ start, end })
         break
     }
   }
@@ -455,7 +463,7 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
             <div className="analytics-card">
               <h3 className="analytics-title">
                 <span className="material-icons">people</span>
-                Users
+                Total Users
               </h3>
               <div className="analytics-content">
                 <p className="analytics-value">{users.length.toLocaleString()}</p>
