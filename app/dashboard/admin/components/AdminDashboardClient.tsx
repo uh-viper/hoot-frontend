@@ -110,32 +110,28 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
       return
     }
 
-    const now = new Date()
-    const year = now.getUTCFullYear()
-    const month = now.getUTCMonth()
-    const date = now.getUTCDate()
+    const now = dayjs()
     
     let start: Date
     let end: Date
 
     switch (range) {
       case 'today':
-        // Start and end are both today (00:00:00 to 23:59:59 UTC)
-        start = new Date(Date.UTC(year, month, date, 0, 0, 0, 0))
-        end = new Date(Date.UTC(year, month, date, 23, 59, 59, 999))
+        // Start and end are both today in local time (00:00:00 to 23:59:59)
+        start = now.startOf('day').toDate()
+        end = now.endOf('day').toDate()
         setDateRange({ start, end })
         break
       case 'week':
         // Last 7 days including today
-        const weekStartDate = date - 6 // 7 days including today = 6 days back
-        start = new Date(Date.UTC(year, month, weekStartDate, 0, 0, 0, 0))
-        end = new Date(Date.UTC(year, month, date, 23, 59, 59, 999))
+        start = now.subtract(6, 'day').startOf('day').toDate()
+        end = now.endOf('day').toDate()
         setDateRange({ start, end })
         break
       case 'month':
         // First day of current month to today
-        start = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0))
-        end = new Date(Date.UTC(year, month, date, 23, 59, 59, 999))
+        start = now.startOf('month').startOf('day').toDate()
+        end = now.endOf('day').toDate()
         setDateRange({ start, end })
         break
     }
