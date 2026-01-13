@@ -52,6 +52,8 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
   const [isLoadingStats, setIsLoadingStats] = useState(false)
   const [quickDateRange, setQuickDateRange] = useState<'all' | 'today' | 'week' | 'month'>('all')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [purchasesPage, setPurchasesPage] = useState(1)
+  const purchasesPerPage = 5
 
   // Update stats when date range changes
   useEffect(() => {
@@ -386,7 +388,9 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
                 </tr>
               </thead>
               <tbody>
-                {recentPurchases.map((purchase) => (
+                {allPurchases
+                  .slice((purchasesPage - 1) * purchasesPerPage, purchasesPage * purchasesPerPage)
+                  .map((purchase) => (
                   <tr key={purchase.id}>
                     <td className="admin-id-cell">{purchase.id.slice(0, 8)}...</td>
                     <td className="admin-id-cell">{purchase.user_id.slice(0, 8)}...</td>
@@ -402,10 +406,33 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
                 ))}
               </tbody>
             </table>
-            {recentPurchases.length === 0 && (
+            {allPurchases.length === 0 && (
               <div className="admin-empty">
                 <span className="material-icons">receipt_long</span>
                 <p>No purchases yet</p>
+              </div>
+            )}
+            {allPurchases.length > purchasesPerPage && (
+              <div className="admin-pagination">
+                <button
+                  className="admin-pagination-btn"
+                  onClick={() => setPurchasesPage(prev => Math.max(1, prev - 1))}
+                  disabled={purchasesPage === 1}
+                >
+                  <span className="material-icons">chevron_left</span>
+                  Previous
+                </button>
+                <span className="admin-pagination-info">
+                  Page {purchasesPage} of {Math.ceil(allPurchases.length / purchasesPerPage)}
+                </span>
+                <button
+                  className="admin-pagination-btn"
+                  onClick={() => setPurchasesPage(prev => Math.min(Math.ceil(allPurchases.length / purchasesPerPage), prev + 1))}
+                  disabled={purchasesPage >= Math.ceil(allPurchases.length / purchasesPerPage)}
+                >
+                  Next
+                  <span className="material-icons">chevron_right</span>
+                </button>
               </div>
             )}
           </div>
