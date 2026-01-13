@@ -425,52 +425,32 @@
   font-family: var(--font-poppins);
 }
 
-/* Pagination */
-.admin-pagination {
+/* View More Button */
+.admin-view-more {
   display: flex;
-  align-items: center;
   justify-content: center;
-  gap: 1rem;
   margin-top: 1.5rem;
   padding-top: 1.5rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.admin-pagination-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.admin-view-more-btn {
+  padding: 0.875rem 2rem;
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.3);
   border-radius: 8px;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.9rem;
+  color: #d4af37;
+  font-size: 0.95rem;
   font-weight: 500;
   font-family: var(--font-poppins);
   cursor: pointer;
   transition: all 0.3s;
 }
 
-.admin-pagination-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-}
-
-.admin-pagination-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.admin-pagination-btn .material-icons {
-  font-size: 1.1rem;
-}
-
-.admin-pagination-info {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 0.9rem;
-  font-family: var(--font-poppins);
+.admin-view-more-btn:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: #d4af37;
+  transform: translateY(-1px);
 }
 
 /* Mobile Responsive */

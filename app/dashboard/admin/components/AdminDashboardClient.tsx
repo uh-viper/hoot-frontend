@@ -55,6 +55,8 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
   const [purchasesPage, setPurchasesPage] = useState(1)
   const purchasesPerPage = 5
   const [purchaseSearchTerm, setPurchaseSearchTerm] = useState('')
+  const [usersToShow, setUsersToShow] = useState(5)
+  const [purchasesToShow, setPurchasesToShow] = useState(5)
 
   // Update stats when date range changes
   useEffect(() => {
@@ -134,10 +136,16 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
     )
   })
 
-  // Reset to page 1 when search term changes
+  // Reset to initial view when search term changes
   useEffect(() => {
     setPurchasesPage(1)
+    setPurchasesToShow(5)
   }, [purchaseSearchTerm])
+
+  // Reset users view when search or filter changes
+  useEffect(() => {
+    setUsersToShow(5)
+  }, [searchTerm, filterAdmin])
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -418,9 +426,7 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
                 </tr>
               </thead>
               <tbody>
-                {filteredPurchases
-                  .slice((purchasesPage - 1) * purchasesPerPage, purchasesPage * purchasesPerPage)
-                  .map((purchase) => (
+                {filteredPurchases.slice(0, purchasesToShow).map((purchase) => (
                   <tr key={purchase.id}>
                     <td className="admin-id-cell">{purchase.id.slice(0, 8)}...</td>
                     <td className="admin-id-cell">{purchase.user_id.slice(0, 8)}...</td>
@@ -442,26 +448,13 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
                 <p>{purchaseSearchTerm ? 'No purchases found' : 'No purchases yet'}</p>
               </div>
             )}
-            {filteredPurchases.length > purchasesPerPage && (
-              <div className="admin-pagination">
+            {filteredPurchases.length > purchasesToShow && (
+              <div className="admin-view-more">
                 <button
-                  className="admin-pagination-btn"
-                  onClick={() => setPurchasesPage(prev => Math.max(1, prev - 1))}
-                  disabled={purchasesPage === 1}
+                  className="admin-view-more-btn"
+                  onClick={() => setPurchasesToShow(prev => prev + 5)}
                 >
-                  <span className="material-icons">chevron_left</span>
-                  Previous
-                </button>
-                <span className="admin-pagination-info">
-                  Page {purchasesPage} of {Math.ceil(filteredPurchases.length / purchasesPerPage)}
-                </span>
-                <button
-                  className="admin-pagination-btn"
-                  onClick={() => setPurchasesPage(prev => Math.min(Math.ceil(filteredPurchases.length / purchasesPerPage), prev + 1))}
-                  disabled={purchasesPage >= Math.ceil(filteredPurchases.length / purchasesPerPage)}
-                >
-                  Next
-                  <span className="material-icons">chevron_right</span>
+                  View More ({filteredPurchases.length - purchasesToShow} remaining)
                 </button>
               </div>
             )}
