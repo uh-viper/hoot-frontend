@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import dayjs from 'dayjs'
 import { getFilteredStats } from '@/app/actions/admin-stats'
 import CalendarModal from '../../components/CalendarModal'
 import { 
@@ -112,31 +111,8 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
       return
     }
 
-    const now = dayjs()
-    
-    let start: Date
-    let end: Date
-
-    switch (range) {
-      case 'today':
-        // Start and end are both today in local time (00:00:00 to 23:59:59)
-        start = now.startOf('day').toDate()
-        end = now.endOf('day').toDate()
-        setDateRange({ start, end })
-        break
-      case 'week':
-        // Last 7 days including today
-        start = now.subtract(6, 'day').startOf('day').toDate()
-        end = now.endOf('day').toDate()
-        setDateRange({ start, end })
-        break
-      case 'month':
-        // First day of current month to today
-        start = now.startOf('month').startOf('day').toDate()
-        end = now.endOf('day').toDate()
-        setDateRange({ start, end })
-        break
-    }
+    const { start, end } = getLocalDateRange(range)
+    setDateRange({ start, end })
   }
 
   const filteredUsers = users.filter(user => {
@@ -185,18 +161,7 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
 
   const formatDateRange = () => {
     if (!dateRange) return 'All Time'
-    // Format dates in local timezone
-    const start = dayjs(dateRange.start)
-    const end = dayjs(dateRange.end)
-    
-    const startStr = start.format('MMM D, YYYY')
-    const endStr = end.format('MMM D, YYYY')
-    
-    // If same day, just show one date
-    if (start.isSame(end, 'day')) {
-      return startStr
-    }
-    return `${startStr} - ${endStr}`
+    return formatDateRangeUtil(dateRange.start, dateRange.end)
   }
 
   const handleDateRangeSelect = (range: 'all' | 'today' | 'week' | 'month' | 'custom') => {
