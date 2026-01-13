@@ -48,7 +48,12 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
   const [filterAdmin, setFilterAdmin] = useState<'all' | 'admins' | 'users'>('all')
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
   const [dateRange, setDateRange] = useState<{ start: Date; end: Date } | null>(null)
-  const [filteredStats, setFilteredStats] = useState(initialStats)
+  const [filteredStats, setFilteredStats] = useState({
+    totalRequested: initialStats.totalRequested,
+    totalSuccessful: initialStats.totalSuccessful,
+    totalFailures: initialStats.totalFailures,
+    revenue: 0, // Will be calculated from allPurchases initially
+  })
   const [isLoadingStats, setIsLoadingStats] = useState(false)
   const [quickDateRange, setQuickDateRange] = useState<'all' | 'today' | 'week' | 'month'>('all')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
@@ -57,6 +62,11 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
   const [purchaseSearchTerm, setPurchaseSearchTerm] = useState('')
   const [usersToShow, setUsersToShow] = useState(5)
   const [purchasesToShow, setPurchasesToShow] = useState(5)
+
+  // Calculate initial revenue from all purchases
+  const initialRevenue = allPurchases
+    .filter(p => p.status === 'completed')
+    .reduce((sum, p) => sum + (p.amount_paid_cents || 0) / 100, 0)
 
   // Update stats when date range changes
   useEffect(() => {
@@ -69,15 +79,21 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
               totalRequested: stats.requested ?? 0,
               totalSuccessful: stats.successful ?? 0,
               totalFailures: stats.failures ?? 0,
+              revenue: stats.revenue ?? 0,
             })
           }
           setIsLoadingStats(false)
         })
         .catch(() => setIsLoadingStats(false))
     } else {
-      setFilteredStats(initialStats)
+      setFilteredStats({
+        totalRequested: initialStats.totalRequested,
+        totalSuccessful: initialStats.totalSuccessful,
+        totalFailures: initialStats.totalFailures,
+        revenue: initialRevenue,
+      })
     }
-  }, [dateRange, initialStats])
+  }, [dateRange, initialStats, allPurchases, initialRevenue])
 
   // Handle quick date range selection
   const handleQuickDateRange = (range: 'all' | 'today' | 'week' | 'month') => {
@@ -435,11 +451,50 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
           </div>
 
           <div className="admin-analytics">
-            {/* Filtered Stats Cards - Requested, Successful, Failures */}
+            {/* First Row: Total Users, Revenue, Success Rate */}
+            <div className="analytics-card">
+              <h3 className="analytics-title">
+                <span className="material-icons">people</span>
+                Users
+              </h3>
+              <div className="analytics-content">
+                <p className="analytics-value">{users.length.toLocaleString()}</p>
+              </div>
+            </div>
+
+            <div className="analytics-card">
+              <h3 className="analytics-title">
+                <span className="material-icons">payments</span>
+                Revenue
+                {isLoadingStats && <span className="stat-loading">...</span>}
+              </h3>
+              <div className="analytics-content">
+                <p className="analytics-value">
+                  ${filteredStats.revenue.toFixed(2)}
+                </p>
+              </div>
+            </div>
+
+            <div className="analytics-card">
+              <h3 className="analytics-title">
+                <span className="material-icons">insights</span>
+                Success Rate
+                {isLoadingStats && <span className="stat-loading">...</span>}
+              </h3>
+              <div className="analytics-content">
+                <p className="analytics-value">
+                  {filteredStats.totalRequested > 0
+                    ? ((filteredStats.totalSuccessful / filteredStats.totalRequested) * 100).toFixed(1)
+                    : 0}%
+                </p>
+              </div>
+            </div>
+
+            {/* Second Row: Requested, Successful, Failures */}
             <div className="analytics-card">
               <h3 className="analytics-title">
                 <span className="material-icons">pending_actions</span>
-                {dateRange ? 'Filtered' : 'Total'} Requested
+                Requested
                 {isLoadingStats && <span className="stat-loading">...</span>}
               </h3>
               <div className="analytics-content">
@@ -450,7 +505,7 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
             <div className="analytics-card">
               <h3 className="analytics-title">
                 <span className="material-icons">check_circle</span>
-                {dateRange ? 'Filtered' : 'Total'} Successful
+                Successful
                 {isLoadingStats && <span className="stat-loading">...</span>}
               </h3>
               <div className="analytics-content">
@@ -461,50 +516,11 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
             <div className="analytics-card">
               <h3 className="analytics-title">
                 <span className="material-icons">error</span>
-                {dateRange ? 'Filtered' : 'Total'} Failures
+                Failures
                 {isLoadingStats && <span className="stat-loading">...</span>}
               </h3>
               <div className="analytics-content">
                 <p className="analytics-value">{filteredStats.totalFailures.toLocaleString()}</p>
-              </div>
-            </div>
-
-            <div className="analytics-card">
-              <h3 className="analytics-title">
-                <span className="material-icons">people</span>
-                Total Users
-              </h3>
-              <div className="analytics-content">
-                <p className="analytics-value">{users.length.toLocaleString()}</p>
-              </div>
-            </div>
-
-            <div className="analytics-card">
-              <h3 className="analytics-title">
-                <span className="material-icons">payments</span>
-                Total Revenue
-              </h3>
-              <div className="analytics-content">
-                <p className="analytics-value">
-                  ${allPurchases
-                    .filter(p => p.status === 'completed')
-                    .reduce((sum, p) => sum + (p.amount_paid_cents || 0) / 100, 0)
-                    .toFixed(2)}
-                </p>
-              </div>
-            </div>
-
-            <div className="analytics-card">
-              <h3 className="analytics-title">
-                <span className="material-icons">insights</span>
-                Success Rate
-              </h3>
-              <div className="analytics-content">
-                <p className="analytics-value">
-                  {filteredStats.totalRequested > 0
-                    ? ((filteredStats.totalSuccessful / filteredStats.totalRequested) * 100).toFixed(1)
-                    : 0}%
-                </p>
               </div>
             </div>
           </div>
