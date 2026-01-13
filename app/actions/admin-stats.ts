@@ -1,7 +1,14 @@
 'use server'
 
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
 import { createClient } from '@/lib/supabase/server'
 import { validateAdmin } from '@/lib/auth/admin'
+
+// Extend dayjs with plugins
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 export async function getFilteredStats(startDate: Date, endDate: Date) {
   // Check if user is admin
@@ -12,31 +19,24 @@ export async function getFilteredStats(startDate: Date, endDate: Date) {
 
   const supabase = adminCheck.supabase
 
-  // Ensure dates are in UTC and set to start/end of day
-  // Extract UTC components to avoid timezone conversion issues
-  const startYear = startDate.getUTCFullYear()
-  const startMonth = startDate.getUTCMonth()
-  const startDay = startDate.getUTCDate()
-  const start = new Date(Date.UTC(startYear, startMonth, startDay, 0, 0, 0, 0))
-  
-  const endYear = endDate.getUTCFullYear()
-  const endMonth = endDate.getUTCMonth()
-  const endDay = endDate.getUTCDate()
-  const end = new Date(Date.UTC(endYear, endMonth, endDay, 23, 59, 59, 999))
+  // Convert local time dates to UTC for database queries
+  // The dates come in as local time, we need to convert to UTC for querying
+  const start = dayjs(startDate).startOf('day').utc().toISOString()
+  const end = dayjs(endDate).endOf('day').utc().toISOString()
 
   // Fetch accounts created in date range
   const { count: filteredBCs } = await supabase
     .from('user_accounts')
     .select('*', { count: 'exact', head: true })
-    .gte('created_at', start.toISOString())
-    .lte('created_at', end.toISOString())
+    .gte('created_at', start)
+    .lte('created_at', end)
 
   // Fetch purchases in date range
   const { data: filteredPurchases } = await supabase
     .from('purchases')
     .select('credits, amount_paid_cents, status')
-    .gte('created_at', start.toISOString())
-    .lte('created_at', end.toISOString())
+    .gte('created_at', start)
+    .lte('created_at', end)
 
   // Calculate filtered credits issued
   const filteredCreditsIssued = filteredPurchases?.reduce((sum, p) => {
@@ -58,8 +58,8 @@ export async function getFilteredStats(startDate: Date, endDate: Date) {
   const { data: filteredAccounts } = await supabase
     .from('user_accounts')
     .select('created_at')
-    .gte('created_at', start.toISOString())
-    .lte('created_at', end.toISOString())
+    .gte('created_at', start)
+    .lte('created_at', end)
 
   const filteredSuccessful = filteredAccounts?.length ?? 0
 
@@ -72,8 +72,8 @@ export async function getFilteredStats(startDate: Date, endDate: Date) {
   const { data: statsInRange } = await supabase
     .from('user_stats')
     .select('requested, successful, failures')
-    .gte('updated_at', start.toISOString())
-    .lte('updated_at', end.toISOString())
+    .gte('updated_at', start)
+    .lte('updated_at', end)
 
   // Sum up the stats
   const filteredRequested = statsInRange?.reduce((sum, s) => sum + (s.requested || 0), 0) ?? 0

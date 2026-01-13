@@ -1,9 +1,16 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
 import { getFilteredStats } from '@/app/actions/admin-stats'
 import CalendarModal from '../../components/CalendarModal'
 import './admin-client.css'
+
+// Extend dayjs with plugins
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 interface User {
   id: string
@@ -174,31 +181,21 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
   }, [searchTerm, filterAdmin])
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+    // Convert UTC date from database to local time for display
+    return dayjs.utc(dateString).local().format('MMM D, YYYY, h:mm A')
   }
 
   const formatDateRange = () => {
     if (!dateRange) return 'All Time'
-    // Format dates using UTC to match database storage
-    const startYear = dateRange.start.getUTCFullYear()
-    const startMonth = dateRange.start.getUTCMonth()
-    const startDay = dateRange.start.getUTCDate()
-    const endYear = dateRange.end.getUTCFullYear()
-    const endMonth = dateRange.end.getUTCMonth()
-    const endDay = dateRange.end.getUTCDate()
+    // Format dates in local timezone
+    const start = dayjs(dateRange.start)
+    const end = dayjs(dateRange.end)
     
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    const startStr = `${monthNames[startMonth]} ${startDay}, ${startYear}`
-    const endStr = `${monthNames[endMonth]} ${endDay}, ${endYear}`
+    const startStr = start.format('MMM D, YYYY')
+    const endStr = end.format('MMM D, YYYY')
     
     // If same day, just show one date
-    if (startYear === endYear && startMonth === endMonth && startDay === endDay) {
+    if (start.isSame(end, 'day')) {
       return startStr
     }
     return `${startStr} - ${endStr}`
