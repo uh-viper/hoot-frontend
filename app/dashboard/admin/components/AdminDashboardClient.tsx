@@ -134,8 +134,6 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
     return `${startStr} - ${endStr}`
   }
 
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-
   const handleDateRangeSelect = (range: 'all' | 'today' | 'week' | 'month' | 'custom') => {
     if (range === 'custom') {
       setIsCalendarOpen(true)
@@ -152,6 +150,21 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
     }
     return 'All Time'
   }
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      if (isDropdownOpen && !target.closest('.admin-date-dropdown')) {
+        setIsDropdownOpen(false)
+      }
+    }
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isDropdownOpen])
 
   return (
     <div className="admin-dashboard-content">
