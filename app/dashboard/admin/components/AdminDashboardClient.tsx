@@ -396,6 +396,16 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
                 <p>No users found</p>
               </div>
             )}
+            {filteredUsers.length > usersToShow && (
+              <div className="admin-view-more">
+                <button
+                  className="admin-view-more-btn"
+                  onClick={() => setUsersToShow(prev => prev + 5)}
+                >
+                  View More ({filteredUsers.length - usersToShow} remaining)
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
