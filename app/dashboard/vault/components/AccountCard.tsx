@@ -104,7 +104,7 @@ export default function AccountCard({ id, email, password, region, currency }: A
               <label className="account-label">Email</label>
             </div>
             <div className="account-value-group">
-              <span className="account-value">{email}</span>
+              <span className="account-value" title={email}>{email}</span>
               <button
                 type="button"
                 className="account-copy-btn"
