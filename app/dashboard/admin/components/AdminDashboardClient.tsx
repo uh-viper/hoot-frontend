@@ -517,9 +517,10 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
         onClose={() => setIsCalendarOpen(false)}
         onSelect={(start, end) => {
           // Calendar returns dates, ensure they're set to start/end of day in local time
-          const startLocal = dayjs(start).startOf('day').toDate()
-          const endLocal = dayjs(end).endOf('day').toDate()
-          setDateRange({ start: startLocal, end: endLocal })
+          // Create new Date objects with just the date components (no time)
+          const startDate = new Date(start.getFullYear(), start.getMonth(), start.getDate())
+          const endDate = new Date(end.getFullYear(), end.getMonth(), end.getDate())
+          setDateRange({ start: startDate, end: endDate })
           setQuickDateRange('all')
         }}
         initialStartDate={dateRange?.start}
