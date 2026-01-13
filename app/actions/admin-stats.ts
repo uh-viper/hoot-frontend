@@ -22,9 +22,9 @@ export async function getFilteredStats(startDate: Date, endDate: Date) {
   // Dates are already converted to UTC on the client side
   // They represent the start/end of the selected day in the user's local timezone, converted to UTC
   // Example: Jan 13 00:00 EST = Jan 13 05:00 UTC
-  // We just need to ensure they're properly formatted as ISO strings
-  const start = dayjs(startDate).utc().startOf('day').toISOString()
-  const end = dayjs(endDate).utc().endOf('day').toISOString()
+  // The dates are already in UTC, we just need to format them as ISO strings
+  const start = dayjs(startDate).utc().toISOString()
+  const end = dayjs(endDate).utc().toISOString()
 
   // Fetch accounts created in date range
   const { count: filteredBCs } = await supabase
