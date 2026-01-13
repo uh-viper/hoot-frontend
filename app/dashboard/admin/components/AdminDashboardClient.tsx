@@ -51,6 +51,7 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
   const [filteredStats, setFilteredStats] = useState(initialStats)
   const [isLoadingStats, setIsLoadingStats] = useState(false)
   const [quickDateRange, setQuickDateRange] = useState<'all' | 'today' | 'week' | 'month'>('all')
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
   // Update stats when date range changes
   useEffect(() => {
@@ -133,58 +134,78 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
     return `${startStr} - ${endStr}`
   }
 
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+
+  const handleDateRangeSelect = (range: 'all' | 'today' | 'week' | 'month' | 'custom') => {
+    if (range === 'custom') {
+      setIsCalendarOpen(true)
+      setIsDropdownOpen(false)
+    } else {
+      handleQuickDateRange(range as 'all' | 'today' | 'week' | 'month')
+      setIsDropdownOpen(false)
+    }
+  }
+
+  const getDateRangeLabel = () => {
+    if (dateRange) {
+      return formatDateRange()
+    }
+    return 'All Time'
+  }
+
   return (
     <div className="admin-dashboard-content">
-      {/* Date Range Selector */}
-      <div className="admin-date-selector">
-        <div className="admin-date-quick-filters">
+      {/* Date Range Dropdown - Top Right */}
+      <div className="admin-date-dropdown-wrapper">
+        <div className="admin-date-dropdown">
           <button
-            className={`admin-quick-date-btn ${quickDateRange === 'all' ? 'active' : ''}`}
-            onClick={() => handleQuickDateRange('all')}
-          >
-            All Time
-          </button>
-          <button
-            className={`admin-quick-date-btn ${quickDateRange === 'today' ? 'active' : ''}`}
-            onClick={() => handleQuickDateRange('today')}
-          >
-            Today
-          </button>
-          <button
-            className={`admin-quick-date-btn ${quickDateRange === 'week' ? 'active' : ''}`}
-            onClick={() => handleQuickDateRange('week')}
-          >
-            Last 7 Days
-          </button>
-          <button
-            className={`admin-quick-date-btn ${quickDateRange === 'month' ? 'active' : ''}`}
-            onClick={() => handleQuickDateRange('month')}
-          >
-            This Month
-          </button>
-          <button
-            className="admin-custom-date-btn"
-            onClick={() => setIsCalendarOpen(true)}
+            className="admin-date-dropdown-toggle"
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           >
             <span className="material-icons">calendar_today</span>
-            Custom Range
+            <span>{getDateRangeLabel()}</span>
+            <span className="material-icons">{isDropdownOpen ? 'expand_less' : 'expand_more'}</span>
           </button>
+          {isDropdownOpen && (
+            <div className="admin-date-dropdown-menu">
+              <button
+                className={`admin-date-dropdown-item ${quickDateRange === 'all' ? 'active' : ''}`}
+                onClick={() => handleDateRangeSelect('all')}
+              >
+                <span className="material-icons">event</span>
+                All Time
+              </button>
+              <button
+                className={`admin-date-dropdown-item ${quickDateRange === 'today' ? 'active' : ''}`}
+                onClick={() => handleDateRangeSelect('today')}
+              >
+                <span className="material-icons">today</span>
+                Today
+              </button>
+              <button
+                className={`admin-date-dropdown-item ${quickDateRange === 'week' ? 'active' : ''}`}
+                onClick={() => handleDateRangeSelect('week')}
+              >
+                <span className="material-icons">date_range</span>
+                This Week
+              </button>
+              <button
+                className={`admin-date-dropdown-item ${quickDateRange === 'month' ? 'active' : ''}`}
+                onClick={() => handleDateRangeSelect('month')}
+              >
+                <span className="material-icons">calendar_month</span>
+                This Month
+              </button>
+              <button
+                className="admin-date-dropdown-item"
+                onClick={() => handleDateRangeSelect('custom')}
+              >
+                <span className="material-icons">tune</span>
+                Custom Range
+              </button>
+            </div>
+          )}
         </div>
-        {dateRange && (
-          <div className="admin-date-range-display">
-            <span className="material-icons">event</span>
-            {formatDateRange()}
-            <button
-              className="admin-clear-date-btn"
-              onClick={() => {
-                setDateRange(null)
-                setQuickDateRange('all')
-              }}
-            >
-              <span className="material-icons">close</span>
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Filtered Stats Cards - Only Requested, Successful, Failures update with date */}

@@ -79,105 +79,96 @@
   color: rgba(255, 255, 255, 0.4);
 }
 
-/* Date Range Selector */
-.admin-date-selector {
-  margin-bottom: 2rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 1.5rem;
-}
-
-.admin-date-quick-filters {
+/* Date Range Dropdown - Top Right */
+.admin-date-dropdown-wrapper {
   display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
+  justify-content: flex-end;
+  margin-bottom: 1.5rem;
 }
 
-.admin-quick-date-btn,
-.admin-custom-date-btn {
+.admin-date-dropdown {
+  position: relative;
+}
+
+.admin-date-dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.75rem 1.25rem;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.9);
   font-size: 0.9rem;
   font-weight: 500;
   font-family: var(--font-poppins);
   cursor: pointer;
   transition: all 0.3s;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  white-space: nowrap;
 }
 
-.admin-quick-date-btn:hover,
-.admin-custom-date-btn:hover {
+.admin-date-dropdown-toggle:hover {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.2);
+}
+
+.admin-date-dropdown-toggle .material-icons {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.admin-date-dropdown-toggle .material-icons:last-child {
+  font-size: 1.2rem;
+  margin-left: 0.25rem;
+}
+
+.admin-date-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: rgba(10, 10, 10, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  min-width: 200px;
+  overflow: hidden;
+}
+
+.admin-date-dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: var(--font-poppins);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.admin-date-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.05);
   color: #ffffff;
 }
 
-.admin-quick-date-btn.active {
+.admin-date-dropdown-item.active {
   background: rgba(212, 175, 55, 0.1);
-  border-color: #d4af37;
   color: #d4af37;
 }
 
-.admin-custom-date-btn {
-  background: rgba(212, 175, 55, 0.05);
-  border-color: rgba(212, 175, 55, 0.3);
-  color: #d4af37;
-}
-
-.admin-custom-date-btn:hover {
-  background: rgba(212, 175, 55, 0.1);
-  border-color: #d4af37;
-}
-
-.admin-custom-date-btn .material-icons {
+.admin-date-dropdown-item .material-icons {
   font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.6);
 }
 
-.admin-date-range-display {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background: rgba(212, 175, 55, 0.05);
-  border: 1px solid rgba(212, 175, 55, 0.2);
-  border-radius: 8px;
+.admin-date-dropdown-item.active .material-icons {
   color: #d4af37;
-  font-size: 0.9rem;
-  font-family: var(--font-poppins);
-}
-
-.admin-date-range-display .material-icons {
-  font-size: 1.1rem;
-}
-
-.admin-clear-date-btn {
-  margin-left: auto;
-  padding: 0.25rem;
-  background: transparent;
-  border: none;
-  color: rgba(212, 175, 55, 0.7);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  transition: all 0.2s;
-}
-
-.admin-clear-date-btn:hover {
-  background: rgba(212, 175, 55, 0.1);
-  color: #d4af37;
-}
-
-.admin-clear-date-btn .material-icons {
-  font-size: 1rem;
 }
 
 .admin-filtered-stats {
@@ -440,17 +431,21 @@
     margin-top: 1.5rem;
   }
 
-  .admin-date-selector {
-    padding: 1rem;
+  .admin-date-dropdown-wrapper {
+    margin-bottom: 1rem;
   }
 
-  .admin-date-quick-filters {
-    gap: 0.5rem;
-  }
-
-  .admin-quick-date-btn,
-  .admin-custom-date-btn {
+  .admin-date-dropdown-toggle {
     padding: 0.625rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .admin-date-dropdown-menu {
+    min-width: 180px;
+  }
+
+  .admin-date-dropdown-item {
+    padding: 0.75rem 0.875rem;
     font-size: 0.85rem;
   }
 
