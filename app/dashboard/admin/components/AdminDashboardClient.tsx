@@ -80,16 +80,32 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
     if (dateRange) {
       setIsLoadingStats(true)
       // Convert local time dates to UTC for the server
-      // dateRange.start and dateRange.end are Date objects created in local time
-      // We need to interpret them as local time and convert to UTC
-      // Example: If user selects Jan 13 in EST, we want Jan 13 00:00 EST = Jan 13 05:00 UTC
+      // dateRange.start and dateRange.end are Date objects representing local dates
+      // We need to extract the local date components and create UTC dates that represent
+      // the start/end of that local day
+      // Example: Jan 13 00:00 EST = Jan 13 05:00 UTC (EST is UTC-5)
       
       // Get the user's timezone
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
       
-      // Parse the dates as if they're in the user's timezone, then convert to UTC
-      const startLocal = dayjs.tz(dateRange.start, userTimezone).startOf('day')
-      const endLocal = dayjs.tz(dateRange.end, userTimezone).endOf('day')
+      // Create dayjs objects from the dates in local time
+      // dateRange.start is already a Date object in local time, we need to interpret it correctly
+      const startDate = new Date(dateRange.start)
+      const endDate = new Date(dateRange.end)
+      
+      // Get local date components (year, month, day) from the Date objects
+      const startYear = startDate.getFullYear()
+      const startMonth = startDate.getMonth()
+      const startDay = startDate.getDate()
+      
+      const endYear = endDate.getFullYear()
+      const endMonth = endDate.getMonth()
+      const endDay = endDate.getDate()
+      
+      // Create dates in the user's timezone, then convert to UTC
+      // This ensures we're querying for data created during that local day
+      const startLocal = dayjs.tz(`${startYear}-${String(startMonth + 1).padStart(2, '0')}-${String(startDay).padStart(2, '0')} 00:00:00`, userTimezone)
+      const endLocal = dayjs.tz(`${endYear}-${String(endMonth + 1).padStart(2, '0')}-${String(endDay).padStart(2, '0')} 23:59:59`, userTimezone)
       
       // Convert to UTC for database query
       const startUTC = startLocal.utc().toDate()
