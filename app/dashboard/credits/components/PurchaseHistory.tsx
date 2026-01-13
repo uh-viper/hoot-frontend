@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react'
+import { formatUTCDateToLocal } from '@/lib/utils/date-timezone'
 
 interface PurchaseHistoryItem {
   id: string
@@ -31,12 +32,8 @@ export default function PurchaseHistory({ purchases = [], allPurchases = [] }: P
   }
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })
+    // Convert UTC date from database to local time for display
+    return formatUTCDateToLocal(dateString, 'MMM D, YYYY')
   }
 
   return (
