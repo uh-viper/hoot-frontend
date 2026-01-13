@@ -80,27 +80,20 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
     if (dateRange) {
       setIsLoadingStats(true)
       // Convert local time dates to UTC for the server
-      // dateRange.start and dateRange.end are Date objects representing local time
-      // We need to extract the local date components and convert to UTC
+      // dateRange.start and dateRange.end are Date objects created in local time
+      // We need to interpret them as local time and convert to UTC
       // Example: If user selects Jan 13 in EST, we want Jan 13 00:00 EST = Jan 13 05:00 UTC
-      const startLocal = dayjs(dateRange.start)
-      const endLocal = dayjs(dateRange.end)
       
-      // Get the local date components (year, month, day) and create UTC dates
-      // This ensures we're querying for data created during that local day
-      const startUTC = dayjs.utc([
-        startLocal.year(),
-        startLocal.month(),
-        startLocal.date(),
-        0, 0, 0, 0
-      ]).subtract(startLocal.utcOffset(), 'minute').toDate()
+      // Get the user's timezone
+      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
       
-      const endUTC = dayjs.utc([
-        endLocal.year(),
-        endLocal.month(),
-        endLocal.date(),
-        23, 59, 59, 999
-      ]).subtract(endLocal.utcOffset(), 'minute').toDate()
+      // Parse the dates as if they're in the user's timezone, then convert to UTC
+      const startLocal = dayjs.tz(dateRange.start, userTimezone).startOf('day')
+      const endLocal = dayjs.tz(dateRange.end, userTimezone).endOf('day')
+      
+      // Convert to UTC for database query
+      const startUTC = startLocal.utc().toDate()
+      const endUTC = endLocal.utc().toDate()
       
       getFilteredStats(startUTC, endUTC)
         .then(stats => {
