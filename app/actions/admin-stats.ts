@@ -6,8 +6,8 @@ import { validateAdmin } from '@/lib/auth/admin'
 export async function getFilteredStats(startDate: Date, endDate: Date) {
   // Check if user is admin
   const adminCheck = await validateAdmin()
-  if (adminCheck.error) {
-    return { error: adminCheck.error, message: adminCheck.message }
+  if (adminCheck.error || !adminCheck.supabase) {
+    return { error: adminCheck.error || 'Forbidden', message: adminCheck.message || 'Admin access required' }
   }
 
   const supabase = adminCheck.supabase
