@@ -280,7 +280,7 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
           onClick={() => setSelectedTab('purchases')}
         >
           <span className="material-icons">receipt</span>
-          Recent Purchases ({recentPurchases.length})
+          Total Purchases ({allPurchases.length})
         </button>
         <button
           className={`admin-tab ${selectedTab === 'analytics' ? 'active' : ''}`}
