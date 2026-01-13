@@ -26,7 +26,7 @@ interface Purchase {
   id: string
   user_id: string
   credits: number
-  amount: number | null
+  amount_paid_cents: number | null
   status: string
   created_at: string
 }
@@ -132,7 +132,7 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
       purchase.user_id.toLowerCase().includes(searchLower) ||
       purchase.credits.toString().includes(searchLower) ||
       purchase.status.toLowerCase().includes(searchLower) ||
-      (purchase.amount && (purchase.amount / 100).toFixed(2).includes(searchLower))
+      (purchase.amount_paid_cents && (purchase.amount_paid_cents / 100).toFixed(2).includes(searchLower))
     )
   })
 
@@ -441,7 +441,7 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
                     <td className="admin-id-cell">{purchase.id.slice(0, 8)}...</td>
                     <td className="admin-id-cell">{purchase.user_id.slice(0, 8)}...</td>
                     <td>{purchase.credits}</td>
-                    <td>${purchase.amount ? (purchase.amount / 100).toFixed(2) : '0.00'}</td>
+                    <td>${purchase.amount_paid_cents ? (purchase.amount_paid_cents / 100).toFixed(2) : '0.00'}</td>
                     <td>
                       <span className={`status-badge status-${purchase.status}`}>
                         {purchase.status}

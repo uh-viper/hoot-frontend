@@ -72,7 +72,7 @@ export default async function AdminDashboardPage() {
   // Get recent purchases
   const { data: recentPurchases } = await supabase
     .from('purchases')
-    .select('id, user_id, credits, amount, status, created_at')
+    .select('id, user_id, credits, amount_paid_cents, status, created_at')
     .order('created_at', { ascending: false })
     .limit(10)
 
@@ -102,7 +102,7 @@ export default async function AdminDashboardPage() {
   // Get all purchases for revenue calculation
   const { data: allPurchases } = await supabase
     .from('purchases')
-    .select('id, user_id, credits, amount, status, created_at')
+    .select('id, user_id, credits, amount_paid_cents, status, created_at')
     .order('created_at', { ascending: false })
 
   return (
