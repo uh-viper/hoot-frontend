@@ -12,31 +12,23 @@ The admin system provides:
 
 ## Setup Steps
 
-### 1. Run the Database Migration
+### 1. Run the Database Migrations
 
-First, apply the migration to add the `is_admin` field:
+Apply both migrations to add the `is_admin` field and RLS policies:
 
 ```bash
 # Using Supabase CLI (recommended)
 supabase migration up
 
-# OR manually apply the migration in Supabase Dashboard
-# File: supabase/migrations/029_add_admin_role.sql
+# OR manually apply the migrations in Supabase Dashboard:
+# 1. supabase/migrations/029_add_admin_role.sql (adds is_admin field)
+# 2. supabase/migrations/030_add_admin_rls_policies.sql (adds admin RLS policies)
 ```
 
 ### 2. Grant Admin Access to a User
 
-Use the provided script to grant admin access:
+Manually grant admin access via Supabase Dashboard SQL Editor:
 
-```bash
-# Using email
-npx tsx scripts/grant-admin-access.ts user@example.com
-
-# Using user ID
-npx tsx scripts/grant-admin-access.ts 123e4567-e89b-12d3-a456-426614174000
-```
-
-**Or manually via SQL:**
 ```sql
 -- By email
 UPDATE public.user_profiles 
@@ -146,13 +138,13 @@ These routes automatically check for admin access using `validateAdmin()`.
 
 ## Files Modified/Created
 
-- `supabase/migrations/029_add_admin_role.sql` - Database migration
+- `supabase/migrations/029_add_admin_role.sql` - Adds is_admin field to user_profiles
+- `supabase/migrations/030_add_admin_rls_policies.sql` - Adds RLS policies for admin access
 - `lib/auth/admin.ts` - Admin utility functions
 - `lib/supabase/middleware.ts` - Middleware protection for admin routes
 - `app/dashboard/admin/page.tsx` - Admin dashboard page
 - `app/dashboard/admin/components/AdminDashboardClient.tsx` - Admin dashboard client component
 - `app/dashboard/admin/admin.css` - Admin dashboard styles
-- `app/dashboard/components/Sidebar.tsx` - Added admin link
+- `app/dashboard/components/Sidebar.tsx` - Added admin link (only visible to admins)
 - `app/dashboard/layout.tsx` - Pass admin status to sidebar
 - `app/api/admin/*` - Protected admin API routes
-- `scripts/grant-admin-access.ts` - Script to grant admin access
