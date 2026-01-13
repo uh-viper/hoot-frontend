@@ -549,7 +549,10 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
         isOpen={isCalendarOpen}
         onClose={() => setIsCalendarOpen(false)}
         onSelect={(start, end) => {
-          setDateRange({ start, end })
+          // Calendar returns dates, ensure they're set to start/end of day in local time
+          const startLocal = dayjs(start).startOf('day').toDate()
+          const endLocal = dayjs(end).endOf('day').toDate()
+          setDateRange({ start: startLocal, end: endLocal })
           setQuickDateRange('all')
         }}
         initialStartDate={dateRange?.start}
