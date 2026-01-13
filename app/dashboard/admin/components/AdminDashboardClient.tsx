@@ -104,29 +104,31 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
     }
 
     const now = new Date()
-    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
-    const start = new Date(today)
-    const end = new Date(today)
+    const year = now.getUTCFullYear()
+    const month = now.getUTCMonth()
+    const date = now.getUTCDate()
+    
+    let start: Date
+    let end: Date
 
     switch (range) {
       case 'today':
-        // Start and end are both today (00:00:00 to 23:59:59)
-        start.setUTCHours(0, 0, 0, 0)
-        end.setUTCHours(23, 59, 59, 999)
+        // Start and end are both today (00:00:00 to 23:59:59 UTC)
+        start = new Date(Date.UTC(year, month, date, 0, 0, 0, 0))
+        end = new Date(Date.UTC(year, month, date, 23, 59, 59, 999))
         setDateRange({ start, end })
         break
       case 'week':
         // Last 7 days including today
-        start.setUTCDate(today.getUTCDate() - 6) // 7 days including today = 6 days back
-        start.setUTCHours(0, 0, 0, 0)
-        end.setUTCHours(23, 59, 59, 999)
+        const weekStartDate = date - 6 // 7 days including today = 6 days back
+        start = new Date(Date.UTC(year, month, weekStartDate, 0, 0, 0, 0))
+        end = new Date(Date.UTC(year, month, date, 23, 59, 59, 999))
         setDateRange({ start, end })
         break
       case 'month':
         // First day of current month to today
-        start.setUTCDate(1)
-        start.setUTCHours(0, 0, 0, 0)
-        end.setUTCHours(23, 59, 59, 999)
+        start = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0))
+        end = new Date(Date.UTC(year, month, date, 23, 59, 59, 999))
         setDateRange({ start, end })
         break
     }
