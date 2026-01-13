@@ -112,69 +112,6 @@ export default async function AdminDashboardPage() {
         <p className="dashboard-subtitle">System overview and user management</p>
       </div>
 
-      {/* Admin Stats Cards - All Time Totals */}
-      <div className="dashboard-stats">
-        <div className="stat-card">
-          <div className="stat-icon">
-            <span className="material-icons">people</span>
-          </div>
-          <div className="stat-content">
-            <p className="stat-label">Total Users</p>
-            <p className="stat-value">{totalUsers.toLocaleString()}</p>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">
-            <span className="material-icons">account_balance</span>
-          </div>
-          <div className="stat-content">
-            <p className="stat-label">Total Business Centers</p>
-            <p className="stat-value">{(totalBCs ?? 0).toLocaleString()}</p>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">
-            <span className="material-icons">payment</span>
-          </div>
-          <div className="stat-content">
-            <p className="stat-label">Total Credits Issued</p>
-            <p className="stat-value">{totalCreditsIssued.toLocaleString()}</p>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">
-            <span className="material-icons">pending_actions</span>
-          </div>
-          <div className="stat-content">
-            <p className="stat-label">Total Requested</p>
-            <p className="stat-value">{totalRequested.toLocaleString()}</p>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">
-            <span className="material-icons">check_circle</span>
-          </div>
-          <div className="stat-content">
-            <p className="stat-label">Total Successful</p>
-            <p className="stat-value">{totalSuccessful.toLocaleString()}</p>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">
-            <span className="material-icons">error</span>
-          </div>
-          <div className="stat-content">
-            <p className="stat-label">Total Failures</p>
-            <p className="stat-value">{totalFailures.toLocaleString()}</p>
-          </div>
-        </div>
-      </div>
-
       {/* Admin Dashboard Client Component */}
       <AdminDashboardClient 
         users={usersWithData}
