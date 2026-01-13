@@ -198,100 +198,6 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
 
   return (
     <div className="admin-dashboard-content">
-      {/* Date Range Dropdown - Top Right */}
-      <div className="admin-date-dropdown-wrapper">
-        <div className="admin-date-dropdown">
-          <button
-            className="admin-date-dropdown-toggle"
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          >
-            <span className="material-icons">calendar_today</span>
-            <span>{getDateRangeLabel()}</span>
-            <span className="material-icons">{isDropdownOpen ? 'expand_less' : 'expand_more'}</span>
-          </button>
-          {isDropdownOpen && (
-            <div className="admin-date-dropdown-menu">
-              <button
-                className={`admin-date-dropdown-item ${quickDateRange === 'all' ? 'active' : ''}`}
-                onClick={() => handleDateRangeSelect('all')}
-              >
-                <span className="material-icons">event</span>
-                All Time
-              </button>
-              <button
-                className={`admin-date-dropdown-item ${quickDateRange === 'today' ? 'active' : ''}`}
-                onClick={() => handleDateRangeSelect('today')}
-              >
-                <span className="material-icons">today</span>
-                Today
-              </button>
-              <button
-                className={`admin-date-dropdown-item ${quickDateRange === 'week' ? 'active' : ''}`}
-                onClick={() => handleDateRangeSelect('week')}
-              >
-                <span className="material-icons">date_range</span>
-                This Week
-              </button>
-              <button
-                className={`admin-date-dropdown-item ${quickDateRange === 'month' ? 'active' : ''}`}
-                onClick={() => handleDateRangeSelect('month')}
-              >
-                <span className="material-icons">calendar_month</span>
-                This Month
-              </button>
-              <button
-                className="admin-date-dropdown-item"
-                onClick={() => handleDateRangeSelect('custom')}
-              >
-                <span className="material-icons">tune</span>
-                Custom Range
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Filtered Stats Cards - Only Requested, Successful, Failures update with date */}
-      <div className="dashboard-stats admin-filtered-stats">
-        <div className="stat-card">
-          <div className="stat-icon">
-            <span className="material-icons">pending_actions</span>
-          </div>
-          <div className="stat-content">
-            <p className="stat-label">
-              {dateRange ? 'Filtered' : 'Total'} Requested
-              {isLoadingStats && <span className="stat-loading">...</span>}
-            </p>
-            <p className="stat-value">{filteredStats.totalRequested.toLocaleString()}</p>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">
-            <span className="material-icons">check_circle</span>
-          </div>
-          <div className="stat-content">
-            <p className="stat-label">
-              {dateRange ? 'Filtered' : 'Total'} Successful
-              {isLoadingStats && <span className="stat-loading">...</span>}
-            </p>
-            <p className="stat-value">{filteredStats.totalSuccessful.toLocaleString()}</p>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">
-            <span className="material-icons">error</span>
-          </div>
-          <div className="stat-content">
-            <p className="stat-label">
-              {dateRange ? 'Filtered' : 'Total'} Failures
-              {isLoadingStats && <span className="stat-loading">...</span>}
-            </p>
-            <p className="stat-value">{filteredStats.totalFailures.toLocaleString()}</p>
-          </div>
-        </div>
-      </div>
 
       {/* Tabs */}
       <div className="admin-tabs">
@@ -475,7 +381,94 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
       {/* Analytics Tab */}
       {selectedTab === 'analytics' && (
         <div className="admin-section">
+          {/* Date Range Dropdown - Top Right */}
+          <div className="admin-date-dropdown-wrapper">
+            <div className="admin-date-dropdown">
+              <button
+                className="admin-date-dropdown-toggle"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              >
+                <span className="material-icons">calendar_today</span>
+                <span>{getDateRangeLabel()}</span>
+                <span className="material-icons">{isDropdownOpen ? 'expand_less' : 'expand_more'}</span>
+              </button>
+              {isDropdownOpen && (
+                <div className="admin-date-dropdown-menu">
+                  <button
+                    className={`admin-date-dropdown-item ${quickDateRange === 'all' ? 'active' : ''}`}
+                    onClick={() => handleDateRangeSelect('all')}
+                  >
+                    <span className="material-icons">event</span>
+                    All Time
+                  </button>
+                  <button
+                    className={`admin-date-dropdown-item ${quickDateRange === 'today' ? 'active' : ''}`}
+                    onClick={() => handleDateRangeSelect('today')}
+                  >
+                    <span className="material-icons">today</span>
+                    Today
+                  </button>
+                  <button
+                    className={`admin-date-dropdown-item ${quickDateRange === 'week' ? 'active' : ''}`}
+                    onClick={() => handleDateRangeSelect('week')}
+                  >
+                    <span className="material-icons">date_range</span>
+                    This Week
+                  </button>
+                  <button
+                    className={`admin-date-dropdown-item ${quickDateRange === 'month' ? 'active' : ''}`}
+                    onClick={() => handleDateRangeSelect('month')}
+                  >
+                    <span className="material-icons">calendar_month</span>
+                    This Month
+                  </button>
+                  <button
+                    className="admin-date-dropdown-item"
+                    onClick={() => handleDateRangeSelect('custom')}
+                  >
+                    <span className="material-icons">tune</span>
+                    Custom Range
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="admin-analytics">
+            {/* Filtered Stats Cards - Requested, Successful, Failures */}
+            <div className="analytics-card">
+              <h3 className="analytics-title">
+                <span className="material-icons">pending_actions</span>
+                {dateRange ? 'Filtered' : 'Total'} Requested
+                {isLoadingStats && <span className="stat-loading">...</span>}
+              </h3>
+              <div className="analytics-content">
+                <p className="analytics-value">{filteredStats.totalRequested.toLocaleString()}</p>
+              </div>
+            </div>
+
+            <div className="analytics-card">
+              <h3 className="analytics-title">
+                <span className="material-icons">check_circle</span>
+                {dateRange ? 'Filtered' : 'Total'} Successful
+                {isLoadingStats && <span className="stat-loading">...</span>}
+              </h3>
+              <div className="analytics-content">
+                <p className="analytics-value">{filteredStats.totalSuccessful.toLocaleString()}</p>
+              </div>
+            </div>
+
+            <div className="analytics-card">
+              <h3 className="analytics-title">
+                <span className="material-icons">error</span>
+                {dateRange ? 'Filtered' : 'Total'} Failures
+                {isLoadingStats && <span className="stat-loading">...</span>}
+              </h3>
+              <div className="analytics-content">
+                <p className="analytics-value">{filteredStats.totalFailures.toLocaleString()}</p>
+              </div>
+            </div>
+
             <div className="analytics-card">
               <h3 className="analytics-title">
                 <span className="material-icons">people</span>
@@ -508,8 +501,8 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
               </h3>
               <div className="analytics-content">
                 <p className="analytics-value">
-                  {initialStats.totalRequested > 0
-                    ? ((initialStats.totalSuccessful / initialStats.totalRequested) * 100).toFixed(1)
+                  {filteredStats.totalRequested > 0
+                    ? ((filteredStats.totalSuccessful / filteredStats.totalRequested) * 100).toFixed(1)
                     : 0}%
                 </p>
               </div>

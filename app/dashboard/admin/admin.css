@@ -357,6 +357,11 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.admin-section .admin-date-dropdown-wrapper {
+  margin-bottom: 0;
 }
 
 .analytics-card {
@@ -402,6 +407,23 @@
   font-family: var(--font-poppins);
   margin: 0;
   line-height: 1;
+}
+
+.stat-loading {
+  display: inline-block;
+  margin-left: 0.5rem;
+  color: rgba(212, 175, 55, 0.7);
+  font-size: 0.9rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .analytics-label {
