@@ -58,12 +58,12 @@ export default function AdminDashboardClient({ users, recentPurchases, initialSt
       setIsLoadingStats(true)
       getFilteredStats(dateRange.start, dateRange.end)
         .then(stats => {
-          if (!stats.error) {
+          if (!stats.error && 'businessCenters' in stats) {
             setFilteredStats({
               totalUsers: initialStats.totalUsers, // Total users doesn't change with date
-              totalBCs: stats.businessCenters,
-              totalCreditsIssued: stats.creditsIssued,
-              totalSuccessful: stats.successful,
+              totalBCs: stats.businessCenters ?? 0,
+              totalCreditsIssued: stats.creditsIssued ?? 0,
+              totalSuccessful: stats.successful ?? 0,
             })
           }
           setIsLoadingStats(false)
