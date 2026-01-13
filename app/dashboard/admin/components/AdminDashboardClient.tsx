@@ -420,12 +420,27 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
               </h3>
               <div className="analytics-content">
                 <p className="analytics-value">
-                  {users.reduce((sum, u) => sum + u.stats.requested, 0) > 0
-                    ? ((users.reduce((sum, u) => sum + u.stats.successful, 0) /
-                        users.reduce((sum, u) => sum + u.stats.requested, 0)) * 100).toFixed(1)
+                  {initialStats.totalRequested > 0
+                    ? ((initialStats.totalSuccessful / initialStats.totalRequested) * 100).toFixed(1)
                     : 0}%
                 </p>
-                <p className="analytics-label">Average success rate across all users</p>
+                <p className="analytics-label">Overall success rate (all time)</p>
+              </div>
+            </div>
+
+            <div className="analytics-card">
+              <h3 className="analytics-title">
+                <span className="material-icons">receipt</span>
+                Total Purchases
+              </h3>
+              <div className="analytics-content">
+                <p className="analytics-value">{allPurchases.length.toLocaleString()}</p>
+                <p className="analytics-label">All purchase transactions</p>
+                <div className="analytics-breakdown">
+                  <span>{allPurchases.filter(p => p.status === 'completed').length} completed</span>
+                  <span>{allPurchases.filter(p => p.status === 'pending').length} pending</span>
+                  <span>{allPurchases.filter(p => p.status === 'failed').length} failed</span>
+                </div>
               </div>
             </div>
           </div>
