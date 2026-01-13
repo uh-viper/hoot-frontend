@@ -29,7 +29,7 @@ export async function getFilteredStats(startDate: Date, endDate: Date) {
   // Fetch purchases in date range
   const { data: filteredPurchases } = await supabase
     .from('purchases')
-    .select('credits, amount, status')
+    .select('credits, amount_paid_cents, status')
     .gte('created_at', start.toISOString())
     .lte('created_at', end.toISOString())
 
@@ -43,8 +43,8 @@ export async function getFilteredStats(startDate: Date, endDate: Date) {
 
   // Calculate filtered revenue
   const filteredRevenue = filteredPurchases?.reduce((sum, p) => {
-    if (p.status === 'completed' && p.amount) {
-      return sum + (p.amount / 100)
+    if (p.status === 'completed' && p.amount_paid_cents) {
+      return sum + (p.amount_paid_cents / 100)
     }
     return sum
   }, 0) ?? 0
@@ -58,18 +58,21 @@ export async function getFilteredStats(startDate: Date, endDate: Date) {
 
   const filteredSuccessful = filteredAccounts?.length ?? 0
 
-  // For requested and failures, we need to check jobs/creation attempts
-  // Since we don't have a jobs table, we'll estimate based on successful + a failure rate
-  // Or we could query user_accounts with status if that exists
-  // For now, let's use a simpler approach: count all accounts as both requested and successful
-  // and estimate failures (this is a limitation - ideally we'd have a jobs table)
-  
-  // We can check if there are any patterns, but for now:
-  // Requested = successful (since we only have successful accounts in user_accounts)
-  // This means we can't accurately track failures without a jobs table
-  // Let's return what we can accurately measure
-  const filteredRequested = filteredSuccessful // Best estimate available
-  const filteredFailures = 0 // Can't calculate without jobs table
+  // Fetch user_stats to get requested and failures in date range
+  // We need to sum up the stats for all users, but only count stats that were updated in the date range
+  // Since user_stats tracks cumulative totals, we need a different approach
+  // Let's query user_accounts to get successful count, and use a jobs table if available
+  // For now, we'll use user_stats but this might not be accurate for date ranges
+  // Actually, let's check if we can query user_stats with updated_at in range
+  const { data: statsInRange } = await supabase
+    .from('user_stats')
+    .select('requested, successful, failures')
+    .gte('updated_at', start.toISOString())
+    .lte('updated_at', end.toISOString())
+
+  // Sum up the stats
+  const filteredRequested = statsInRange?.reduce((sum, s) => sum + (s.requested || 0), 0) ?? 0
+  const filteredFailures = statsInRange?.reduce((sum, s) => sum + (s.failures || 0), 0) ?? 0
 
   return {
     requested: filteredRequested,
