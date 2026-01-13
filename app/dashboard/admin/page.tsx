@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Metadata } from 'next'
 import AdminDashboardClient from './components/AdminDashboardClient'
-import '../styles/dashboard.css'
+import '../../styles/dashboard.css'
 import './admin.css'
 
 export const metadata: Metadata = {
