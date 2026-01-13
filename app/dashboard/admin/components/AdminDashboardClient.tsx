@@ -54,6 +54,7 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [purchasesPage, setPurchasesPage] = useState(1)
   const purchasesPerPage = 5
+  const [purchaseSearchTerm, setPurchaseSearchTerm] = useState('')
 
   // Update stats when date range changes
   useEffect(() => {
@@ -375,6 +376,16 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
       {/* Purchases Tab */}
       {selectedTab === 'purchases' && (
         <div className="admin-section">
+          <div className="admin-filters">
+            <input
+              type="text"
+              placeholder="Search purchases by ID, user ID, credits, amount, or status..."
+              value={purchaseSearchTerm}
+              onChange={(e) => setPurchaseSearchTerm(e.target.value)}
+              className="admin-search-input"
+            />
+          </div>
+
           <div className="admin-table-container">
             <table className="admin-table">
               <thead>
@@ -388,7 +399,7 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
                 </tr>
               </thead>
               <tbody>
-                {allPurchases
+                {filteredPurchases
                   .slice((purchasesPage - 1) * purchasesPerPage, purchasesPage * purchasesPerPage)
                   .map((purchase) => (
                   <tr key={purchase.id}>
@@ -406,13 +417,13 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
                 ))}
               </tbody>
             </table>
-            {allPurchases.length === 0 && (
+            {filteredPurchases.length === 0 && (
               <div className="admin-empty">
                 <span className="material-icons">receipt_long</span>
-                <p>No purchases yet</p>
+                <p>{purchaseSearchTerm ? 'No purchases found' : 'No purchases yet'}</p>
               </div>
             )}
-            {allPurchases.length > purchasesPerPage && (
+            {filteredPurchases.length > purchasesPerPage && (
               <div className="admin-pagination">
                 <button
                   className="admin-pagination-btn"
@@ -423,12 +434,12 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
                   Previous
                 </button>
                 <span className="admin-pagination-info">
-                  Page {purchasesPage} of {Math.ceil(allPurchases.length / purchasesPerPage)}
+                  Page {purchasesPage} of {Math.ceil(filteredPurchases.length / purchasesPerPage)}
                 </span>
                 <button
                   className="admin-pagination-btn"
-                  onClick={() => setPurchasesPage(prev => Math.min(Math.ceil(allPurchases.length / purchasesPerPage), prev + 1))}
-                  disabled={purchasesPage >= Math.ceil(allPurchases.length / purchasesPerPage)}
+                  onClick={() => setPurchasesPage(prev => Math.min(Math.ceil(filteredPurchases.length / purchasesPerPage), prev + 1))}
+                  disabled={purchasesPage >= Math.ceil(filteredPurchases.length / purchasesPerPage)}
                 >
                   Next
                   <span className="material-icons">chevron_right</span>
