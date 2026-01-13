@@ -28,6 +28,7 @@ export default async function AdminDashboardPage() {
   const supabase = await createClient()
 
   // Fetch all users with their stats
+  // This query will work if user is admin (RLS policy allows it)
   const { data: users, error: usersError } = await supabase
     .from('user_profiles')
     .select(`
@@ -41,6 +42,10 @@ export default async function AdminDashboardPage() {
       updated_at
     `)
     .order('created_at', { ascending: false })
+
+  if (usersError) {
+    console.error('Error fetching users:', usersError)
+  }
 
   // Fetch user stats
   const { data: allStats, error: statsError } = await supabase
