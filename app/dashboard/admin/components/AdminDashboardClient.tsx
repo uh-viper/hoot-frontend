@@ -369,7 +369,7 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.map((user) => (
+                {filteredUsers.slice(0, usersToShow).map((user) => (
                   <tr key={user.id}>
                     <td>{user.email || 'N/A'}</td>
                     <td>{user.full_name || 'N/A'}</td>
