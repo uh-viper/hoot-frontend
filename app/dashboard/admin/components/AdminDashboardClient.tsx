@@ -1,6 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { getFilteredStats } from '@/app/actions/admin-stats'
+import CalendarModal from '../../components/CalendarModal'
 import './admin-client.css'
 
 interface User {
@@ -32,12 +34,74 @@ interface Purchase {
 interface AdminDashboardClientProps {
   users: User[]
   recentPurchases: Purchase[]
+  initialStats: {
+    totalUsers: number
+    totalBCs: number
+    totalCreditsIssued: number
+    totalSuccessful: number
+  }
 }
 
-export default function AdminDashboardClient({ users, recentPurchases }: AdminDashboardClientProps) {
-  const [selectedTab, setSelectedTab] = useState<'users' | 'purchases'>('users')
+export default function AdminDashboardClient({ users, recentPurchases, initialStats }: AdminDashboardClientProps) {
+  const [selectedTab, setSelectedTab] = useState<'users' | 'purchases' | 'analytics'>('users')
   const [searchTerm, setSearchTerm] = useState('')
-  const [filterAdmin, setFilterAdmin] = useState(false)
+  const [filterAdmin, setFilterAdmin] = useState<'all' | 'admins' | 'users'>('all')
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+  const [dateRange, setDateRange] = useState<{ start: Date; end: Date } | null>(null)
+  const [filteredStats, setFilteredStats] = useState(initialStats)
+  const [isLoadingStats, setIsLoadingStats] = useState(false)
+  const [quickDateRange, setQuickDateRange] = useState<'all' | 'today' | 'week' | 'month'>('all')
+
+  // Update stats when date range changes
+  useEffect(() => {
+    if (dateRange) {
+      setIsLoadingStats(true)
+      getFilteredStats(dateRange.start, dateRange.end)
+        .then(stats => {
+          if (!stats.error) {
+            setFilteredStats({
+              totalUsers: initialStats.totalUsers, // Total users doesn't change with date
+              totalBCs: stats.businessCenters,
+              totalCreditsIssued: stats.creditsIssued,
+              totalSuccessful: stats.successful,
+            })
+          }
+          setIsLoadingStats(false)
+        })
+        .catch(() => setIsLoadingStats(false))
+    } else {
+      setFilteredStats(initialStats)
+    }
+  }, [dateRange, initialStats])
+
+  // Handle quick date range selection
+  const handleQuickDateRange = (range: 'all' | 'today' | 'week' | 'month') => {
+    setQuickDateRange(range)
+    if (range === 'all') {
+      setDateRange(null)
+      return
+    }
+
+    const today = new Date()
+    const start = new Date(today)
+
+    switch (range) {
+      case 'today':
+        start.setUTCHours(0, 0, 0, 0)
+        setDateRange({ start, end: today })
+        break
+      case 'week':
+        start.setDate(today.getDate() - 7)
+        start.setUTCHours(0, 0, 0, 0)
+        setDateRange({ start, end: today })
+        break
+      case 'month':
+        start.setDate(1)
+        start.setUTCHours(0, 0, 0, 0)
+        setDateRange({ start, end: today })
+        break
+    }
+  }
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = !searchTerm || 
@@ -45,7 +109,10 @@ export default function AdminDashboardClient({ users, recentPurchases }: AdminDa
       user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.discord_username?.toLowerCase().includes(searchTerm.toLowerCase())
     
-    const matchesAdminFilter = !filterAdmin || user.is_admin
+    const matchesAdminFilter = 
+      filterAdmin === 'all' || 
+      (filterAdmin === 'admins' && user.is_admin) ||
+      (filterAdmin === 'users' && !user.is_admin)
     
     return matchesSearch && matchesAdminFilter
   })
@@ -60,8 +127,119 @@ export default function AdminDashboardClient({ users, recentPurchases }: AdminDa
     })
   }
 
+  const formatDateRange = () => {
+    if (!dateRange) return 'All Time'
+    const startStr = dateRange.start.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    const endStr = dateRange.end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    return `${startStr} - ${endStr}`
+  }
+
   return (
     <div className="admin-dashboard-content">
+      {/* Date Range Selector */}
+      <div className="admin-date-selector">
+        <div className="admin-date-quick-filters">
+          <button
+            className={`admin-quick-date-btn ${quickDateRange === 'all' ? 'active' : ''}`}
+            onClick={() => handleQuickDateRange('all')}
+          >
+            All Time
+          </button>
+          <button
+            className={`admin-quick-date-btn ${quickDateRange === 'today' ? 'active' : ''}`}
+            onClick={() => handleQuickDateRange('today')}
+          >
+            Today
+          </button>
+          <button
+            className={`admin-quick-date-btn ${quickDateRange === 'week' ? 'active' : ''}`}
+            onClick={() => handleQuickDateRange('week')}
+          >
+            Last 7 Days
+          </button>
+          <button
+            className={`admin-quick-date-btn ${quickDateRange === 'month' ? 'active' : ''}`}
+            onClick={() => handleQuickDateRange('month')}
+          >
+            This Month
+          </button>
+          <button
+            className="admin-custom-date-btn"
+            onClick={() => setIsCalendarOpen(true)}
+          >
+            <span className="material-icons">calendar_today</span>
+            Custom Range
+          </button>
+        </div>
+        {dateRange && (
+          <div className="admin-date-range-display">
+            <span className="material-icons">event</span>
+            {formatDateRange()}
+            <button
+              className="admin-clear-date-btn"
+              onClick={() => {
+                setDateRange(null)
+                setQuickDateRange('all')
+              }}
+            >
+              <span className="material-icons">close</span>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Filtered Stats Cards */}
+      <div className="dashboard-stats admin-filtered-stats">
+        <div className="stat-card">
+          <div className="stat-icon">
+            <span className="material-icons">account_balance</span>
+          </div>
+          <div className="stat-content">
+            <p className="stat-label">
+              {dateRange ? 'Filtered' : 'Total'} Business Centers
+              {isLoadingStats && <span className="stat-loading">...</span>}
+            </p>
+            <p className="stat-value">{filteredStats.totalBCs.toLocaleString()}</p>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon">
+            <span className="material-icons">payment</span>
+          </div>
+          <div className="stat-content">
+            <p className="stat-label">
+              {dateRange ? 'Filtered' : 'Total'} Credits Issued
+              {isLoadingStats && <span className="stat-loading">...</span>}
+            </p>
+            <p className="stat-value">{filteredStats.totalCreditsIssued.toLocaleString()}</p>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon">
+            <span className="material-icons">check_circle</span>
+          </div>
+          <div className="stat-content">
+            <p className="stat-label">
+              {dateRange ? 'Filtered' : 'Total'} Successful
+              {isLoadingStats && <span className="stat-loading">...</span>}
+            </p>
+            <p className="stat-value">{filteredStats.totalSuccessful.toLocaleString()}</p>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon">
+            <span className="material-icons">people</span>
+          </div>
+          <div className="stat-content">
+            <p className="stat-label">Total Users</p>
+            <p className="stat-value">{filteredStats.totalUsers.toLocaleString()}</p>
+          </div>
+        </div>
+      </div>
+
       {/* Tabs */}
       <div className="admin-tabs">
         <button
@@ -78,6 +256,13 @@ export default function AdminDashboardClient({ users, recentPurchases }: AdminDa
           <span className="material-icons">receipt</span>
           Recent Purchases ({recentPurchases.length})
         </button>
+        <button
+          className={`admin-tab ${selectedTab === 'analytics' ? 'active' : ''}`}
+          onClick={() => setSelectedTab('analytics')}
+        >
+          <span className="material-icons">insights</span>
+          Analytics
+        </button>
       </div>
 
       {/* Users Tab */}
@@ -91,14 +276,28 @@ export default function AdminDashboardClient({ users, recentPurchases }: AdminDa
               onChange={(e) => setSearchTerm(e.target.value)}
               className="admin-search-input"
             />
-            <label className="admin-filter-checkbox">
-              <input
-                type="checkbox"
-                checked={filterAdmin}
-                onChange={(e) => setFilterAdmin(e.target.checked)}
-              />
-              <span>Show admins only</span>
-            </label>
+            <div className="admin-filter-toggle">
+              <button
+                className={`admin-filter-option ${filterAdmin === 'all' ? 'active' : ''}`}
+                onClick={() => setFilterAdmin('all')}
+              >
+                All
+              </button>
+              <button
+                className={`admin-filter-option ${filterAdmin === 'admins' ? 'active' : ''}`}
+                onClick={() => setFilterAdmin('admins')}
+              >
+                <span className="material-icons">admin_panel_settings</span>
+                Admins
+              </button>
+              <button
+                className={`admin-filter-option ${filterAdmin === 'users' ? 'active' : ''}`}
+                onClick={() => setFilterAdmin('users')}
+              >
+                <span className="material-icons">person</span>
+                Users
+              </button>
+            </div>
           </div>
 
           <div className="admin-table-container">
@@ -112,7 +311,7 @@ export default function AdminDashboardClient({ users, recentPurchases }: AdminDa
                   <th>Requested</th>
                   <th>Successful</th>
                   <th>Failures</th>
-                  <th>Admin</th>
+                  <th>Role</th>
                   <th>Joined</th>
                 </tr>
               </thead>
@@ -189,6 +388,85 @@ export default function AdminDashboardClient({ users, recentPurchases }: AdminDa
           </div>
         </div>
       )}
+
+      {/* Analytics Tab */}
+      {selectedTab === 'analytics' && (
+        <div className="admin-section">
+          <div className="admin-analytics">
+            <div className="analytics-card">
+              <h3 className="analytics-title">
+                <span className="material-icons">trending_up</span>
+                User Growth
+              </h3>
+              <div className="analytics-content">
+                <p className="analytics-value">{users.length}</p>
+                <p className="analytics-label">Total registered users</p>
+                <div className="analytics-breakdown">
+                  <span>{users.filter(u => u.is_admin).length} admins</span>
+                  <span>{users.filter(u => !u.is_admin).length} regular users</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="analytics-card">
+              <h3 className="analytics-title">
+                <span className="material-icons">account_balance</span>
+                Business Centers Created
+              </h3>
+              <div className="analytics-content">
+                <p className="analytics-value">{filteredStats.totalBCs.toLocaleString()}</p>
+                <p className="analytics-label">
+                  {dateRange ? 'In selected date range' : 'All time'}
+                </p>
+              </div>
+            </div>
+
+            <div className="analytics-card">
+              <h3 className="analytics-title">
+                <span className="material-icons">payments</span>
+                Revenue Metrics
+              </h3>
+              <div className="analytics-content">
+                <p className="analytics-value">
+                  ${recentPurchases
+                    .filter(p => p.status === 'completed')
+                    .reduce((sum, p) => sum + (p.amount || 0) / 100, 0)
+                    .toFixed(2)}
+                </p>
+                <p className="analytics-label">Total revenue (last 10 purchases)</p>
+              </div>
+            </div>
+
+            <div className="analytics-card">
+              <h3 className="analytics-title">
+                <span className="material-icons">insights</span>
+                Success Rate
+              </h3>
+              <div className="analytics-content">
+                <p className="analytics-value">
+                  {users.reduce((sum, u) => sum + u.stats.requested, 0) > 0
+                    ? ((users.reduce((sum, u) => sum + u.stats.successful, 0) /
+                        users.reduce((sum, u) => sum + u.stats.requested, 0)) * 100).toFixed(1)
+                    : 0}%
+                </p>
+                <p className="analytics-label">Average success rate across all users</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Calendar Modal */}
+      <CalendarModal
+        isOpen={isCalendarOpen}
+        onClose={() => setIsCalendarOpen(false)}
+        onSelect={(start, end) => {
+          setDateRange({ start, end })
+          setQuickDateRange('all')
+        }}
+        initialStartDate={dateRange?.start}
+        initialEndDate={dateRange?.end}
+      />
     </div>
   )
 }

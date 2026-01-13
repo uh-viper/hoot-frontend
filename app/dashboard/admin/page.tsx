@@ -152,6 +152,12 @@ export default async function AdminDashboardPage() {
       <AdminDashboardClient 
         users={usersWithData}
         recentPurchases={recentPurchases || []}
+        initialStats={{
+          totalUsers,
+          totalBCs: totalBCs ?? 0,
+          totalCreditsIssued: totalCreditsIssued,
+          totalSuccessful,
+        }}
       />
     </div>
   )

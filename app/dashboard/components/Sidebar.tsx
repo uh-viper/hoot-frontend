@@ -42,21 +42,18 @@ export default function Sidebar({ userEmail, credits = 0, isAdmin = false }: Sid
       label: "Credits",
       path: "/dashboard/credits",
     },
+    // Add admin link before settings if user is admin
+    ...(isAdmin ? [{
+      icon: "admin_panel_settings",
+      label: "Admin",
+      path: "/dashboard/admin",
+    }] : []),
     {
       icon: "settings",
       label: "Settings",
       path: "/dashboard/settings",
     },
   ];
-
-  // Add admin link if user is admin
-  if (isAdmin) {
-    menuItems.push({
-      icon: "admin_panel_settings",
-      label: "Admin",
-      path: "/dashboard/admin",
-    });
-  }
 
   return (
     <aside className="dashboard-sidebar">
