@@ -450,11 +450,6 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
               </h3>
               <div className="analytics-content">
                 <p className="analytics-value">{users.length.toLocaleString()}</p>
-                <p className="analytics-label">Total registered users</p>
-                <div className="analytics-breakdown">
-                  <span>{users.filter(u => u.is_admin).length} admins</span>
-                  <span>{users.filter(u => !u.is_admin).length} regular users</span>
-                </div>
               </div>
             </div>
 
@@ -470,7 +465,6 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
                     .reduce((sum, p) => sum + (p.amount || 0) / 100, 0)
                     .toFixed(2)}
                 </p>
-                <p className="analytics-label">All-time revenue from completed purchases</p>
               </div>
             </div>
 
@@ -485,23 +479,6 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
                     ? ((initialStats.totalSuccessful / initialStats.totalRequested) * 100).toFixed(1)
                     : 0}%
                 </p>
-                <p className="analytics-label">Overall success rate (all time)</p>
-              </div>
-            </div>
-
-            <div className="analytics-card">
-              <h3 className="analytics-title">
-                <span className="material-icons">receipt</span>
-                Total Purchases
-              </h3>
-              <div className="analytics-content">
-                <p className="analytics-value">{allPurchases.length.toLocaleString()}</p>
-                <p className="analytics-label">All purchase transactions</p>
-                <div className="analytics-breakdown">
-                  <span>{allPurchases.filter(p => p.status === 'completed').length} completed</span>
-                  <span>{allPurchases.filter(p => p.status === 'pending').length} pending</span>
-                  <span>{allPurchases.filter(p => p.status === 'failed').length} failed</span>
-                </div>
               </div>
             </div>
           </div>
