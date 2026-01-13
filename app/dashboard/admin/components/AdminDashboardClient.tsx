@@ -80,10 +80,27 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
     if (dateRange) {
       setIsLoadingStats(true)
       // Convert local time dates to UTC for the server
-      // The dates are in local time, we need to convert them properly
-      // Example: Jan 13 00:00 EST should become Jan 13 05:00 UTC (EST is UTC-5)
-      const startUTC = dayjs(dateRange.start).startOf('day').utc().toDate()
-      const endUTC = dayjs(dateRange.end).endOf('day').utc().toDate()
+      // dateRange.start and dateRange.end are Date objects representing local time
+      // We need to extract the local date components and convert to UTC
+      // Example: If user selects Jan 13 in EST, we want Jan 13 00:00 EST = Jan 13 05:00 UTC
+      const startLocal = dayjs(dateRange.start)
+      const endLocal = dayjs(dateRange.end)
+      
+      // Get the local date components (year, month, day) and create UTC dates
+      // This ensures we're querying for data created during that local day
+      const startUTC = dayjs.utc([
+        startLocal.year(),
+        startLocal.month(),
+        startLocal.date(),
+        0, 0, 0, 0
+      ]).subtract(startLocal.utcOffset(), 'minute').toDate()
+      
+      const endUTC = dayjs.utc([
+        endLocal.year(),
+        endLocal.month(),
+        endLocal.date(),
+        23, 59, 59, 999
+      ]).subtract(endLocal.utcOffset(), 'minute').toDate()
       
       getFilteredStats(startUTC, endUTC)
         .then(stats => {
