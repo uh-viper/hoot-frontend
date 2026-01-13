@@ -384,11 +384,11 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
           <div className="admin-analytics">
             <div className="analytics-card">
               <h3 className="analytics-title">
-                <span className="material-icons">trending_up</span>
-                User Growth
+                <span className="material-icons">people</span>
+                Total Users
               </h3>
               <div className="analytics-content">
-                <p className="analytics-value">{users.length}</p>
+                <p className="analytics-value">{users.length.toLocaleString()}</p>
                 <p className="analytics-label">Total registered users</p>
                 <div className="analytics-breakdown">
                   <span>{users.filter(u => u.is_admin).length} admins</span>
@@ -399,30 +399,17 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
 
             <div className="analytics-card">
               <h3 className="analytics-title">
-                <span className="material-icons">account_balance</span>
-                Business Centers Created
-              </h3>
-              <div className="analytics-content">
-                <p className="analytics-value">{filteredStats.totalBCs.toLocaleString()}</p>
-                <p className="analytics-label">
-                  {dateRange ? 'In selected date range' : 'All time'}
-                </p>
-              </div>
-            </div>
-
-            <div className="analytics-card">
-              <h3 className="analytics-title">
                 <span className="material-icons">payments</span>
-                Revenue Metrics
+                Total Revenue
               </h3>
               <div className="analytics-content">
                 <p className="analytics-value">
-                  ${recentPurchases
+                  ${allPurchases
                     .filter(p => p.status === 'completed')
                     .reduce((sum, p) => sum + (p.amount || 0) / 100, 0)
                     .toFixed(2)}
                 </p>
-                <p className="analytics-label">Total revenue (last 10 purchases)</p>
+                <p className="analytics-label">All-time revenue from completed purchases</p>
               </div>
             </div>
 
