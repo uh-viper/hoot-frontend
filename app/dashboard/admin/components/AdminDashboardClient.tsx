@@ -120,6 +120,25 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
     return matchesSearch && matchesAdminFilter
   })
 
+  // Filter purchases based on search term
+  const filteredPurchases = allPurchases.filter(purchase => {
+    if (!purchaseSearchTerm) return true
+    
+    const searchLower = purchaseSearchTerm.toLowerCase()
+    return (
+      purchase.id.toLowerCase().includes(searchLower) ||
+      purchase.user_id.toLowerCase().includes(searchLower) ||
+      purchase.credits.toString().includes(searchLower) ||
+      purchase.status.toLowerCase().includes(searchLower) ||
+      (purchase.amount && (purchase.amount / 100).toFixed(2).includes(searchLower))
+    )
+  })
+
+  // Reset to page 1 when search term changes
+  useEffect(() => {
+    setPurchasesPage(1)
+  }, [purchaseSearchTerm])
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
