@@ -49,8 +49,7 @@ export async function getFilteredStats(startDate: Date, endDate: Date) {
     return sum
   }, 0) ?? 0
 
-  // Fetch user accounts for successful/failed counts in date range
-  // Note: We can't easily filter user_stats by date, so we'll count from user_accounts
+  // Fetch user accounts created in date range (successful)
   const { data: filteredAccounts } = await supabase
     .from('user_accounts')
     .select('created_at')
@@ -59,14 +58,26 @@ export async function getFilteredStats(startDate: Date, endDate: Date) {
 
   const filteredSuccessful = filteredAccounts?.length ?? 0
 
-  // For failures, we'd need to query failed jobs - this is a simplified version
-  // In a real implementation, you'd query a jobs table or similar
+  // For requested and failures, we need to check jobs/creation attempts
+  // Since we don't have a jobs table, we'll estimate based on successful + a failure rate
+  // Or we could query user_accounts with status if that exists
+  // For now, let's use a simpler approach: count all accounts as both requested and successful
+  // and estimate failures (this is a limitation - ideally we'd have a jobs table)
+  
+  // We can check if there are any patterns, but for now:
+  // Requested = successful (since we only have successful accounts in user_accounts)
+  // This means we can't accurately track failures without a jobs table
+  // Let's return what we can accurately measure
+  const filteredRequested = filteredSuccessful // Best estimate available
+  const filteredFailures = 0 // Can't calculate without jobs table
 
   return {
+    requested: filteredRequested,
+    successful: filteredSuccessful,
+    failures: filteredFailures,
     businessCenters: filteredBCs ?? 0,
     creditsIssued: filteredCreditsIssued,
     revenue: filteredRevenue,
-    successful: filteredSuccessful,
     purchases: filteredPurchases?.length ?? 0,
   }
 }

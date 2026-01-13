@@ -34,15 +34,15 @@ interface Purchase {
 interface AdminDashboardClientProps {
   users: User[]
   recentPurchases: Purchase[]
+  allPurchases: Purchase[]
   initialStats: {
-    totalUsers: number
-    totalBCs: number
-    totalCreditsIssued: number
+    totalRequested: number
     totalSuccessful: number
+    totalFailures: number
   }
 }
 
-export default function AdminDashboardClient({ users, recentPurchases, initialStats }: AdminDashboardClientProps) {
+export default function AdminDashboardClient({ users, recentPurchases, allPurchases, initialStats }: AdminDashboardClientProps) {
   const [selectedTab, setSelectedTab] = useState<'users' | 'purchases' | 'analytics'>('users')
   const [searchTerm, setSearchTerm] = useState('')
   const [filterAdmin, setFilterAdmin] = useState<'all' | 'admins' | 'users'>('all')
@@ -58,12 +58,11 @@ export default function AdminDashboardClient({ users, recentPurchases, initialSt
       setIsLoadingStats(true)
       getFilteredStats(dateRange.start, dateRange.end)
         .then(stats => {
-          if (!stats.error && 'businessCenters' in stats) {
+          if (!stats.error && 'requested' in stats) {
             setFilteredStats({
-              totalUsers: initialStats.totalUsers, // Total users doesn't change with date
-              totalBCs: stats.businessCenters ?? 0,
-              totalCreditsIssued: stats.creditsIssued ?? 0,
+              totalRequested: stats.requested ?? 0,
               totalSuccessful: stats.successful ?? 0,
+              totalFailures: stats.failures ?? 0,
             })
           }
           setIsLoadingStats(false)
@@ -188,31 +187,18 @@ export default function AdminDashboardClient({ users, recentPurchases, initialSt
         )}
       </div>
 
-      {/* Filtered Stats Cards */}
+      {/* Filtered Stats Cards - Only Requested, Successful, Failures update with date */}
       <div className="dashboard-stats admin-filtered-stats">
         <div className="stat-card">
           <div className="stat-icon">
-            <span className="material-icons">account_balance</span>
+            <span className="material-icons">pending_actions</span>
           </div>
           <div className="stat-content">
             <p className="stat-label">
-              {dateRange ? 'Filtered' : 'Total'} Business Centers
+              {dateRange ? 'Filtered' : 'Total'} Requested
               {isLoadingStats && <span className="stat-loading">...</span>}
             </p>
-            <p className="stat-value">{filteredStats.totalBCs.toLocaleString()}</p>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">
-            <span className="material-icons">payment</span>
-          </div>
-          <div className="stat-content">
-            <p className="stat-label">
-              {dateRange ? 'Filtered' : 'Total'} Credits Issued
-              {isLoadingStats && <span className="stat-loading">...</span>}
-            </p>
-            <p className="stat-value">{filteredStats.totalCreditsIssued.toLocaleString()}</p>
+            <p className="stat-value">{filteredStats.totalRequested.toLocaleString()}</p>
           </div>
         </div>
 
@@ -231,11 +217,14 @@ export default function AdminDashboardClient({ users, recentPurchases, initialSt
 
         <div className="stat-card">
           <div className="stat-icon">
-            <span className="material-icons">people</span>
+            <span className="material-icons">error</span>
           </div>
           <div className="stat-content">
-            <p className="stat-label">Total Users</p>
-            <p className="stat-value">{filteredStats.totalUsers.toLocaleString()}</p>
+            <p className="stat-label">
+              {dateRange ? 'Filtered' : 'Total'} Failures
+              {isLoadingStats && <span className="stat-loading">...</span>}
+            </p>
+            <p className="stat-value">{filteredStats.totalFailures.toLocaleString()}</p>
           </div>
         </div>
       </div>

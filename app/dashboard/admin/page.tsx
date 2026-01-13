@@ -95,8 +95,15 @@ export default async function AdminDashboardPage() {
   // Calculate totals
   const totalUsers = users?.length ?? 0
   const totalCreditsIssued = allCredits?.reduce((sum, c) => sum + c.credits, 0) ?? 0
+  const totalRequested = allStats?.reduce((sum, s) => sum + s.requested, 0) ?? 0
   const totalSuccessful = allStats?.reduce((sum, s) => sum + s.successful, 0) ?? 0
-  const totalRevenue = recentPurchases?.reduce((sum, p) => sum + (p.amount || 0), 0) ?? 0
+  const totalFailures = allStats?.reduce((sum, s) => sum + s.failures, 0) ?? 0
+
+  // Get all purchases for revenue calculation
+  const { data: allPurchases } = await supabase
+    .from('purchases')
+    .select('id, user_id, credits, amount, status, created_at')
+    .order('created_at', { ascending: false })
 
   return (
     <div className="dashboard-content">
@@ -105,7 +112,7 @@ export default async function AdminDashboardPage() {
         <p className="dashboard-subtitle">System overview and user management</p>
       </div>
 
-      {/* Admin Stats Cards */}
+      {/* Admin Stats Cards - All Time Totals */}
       <div className="dashboard-stats">
         <div className="stat-card">
           <div className="stat-icon">
@@ -139,11 +146,31 @@ export default async function AdminDashboardPage() {
 
         <div className="stat-card">
           <div className="stat-icon">
+            <span className="material-icons">pending_actions</span>
+          </div>
+          <div className="stat-content">
+            <p className="stat-label">Total Requested</p>
+            <p className="stat-value">{totalRequested.toLocaleString()}</p>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon">
             <span className="material-icons">check_circle</span>
           </div>
           <div className="stat-content">
             <p className="stat-label">Total Successful</p>
             <p className="stat-value">{totalSuccessful.toLocaleString()}</p>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon">
+            <span className="material-icons">error</span>
+          </div>
+          <div className="stat-content">
+            <p className="stat-label">Total Failures</p>
+            <p className="stat-value">{totalFailures.toLocaleString()}</p>
           </div>
         </div>
       </div>
@@ -152,11 +179,11 @@ export default async function AdminDashboardPage() {
       <AdminDashboardClient 
         users={usersWithData}
         recentPurchases={recentPurchases || []}
+        allPurchases={allPurchases || []}
         initialStats={{
-          totalUsers,
-          totalBCs: totalBCs ?? 0,
-          totalCreditsIssued: totalCreditsIssued,
+          totalRequested,
           totalSuccessful,
+          totalFailures,
         }}
       />
     </div>
