@@ -19,19 +19,12 @@ export async function getFilteredStats(startDate: Date, endDate: Date) {
 
   const supabase = adminCheck.supabase
 
-  // Convert local time dates to UTC for database queries
-  // The dates come in as local time, we need to convert them properly
-  // When user selects "Today" in EST, we want data created during "today" in EST
-  // So we take the local date, get start/end of day in local time, then convert to UTC
-  const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
-  
-  // Create dayjs objects from the local dates and set to start/end of day in local time
-  const startLocal = dayjs(startDate).tz(userTimezone).startOf('day')
-  const endLocal = dayjs(endDate).tz(userTimezone).endOf('day')
-  
-  // Convert to UTC for database query
-  const start = startLocal.utc().toISOString()
-  const end = endLocal.utc().toISOString()
+  // Dates are already converted to UTC on the client side
+  // They represent the start/end of the selected day in the user's local timezone, converted to UTC
+  // Example: Jan 13 00:00 EST = Jan 13 05:00 UTC
+  // We just need to ensure they're properly formatted as ISO strings
+  const start = dayjs(startDate).utc().startOf('day').toISOString()
+  const end = dayjs(endDate).utc().endOf('day').toISOString()
 
   // Fetch accounts created in date range
   const { count: filteredBCs } = await supabase

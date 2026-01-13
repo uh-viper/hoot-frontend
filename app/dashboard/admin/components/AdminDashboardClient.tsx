@@ -79,7 +79,13 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
   useEffect(() => {
     if (dateRange) {
       setIsLoadingStats(true)
-      getFilteredStats(dateRange.start, dateRange.end)
+      // Convert local time dates to UTC for the server
+      // The dates are in local time, we need to convert them properly
+      // Example: Jan 13 00:00 EST should become Jan 13 05:00 UTC (EST is UTC-5)
+      const startUTC = dayjs(dateRange.start).startOf('day').utc().toDate()
+      const endUTC = dayjs(dateRange.end).endOf('day').utc().toDate()
+      
+      getFilteredStats(startUTC, endUTC)
         .then(stats => {
           if (!stats.error && 'requested' in stats) {
             setFilteredStats({
