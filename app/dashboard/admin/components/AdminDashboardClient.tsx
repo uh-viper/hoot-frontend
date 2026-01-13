@@ -495,7 +495,7 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
                 <p className="analytics-value">
                   ${allPurchases
                     .filter(p => p.status === 'completed')
-                    .reduce((sum, p) => sum + (p.amount || 0) / 100, 0)
+                    .reduce((sum, p) => sum + (p.amount_paid_cents || 0) / 100, 0)
                     .toFixed(2)}
                 </p>
               </div>
