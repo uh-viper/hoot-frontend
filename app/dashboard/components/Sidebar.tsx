@@ -9,9 +9,10 @@ import "../../styles/dashboard.css";
 interface SidebarProps {
   userEmail?: string;
   credits?: number;
+  isAdmin?: boolean;
 }
 
-export default function Sidebar({ userEmail, credits = 0 }: SidebarProps) {
+export default function Sidebar({ userEmail, credits = 0, isAdmin = false }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [isNavigating, setIsNavigating] = useState(false);
@@ -47,6 +48,15 @@ export default function Sidebar({ userEmail, credits = 0 }: SidebarProps) {
       path: "/dashboard/settings",
     },
   ];
+
+  // Add admin link if user is admin
+  if (isAdmin) {
+    menuItems.push({
+      icon: "admin_panel_settings",
+      label: "Admin",
+      path: "/dashboard/admin",
+    });
+  }
 
   return (
     <aside className="dashboard-sidebar">

@@ -30,9 +30,18 @@ export default async function DashboardLayout({
 
   const credits = creditsData?.credits ?? 0
 
+  // Check if user is admin
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('is_admin')
+    .eq('user_id', user.id)
+    .single()
+
+  const isAdmin = profile?.is_admin ?? false
+
   return (
     <div className="dashboard-layout">
-      <Sidebar userEmail={user.email} credits={credits} />
+      <Sidebar userEmail={user.email} credits={credits} isAdmin={isAdmin} />
       <main className="dashboard-main">
         {children}
       </main>

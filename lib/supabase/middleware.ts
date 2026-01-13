@@ -35,6 +35,11 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  // Admin routes - require authentication (admin check happens in page)
+  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin') || 
+                       request.nextUrl.pathname.startsWith('/dashboard/admin') ||
+                       request.nextUrl.pathname.startsWith('/api/admin')
+
   // Public routes that don't require authentication
   const publicRoutes = ['/', '/login', '/signup', '/auth', '/learn-more', '/contact', '/terms-of-service', '/privacy-policy', '/refund-policy', '/forgot-password', '/reset-password']
   const isPublicRoute = publicRoutes.some(route => 
@@ -56,9 +61,17 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // Admin routes require authentication (admin check happens in page/API route)
+  if (!user && isAdminRoute) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
+  }
+
   if (
     !user &&
-    !isPublicRoute
+    !isPublicRoute &&
+    !isAdminRoute
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone()

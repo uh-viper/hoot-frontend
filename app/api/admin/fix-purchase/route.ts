@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { validateAdmin } from '@/lib/auth/admin'
 
-// This is a temporary admin route to fix stuck purchases
-// Should be removed or protected with admin authentication in production
+// Admin route to fix stuck purchases - requires admin authentication
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -16,6 +16,14 @@ const supabaseAdmin = createClient(
 )
 
 export async function POST(request: NextRequest) {
+  // Check if user is admin
+  const adminCheck = await validateAdmin()
+  if (adminCheck.error) {
+    return NextResponse.json(
+      { error: adminCheck.error, message: adminCheck.message },
+      { status: adminCheck.error === 'Unauthorized' ? 401 : 403 }
+    )
+  }
   try {
     const body = await request.json()
     const { purchaseId } = body
