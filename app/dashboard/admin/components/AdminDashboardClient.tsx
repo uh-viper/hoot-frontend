@@ -185,11 +185,20 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
 
   const formatDateRange = () => {
     if (!dateRange) return 'All Time'
-    // Use UTC methods to format dates consistently
-    const startStr = `${dateRange.start.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}`
-    const endStr = `${dateRange.end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}`
+    // Format dates using UTC to match database storage
+    const startYear = dateRange.start.getUTCFullYear()
+    const startMonth = dateRange.start.getUTCMonth()
+    const startDay = dateRange.start.getUTCDate()
+    const endYear = dateRange.end.getUTCFullYear()
+    const endMonth = dateRange.end.getUTCMonth()
+    const endDay = dateRange.end.getUTCDate()
+    
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    const startStr = `${monthNames[startMonth]} ${startDay}, ${startYear}`
+    const endStr = `${monthNames[endMonth]} ${endDay}, ${endYear}`
+    
     // If same day, just show one date
-    if (startStr === endStr) {
+    if (startYear === endYear && startMonth === endMonth && startDay === endDay) {
       return startStr
     }
     return `${startStr} - ${endStr}`

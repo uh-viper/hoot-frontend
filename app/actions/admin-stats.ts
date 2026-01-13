@@ -12,12 +12,17 @@ export async function getFilteredStats(startDate: Date, endDate: Date) {
 
   const supabase = adminCheck.supabase
 
-  // Set time to start and end of day
-  const start = new Date(startDate)
-  start.setUTCHours(0, 0, 0, 0)
+  // Ensure dates are in UTC and set to start/end of day
+  // Extract UTC components to avoid timezone conversion issues
+  const startYear = startDate.getUTCFullYear()
+  const startMonth = startDate.getUTCMonth()
+  const startDay = startDate.getUTCDate()
+  const start = new Date(Date.UTC(startYear, startMonth, startDay, 0, 0, 0, 0))
   
-  const end = new Date(endDate)
-  end.setUTCHours(23, 59, 59, 999)
+  const endYear = endDate.getUTCFullYear()
+  const endMonth = endDate.getUTCMonth()
+  const endDay = endDate.getUTCDate()
+  const end = new Date(Date.UTC(endYear, endMonth, endDay, 23, 59, 59, 999))
 
   // Fetch accounts created in date range
   const { count: filteredBCs } = await supabase
