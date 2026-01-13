@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
-import timezone from 'dayjs/plugin/timezone'
 import { getFilteredStats } from '@/app/actions/admin-stats'
 import CalendarModal from '../../components/CalendarModal'
+import { 
+  localDateRangeToUTC, 
+  getLocalDateRange, 
+  formatDateRange as formatDateRangeUtil,
+  formatUTCDateToLocal 
+} from '@/lib/utils/date-timezone'
 import './admin-client.css'
-
-// Extend dayjs with plugins
-dayjs.extend(utc)
-dayjs.extend(timezone)
 
 interface User {
   id: string
@@ -80,38 +80,8 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
     if (dateRange) {
       setIsLoadingStats(true)
       // Convert local time dates to UTC for the server
-      // dateRange.start and dateRange.end are Date objects representing local dates
-      // We need to extract the local date components and create UTC dates that represent
-      // the start/end of that local day
-      // Example: Jan 13 00:00 EST = Jan 13 05:00 UTC (EST is UTC-5)
-      
-      // Get the user's timezone
-      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
-      
-      // Create dayjs objects from the dates in local time
-      // dateRange.start is already a Date object in local time, we need to interpret it correctly
-      const startDate = new Date(dateRange.start)
-      const endDate = new Date(dateRange.end)
-      
-      // Get local date components (year, month, day) from the Date objects
-      const startYear = startDate.getFullYear()
-      const startMonth = startDate.getMonth()
-      const startDay = startDate.getDate()
-      
-      const endYear = endDate.getFullYear()
-      const endMonth = endDate.getMonth()
-      const endDay = endDate.getDate()
-      
-      // Create dates in the user's timezone, then convert to UTC
-      // This ensures we're querying for data created during that local day
-      const startLocal = dayjs.tz(`${startYear}-${String(startMonth + 1).padStart(2, '0')}-${String(startDay).padStart(2, '0')} 00:00:00`, userTimezone)
-      const endLocal = dayjs.tz(`${endYear}-${String(endMonth + 1).padStart(2, '0')}-${String(endDay).padStart(2, '0')} 23:59:59`, userTimezone)
-      
-      // Convert to UTC for database query
-      const startUTC = startLocal.utc().toDate()
-      const endUTC = endLocal.utc().toDate()
-      
-      getFilteredStats(startUTC, endUTC)
+      const { start, end } = localDateRangeToUTC(dateRange.start, dateRange.end)
+      getFilteredStats(start, end)
         .then(stats => {
           if (!stats.error && 'requested' in stats) {
             setFilteredStats({
@@ -210,7 +180,7 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
 
   const formatDate = (dateString: string) => {
     // Convert UTC date from database to local time for display
-    return dayjs.utc(dateString).local().format('MMM D, YYYY, h:mm A')
+    return formatUTCDateToLocal(dateString)
   }
 
   const formatDateRange = () => {
