@@ -620,35 +620,49 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
       attempts: [] as any[],
     }
 
-    // Try multiple API payload formats to find the correct one
+    // Based on Cloudflare API docs:
+    // PUT /zones/{zone_id}/email/routing/rules/catch_all
+    // CatchAllAction = { type, value }
+    // CatchAllMatcher = { type }
+    // The catchall rule has: { id, actions, enabled, matcher, name, tag }
+    // Try multiple API payload formats based on docs
     const payloadFormats = [
-      // Format 1: Standard format
+      // Format 1: Based on API docs - CatchAllAction with type and value
+      {
+        actions: [
+          {
+            type: 'worker',
+            value: workerName,
+          },
+        ],
+        enabled: true,
+        matcher: {
+          type: 'all',
+        },
+      },
+      // Format 2: Without matcher (might be optional)
+      {
+        actions: [
+          {
+            type: 'worker',
+            value: workerName,
+          },
+        ],
+        enabled: true,
+      },
+      // Format 3: Single action object (not array)
       {
         action: {
           type: 'worker',
           value: workerName,
         },
         enabled: true,
-      },
-      // Format 2: Alternative format
-      {
-        action: {
-          type: 'worker',
-          name: workerName,
-        },
-        enabled: true,
-      },
-      // Format 3: Direct worker reference
-      {
-        action: 'worker',
-        worker: workerName,
-        enabled: true,
-      },
-      // Format 4: With matcher
-      {
         matcher: {
           type: 'all',
         },
+      },
+      // Format 4: Just action and enabled
+      {
         action: {
           type: 'worker',
           value: workerName,
