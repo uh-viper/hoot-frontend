@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
 export default function DashboardStats() {
+  const pathname = usePathname();
   const [stats, setStats] = useState({
     businessCenters: 0,
     requested: 0,
@@ -14,6 +16,7 @@ export default function DashboardStats() {
 
   useEffect(() => {
     const fetchStats = async () => {
+      setIsLoading(true);
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -22,18 +25,26 @@ export default function DashboardStats() {
         return;
       }
 
-      // Fetch user stats from database
-      const { data: statsData } = await supabase
+      // Fetch user stats from database - always fetch fresh, no cache
+      const { data: statsData, error: statsError } = await supabase
         .from('user_stats')
         .select('requested, successful, failures')
         .eq('user_id', user.id)
         .single();
 
+      if (statsError) {
+        console.error('Error fetching stats:', statsError);
+      }
+
       // Business Centers = count of accounts in vault
-      const { count: businessCentersCount } = await supabase
+      const { count: businessCentersCount, error: accountsError } = await supabase
         .from('user_accounts')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id);
+
+      if (accountsError) {
+        console.error('Error fetching accounts count:', accountsError);
+      }
 
       setStats({
         businessCenters: businessCentersCount ?? 0,
@@ -76,7 +87,9 @@ export default function DashboardStats() {
       return { channel, supabase };
     };
 
+    // Always fetch fresh stats when component mounts or pathname changes
     fetchStats();
+    
     let realtimeSetup: Awaited<ReturnType<typeof setupRealtime>> | null = null;
     setupRealtime().then(setup => {
       realtimeSetup = setup;
@@ -87,15 +100,24 @@ export default function DashboardStats() {
       fetchStats();
     };
     
+    // Listen for when page becomes visible (user switches back to tab)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchStats();
+      }
+    };
+    
     window.addEventListener('stats-updated', handleStatsUpdate);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       if (realtimeSetup) {
         realtimeSetup.supabase.removeChannel(realtimeSetup.channel);
       }
       window.removeEventListener('stats-updated', handleStatsUpdate);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, []);
+  }, [pathname]); // Re-run when pathname changes (user navigates to dashboard)
 
   if (isLoading) {
     return (
