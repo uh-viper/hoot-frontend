@@ -140,6 +140,33 @@ export default function DomainManagement() {
     setDeleteModal(null)
   }
 
+  const handleStatusChange = async (domainId: string, newStatus: 'pending' | 'active' | 'error') => {
+    setIsUpdatingStatus(domainId)
+    try {
+      const response = await fetch(`/api/admin/domains/${domainId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update status')
+      }
+
+      showSuccess(`Domain status updated to ${newStatus}`)
+      fetchDomains()
+    } catch (err: any) {
+      showError(err.message || 'Failed to update status')
+      fetchDomains() // Refresh to revert UI change
+    } finally {
+      setIsUpdatingStatus(null)
+    }
+  }
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -258,7 +285,27 @@ export default function DomainManagement() {
                     <td>
                       <strong>{domain.domain_name || 'N/A'}</strong>
                     </td>
-                    <td>{getStatusBadge(domain.status || 'pending')}</td>
+                    <td>
+                      <select
+                        value={domain.status || 'pending'}
+                        onChange={(e) => handleStatusChange(domain.id, e.target.value as 'pending' | 'active' | 'error')}
+                        disabled={isUpdatingStatus === domain.id}
+                        style={{
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '4px',
+                          border: '1px solid rgba(0,0,0,0.1)',
+                          background: 'white',
+                          fontSize: '0.875rem',
+                          cursor: isUpdatingStatus === domain.id ? 'not-allowed' : 'pointer',
+                          color: domain.status === 'active' ? '#4caf50' : domain.status === 'error' ? '#f44336' : '#ffa500',
+                          fontWeight: 500,
+                        }}
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="active">Active</option>
+                        <option value="error">Error</option>
+                      </select>
+                    </td>
                     <td>{domain.registrar || 'N/A'}</td>
                     <td>
                       {domain.cloudflare_zone_id ? (
