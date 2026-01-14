@@ -198,13 +198,18 @@ async function configurePorkbun(domain: string, nameservers: string[]) {
       nameservers: nameservers,
     }
 
-    // Ensure API URL ends with proper path (Porkbun API v3 format)
+    // Ensure API URL is properly formatted (Porkbun API v3 format)
     let apiEndpoint = porkbunApiUrl.trim()
-    if (!apiEndpoint.endsWith('/')) {
-      apiEndpoint += '/'
+    // Remove trailing slash if present
+    if (apiEndpoint.endsWith('/')) {
+      apiEndpoint = apiEndpoint.slice(0, -1)
     }
     // Porkbun API v3 endpoint format: /api/json/v3/domain/updateNameservers/{domain}
-    const endpoint = `${apiEndpoint}domain/updateNameservers/${encodeURIComponent(domain)}`
+    // Domain should be in the URL path, not the body
+    const endpoint = `${apiEndpoint}/domain/updateNameservers/${encodeURIComponent(domain)}`
+    
+    // Also include domain in body for compatibility
+    requestBody.domain = domain
 
     // Update nameservers via Porkbun API
     const response = await fetch(endpoint, {
