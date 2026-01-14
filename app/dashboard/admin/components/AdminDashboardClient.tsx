@@ -522,7 +522,6 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
       {/* Management Tab */}
       {selectedTab === 'management' && (
         <div className="admin-section">
-          <h2 className="admin-section-title">Domain Management</h2>
           <DomainManagement />
         </div>
       )}

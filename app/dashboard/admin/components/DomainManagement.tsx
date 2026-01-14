@@ -149,7 +149,6 @@ export default function DomainManagement() {
     <div className="domain-management">
       {/* Add Domain Form */}
       <div className="domain-add-form">
-        <h3>Add New Domain</h3>
         <form onSubmit={handleAddDomain}>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
             <div style={{ flex: 1 }}>
