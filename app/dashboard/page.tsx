@@ -38,10 +38,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats Cards - Client component that fetches fresh data */}
-      <DashboardStats key={`stats-${Date.now()}`} />
-
-      {/* Graph Section */}
-      <GraphSection />
+      <DashboardStats />
 
     </div>
   )

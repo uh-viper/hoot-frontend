@@ -1,3 +1,106 @@
+/* Stats Header with Date Dropdown */
+.dashboard-stats-header {
+  margin-bottom: 1.5rem;
+}
+
+.dashboard-date-dropdown-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-date-dropdown {
+  position: relative;
+}
+
+.dashboard-date-dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: var(--font-poppins);
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.dashboard-date-dropdown-toggle:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.dashboard-date-dropdown-toggle .material-icons {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.dashboard-date-dropdown-toggle .material-icons:last-child {
+  font-size: 1.2rem;
+  margin-left: 0.25rem;
+}
+
+.dashboard-date-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: rgba(10, 10, 10, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  min-width: 200px;
+  overflow: hidden;
+}
+
+.dashboard-date-dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: var(--font-poppins);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.dashboard-date-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+
+.dashboard-date-dropdown-item.active {
+  background: rgba(212, 175, 55, 0.1);
+  color: #d4af37;
+}
+
+.dashboard-date-dropdown-item .material-icons {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.dashboard-date-dropdown-item.active .material-icons {
+  color: #d4af37;
+}
+
+.dashboard-stats-note {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 0.5rem;
+  font-family: var(--font-poppins);
+}
+
 /* Stats Cards */
 .dashboard-stats {
   display: grid;
