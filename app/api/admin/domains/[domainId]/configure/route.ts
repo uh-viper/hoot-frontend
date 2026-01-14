@@ -113,11 +113,20 @@ async function configureCloudflare(domain: string): Promise<
   | { error: string; zoneId?: never; nameservers?: never }
   | { zoneId: string; nameservers: string[]; error?: never }
 > {
-  const cloudflareApiToken = process.env.CLOUDFLARE_API_TOKEN
+  // Use global API key (requires API key + email) - SUPER SECURE, server-side only
+  const cloudflareApiKey = process.env.CLOUDFLARE_API_KEY
+  const cloudflareEmail = process.env.CLOUDFLARE_EMAIL
   const cloudflareAccountId = process.env.CLOUDFLARE_ACCOUNT_ID
 
-  if (!cloudflareApiToken || !cloudflareAccountId) {
+  if (!cloudflareApiKey || !cloudflareEmail || !cloudflareAccountId) {
     return { error: 'Cloudflare API credentials not configured' }
+  }
+
+  // Cloudflare global API key authentication uses X-Auth-Key and X-Auth-Email headers
+  const authHeaders = {
+    'X-Auth-Key': cloudflareApiKey,
+    'X-Auth-Email': cloudflareEmail,
+    'Content-Type': 'application/json',
   }
 
   try {
@@ -126,10 +135,7 @@ async function configureCloudflare(domain: string): Promise<
       `https://api.cloudflare.com/client/v4/zones?name=${encodeURIComponent(domain)}`,
       {
         method: 'GET',
-        headers: {
-          Authorization: `Bearer ${cloudflareApiToken}`,
-          'Content-Type': 'application/json',
-        },
+        headers: authHeaders,
       }
     )
 
@@ -146,10 +152,7 @@ async function configureCloudflare(domain: string): Promise<
       // Create new zone
       const createResponse = await fetch('https://api.cloudflare.com/client/v4/zones', {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${cloudflareApiToken}`,
-          'Content-Type': 'application/json',
-        },
+        headers: authHeaders,
         body: JSON.stringify({
           name: domain,
           account: { id: cloudflareAccountId },
@@ -229,10 +232,19 @@ async function configurePorkbun(domain: string, nameservers: string[]) {
 
 // Update Cloudflare DNS records
 async function updateCloudflareDNS(zoneId: string, domain: string) {
-  const cloudflareApiToken = process.env.CLOUDFLARE_API_TOKEN
+  // Use global API key (requires API key + email) - SUPER SECURE, server-side only
+  const cloudflareApiKey = process.env.CLOUDFLARE_API_KEY
+  const cloudflareEmail = process.env.CLOUDFLARE_EMAIL
 
-  if (!cloudflareApiToken) {
-    return { error: 'Cloudflare API token not configured' }
+  if (!cloudflareApiKey || !cloudflareEmail) {
+    return { error: 'Cloudflare API credentials not configured' }
+  }
+
+  // Cloudflare global API key authentication uses X-Auth-Key and X-Auth-Email headers
+  const authHeaders = {
+    'X-Auth-Key': cloudflareApiKey,
+    'X-Auth-Email': cloudflareEmail,
+    'Content-Type': 'application/json',
   }
 
   try {
@@ -241,10 +253,7 @@ async function updateCloudflareDNS(zoneId: string, domain: string) {
       `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records`,
       {
         method: 'GET',
-        headers: {
-          Authorization: `Bearer ${cloudflareApiToken}`,
-          'Content-Type': 'application/json',
-        },
+        headers: authHeaders,
       }
     )
 
@@ -273,10 +282,7 @@ async function updateCloudflareDNS(zoneId: string, domain: string) {
         `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records`,
         {
           method: 'POST',
-          headers: {
-            Authorization: `Bearer ${cloudflareApiToken}`,
-            'Content-Type': 'application/json',
-          },
+          headers: authHeaders,
           body: JSON.stringify(record),
         }
       )

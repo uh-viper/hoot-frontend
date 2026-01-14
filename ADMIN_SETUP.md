@@ -148,8 +148,9 @@ DOMAIN_API_URL=https://porkbun.com/api/json/v3
 DOMAIN_API_KEY=your_porkbun_api_key
 DOMAIN_API_SECRET=your_porkbun_secret_key  # Optional but recommended
 
-# Cloudflare API (DNS Management)
-CLOUDFLARE_API_TOKEN=your_cloudflare_api_token
+# Cloudflare API (DNS Management) - Global API Key (SUPER SECURE, server-side only)
+CLOUDFLARE_API_KEY=your_cloudflare_global_api_key
+CLOUDFLARE_EMAIL=your_cloudflare_account_email
 CLOUDFLARE_ACCOUNT_ID=your_cloudflare_account_id
 ```
 
@@ -164,11 +165,12 @@ CLOUDFLARE_ACCOUNT_ID=your_cloudflare_account_id
 #### Cloudflare API
 1. Log in to Cloudflare Dashboard
 2. Go to My Profile → API Tokens
-3. Create a token with:
-   - Zone permissions: Zone:Read, DNS:Edit
-   - Account permissions: Account:Read
-4. Copy the token and Account ID
-5. Add to environment variables
+3. Scroll down to "API Keys" section
+4. Copy your "Global API Key" (or create one if needed)
+5. Copy your account email (the one you use to log in)
+6. Go to your account overview to get your Account ID
+7. Add all three to environment variables
+8. **IMPORTANT**: Global API key is extremely powerful - keep it secure and never expose it client-side
 
 ### Usage
 

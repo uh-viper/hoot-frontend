@@ -327,7 +327,7 @@ export default function DomainManagement() {
                           )}
                         </button>
                         <button
-                          onClick={() => handleDeleteDomain(domain.id, domain.domain_name)}
+                          onClick={() => handleDeleteClick(domain.id, domain.domain_name)}
                           disabled={isConfiguring === domain.id || isDeleting === domain.id}
                           style={{
                             padding: '0.5rem 1rem',
