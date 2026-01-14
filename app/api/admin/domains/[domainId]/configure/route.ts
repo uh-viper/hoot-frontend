@@ -604,8 +604,9 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
     }
 
     // First, check current catchall status
+    // Based on API docs: GET /zones/{zone_id}/email/routing/rules/catch_all
     const getCatchallResponse = await fetch(
-      `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing/catch_all`,
+      `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing/rules/catch_all`,
       {
         method: 'GET',
         headers: authHeaders,
@@ -677,8 +678,9 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
     for (let formatIndex = 0; formatIndex < payloadFormats.length; formatIndex++) {
       const catchallPayload = payloadFormats[formatIndex]
       
+      // Based on API docs: PUT /zones/{zone_id}/email/routing/rules/catch_all
       const catchallResponse = await fetch(
-        `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing/catch_all`,
+        `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing/rules/catch_all`,
         {
           method: 'PUT',
           headers: authHeaders,
