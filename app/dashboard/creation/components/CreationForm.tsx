@@ -351,6 +351,7 @@ export default function CreationForm() {
               window.dispatchEvent(new CustomEvent('credits-updated'));
               window.dispatchEvent(new CustomEvent('stats-updated'));
               window.dispatchEvent(new CustomEvent('accounts-updated'));
+              window.dispatchEvent(new CustomEvent('accounts-updated'));
             } else {
               addMessage('warning', `⚠ Credit deduction failed: ${status.credits.error || 'Unknown error'}`);
               if (status.credits.amount_should_have_been_deducted) {
