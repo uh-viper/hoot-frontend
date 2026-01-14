@@ -236,12 +236,6 @@ export default function DashboardStats() {
               </div>
             )}
           </div>
-        </div>
-        {dateRange && (
-          <p className="dashboard-stats-note" style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.5)', marginTop: '0.5rem' }}>
-            Note: Requested and Failures show all-time totals (date filtering not available)
-          </p>
-        )}
       </div>
 
       {/* Stats Cards */}
