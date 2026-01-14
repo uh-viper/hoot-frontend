@@ -317,10 +317,7 @@ export default function DomainManagement() {
                           }}
                         >
                           {isConfiguring === domain.id ? (
-                            <>
-                              <span className="spinner" style={{ display: 'inline-block', width: '12px', height: '12px', marginRight: '0.5rem', verticalAlign: 'middle' }}></span>
-                              Configuring...
-                            </>
+                            'Configuring...'
                           ) : domain.status === 'active' ? (
                             'Reconfigure'
                           ) : (
@@ -342,10 +339,7 @@ export default function DomainManagement() {
                           }}
                         >
                           {isDeleting === domain.id ? (
-                            <>
-                              <span className="spinner" style={{ display: 'inline-block', width: '12px', height: '12px', marginRight: '0.5rem', verticalAlign: 'middle' }}></span>
-                              Deleting...
-                            </>
+                            'Deleting...'
                           ) : (
                             <>
                               <span className="material-icons" style={{ fontSize: '1rem', verticalAlign: 'middle' }}>
