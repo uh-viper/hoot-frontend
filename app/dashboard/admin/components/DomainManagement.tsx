@@ -24,6 +24,7 @@ export default function DomainManagement() {
   const [isAdding, setIsAdding] = useState(false)
   const [newDomain, setNewDomain] = useState('')
   const [isConfiguring, setIsConfiguring] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState<string | null>(null)
 
   // Fetch domains on mount
   useEffect(() => {
@@ -98,6 +99,34 @@ export default function DomainManagement() {
       showError(err.message || 'Failed to configure domain')
     } finally {
       setIsConfiguring(null)
+    }
+  }
+
+  const handleDeleteDomain = async (domainId: string, domainName: string) => {
+    if (!confirm(`Are you sure you want to delete ${domainName}? This action cannot be undone.`)) {
+      return
+    }
+
+    setIsDeleting(domainId)
+    const deletingToastId = showInfo('Deleting domain...')
+
+    try {
+      const response = await fetch(`/api/admin/domains/${domainId}`, {
+        method: 'DELETE',
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete domain')
+      }
+
+      showSuccess(`Domain ${domainName} deleted successfully`)
+      fetchDomains()
+    } catch (err: any) {
+      showError(err.message || 'Failed to delete domain')
+    } finally {
+      setIsDeleting(null)
     }
   }
 
@@ -255,38 +284,69 @@ export default function DomainManagement() {
                     </td>
                     <td>{formatDate(domain.created_at)}</td>
                     <td>
-                      <button
-                        onClick={() => handleConfigureDomain(domain.id)}
-                        disabled={isConfiguring === domain.id}
-                        style={{
-                          padding: '0.5rem 1rem',
-                          borderRadius: '6px',
-                          border: 'none',
-                          background:
-                            isConfiguring === domain.id
-                              ? 'rgba(212, 175, 55, 0.5)'
-                              : domain.status === 'active'
-                              ? 'rgba(76, 175, 80, 0.2)'
-                              : '#d4af37',
-                          color: domain.status === 'active' ? '#4caf50' : '#000',
-                          fontWeight: 500,
-                          cursor: isConfiguring === domain.id ? 'not-allowed' : 'pointer',
-                          fontSize: '0.875rem',
-                        }}
-                      >
-                        {isConfiguring === domain.id ? (
-                          <>
-                            <span className="material-icons" style={{ fontSize: '1rem', verticalAlign: 'middle' }}>
-                              hourglass_empty
-                            </span>{' '}
-                            Configuring...
-                          </>
-                        ) : domain.status === 'active' ? (
-                          'Reconfigure'
-                        ) : (
-                          'Configure'
-                        )}
-                      </button>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <button
+                          onClick={() => handleConfigureDomain(domain.id)}
+                          disabled={isConfiguring === domain.id || isDeleting === domain.id}
+                          style={{
+                            padding: '0.5rem 1rem',
+                            borderRadius: '6px',
+                            border: 'none',
+                            background:
+                              isConfiguring === domain.id
+                                ? 'rgba(212, 175, 55, 0.5)'
+                                : domain.status === 'active'
+                                ? 'rgba(76, 175, 80, 0.2)'
+                                : '#d4af37',
+                            color: domain.status === 'active' ? '#4caf50' : '#000',
+                            fontWeight: 500,
+                            cursor: isConfiguring === domain.id || isDeleting === domain.id ? 'not-allowed' : 'pointer',
+                            fontSize: '0.875rem',
+                          }}
+                        >
+                          {isConfiguring === domain.id ? (
+                            <>
+                              <span className="material-icons" style={{ fontSize: '1rem', verticalAlign: 'middle' }}>
+                                hourglass_empty
+                              </span>{' '}
+                              Configuring...
+                            </>
+                          ) : domain.status === 'active' ? (
+                            'Reconfigure'
+                          ) : (
+                            'Configure'
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteDomain(domain.id, domain.domain_name)}
+                          disabled={isConfiguring === domain.id || isDeleting === domain.id}
+                          style={{
+                            padding: '0.5rem 1rem',
+                            borderRadius: '6px',
+                            border: 'none',
+                            background: isDeleting === domain.id ? 'rgba(244, 67, 54, 0.5)' : 'rgba(244, 67, 54, 0.2)',
+                            color: '#f44336',
+                            fontWeight: 500,
+                            cursor: isConfiguring === domain.id || isDeleting === domain.id ? 'not-allowed' : 'pointer',
+                            fontSize: '0.875rem',
+                          }}
+                        >
+                          {isDeleting === domain.id ? (
+                            <>
+                              <span className="material-icons" style={{ fontSize: '1rem', verticalAlign: 'middle' }}>
+                                hourglass_empty
+                              </span>{' '}
+                              Deleting...
+                            </>
+                          ) : (
+                            <>
+                              <span className="material-icons" style={{ fontSize: '1rem', verticalAlign: 'middle' }}>
+                                delete
+                              </span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
