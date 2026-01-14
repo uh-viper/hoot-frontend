@@ -349,10 +349,8 @@ export default function DomainManagement() {
                             background:
                               isConfiguring === domain.id
                                 ? 'rgba(212, 175, 55, 0.5)'
-                                : domain.status === 'active'
-                                ? 'rgba(76, 175, 80, 0.2)'
                                 : '#d4af37',
-                            color: domain.status === 'active' ? '#4caf50' : '#000',
+                            color: '#000',
                             fontWeight: 500,
                             cursor: isConfiguring === domain.id || isDeleting === domain.id ? 'not-allowed' : 'pointer',
                             fontSize: '0.875rem',
