@@ -559,6 +559,10 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
       console.warn('Email routing enable warning:', enableData.errors?.[0]?.message)
     }
 
+    // Wait a moment for Email Routing to be fully enabled before configuring catchall
+    // This ensures the catchall endpoint is ready
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
     // Step 2: Email Routing automatically creates MX and DKIM records
     // These will appear as "Read only" in Cloudflare dashboard because Cloudflare manages them
     // We don't need to fetch or create them - they're auto-generated when Email Routing is enabled
