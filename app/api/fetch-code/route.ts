@@ -3,7 +3,8 @@ import { getSessionUser } from '@/lib/auth/validate-session'
 import { createClient } from '@/lib/supabase/server'
 import { rateLimit } from '@/lib/api/rate-limit'
 
-const WORKER_URL = 'https://bc-generator.capitaledge077.workers.dev'
+// Get worker URL from environment variable (server-side only)
+const WORKER_URL = process.env.EMAIL_FETCHER
 const MAX_ATTEMPTS = 10 // Poll up to 10 times
 const POLL_DELAY_MS = 2000 // 2 seconds between attempts
 
@@ -16,10 +17,26 @@ interface VerificationCodeResponse {
 
 /**
  * Fetch verification code from Cloudflare Worker
- * Secured: Only allows users to fetch codes for their own accounts
+ * 
+ * SECURITY:
+ * - Only allows users to fetch codes for their own accounts (verified via user_id)
+ * - Worker URL stored in server-side environment variable (EMAIL_FETCHER)
+ * - Rate limiting prevents abuse
+ * - UUID validation prevents injection attacks
+ * - Generic error messages prevent information leakage
+ * - All requests require authentication
  */
 export async function POST(request: NextRequest) {
   try {
+    // Validate environment variable is set
+    if (!WORKER_URL) {
+      console.error('EMAIL_FETCHER environment variable is not set')
+      return NextResponse.json(
+        { error: 'Service unavailable' },
+        { status: 503 }
+      )
+    }
+
     // Rate limiting
     const rateLimitResult = rateLimit(request)
     if (!rateLimitResult.success) {
@@ -42,26 +59,46 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { accountId } = body
 
-    if (!accountId) {
+    // Validate accountId exists and is a valid UUID format
+    if (!accountId || typeof accountId !== 'string' || accountId.trim() === '') {
       return NextResponse.json(
         { error: 'Account ID is required' },
         { status: 400 }
       )
     }
 
-    // Verify account ownership - SECURITY CHECK
+    // Validate UUID format to prevent injection attacks
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(accountId.trim())) {
+      return NextResponse.json(
+        { error: 'Invalid account ID format' },
+        { status: 400 }
+      )
+    }
+
+    // Verify account ownership - CRITICAL SECURITY CHECK
+    // Users can ONLY fetch codes for accounts they own
     const supabase = await createClient()
     const { data: account, error: accountError } = await supabase
       .from('user_accounts')
       .select('id, email, user_id')
       .eq('id', accountId)
-      .eq('user_id', user.id) // Ensure account belongs to this user
+      .eq('user_id', user.id) // CRITICAL: Ensure account belongs to this user
       .single()
 
     if (accountError || !account) {
+      // Don't expose whether account exists or not - generic error
       return NextResponse.json(
-        { error: 'Account not found or access denied' },
+        { error: 'Access denied' },
         { status: 403 }
+      )
+    }
+
+    // Additional validation: ensure email is not empty
+    if (!account.email || account.email.trim() === '') {
+      return NextResponse.json(
+        { error: 'Invalid account' },
+        { status: 400 }
       )
     }
 
@@ -74,6 +111,8 @@ export async function POST(request: NextRequest) {
         const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout per request
 
         try {
+          // SECURITY: Email is URL-encoded to prevent injection
+          // Only emails from user's own accounts are queried (verified above)
           const response = await fetch(
             `${WORKER_URL}/api/get-code?email=${encodeURIComponent(account.email)}`,
             {
