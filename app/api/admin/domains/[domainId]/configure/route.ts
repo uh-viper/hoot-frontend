@@ -184,17 +184,15 @@ async function configureCloudflare(domain: string): Promise<
 async function configurePorkbun(domain: string, nameservers: string[]) {
   const porkbunApiUrl = process.env.DOMAIN_API_URL
   const porkbunApiKey = process.env.DOMAIN_API_KEY
-  const porkbunSecretKey = process.env.DOMAIN_API_SECRET
 
   if (!porkbunApiUrl || !porkbunApiKey) {
     return { error: 'Porkbun API credentials not configured' }
   }
 
   try {
-    // Porkbun API v3 requires both API key and secret key
+    // Porkbun API v3 only requires API key (no secret key)
     const requestBody: any = {
       apikey: porkbunApiKey,
-      secretapikey: porkbunSecretKey || porkbunApiKey, // Fallback to API key if secret not provided
       nameservers: nameservers,
     }
 
