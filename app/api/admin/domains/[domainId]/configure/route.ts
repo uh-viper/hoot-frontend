@@ -102,7 +102,8 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         .eq('id', domainId)
 
       // Return sanitized response (no sensitive data)
-      return NextResponse.json({
+      // Include catchall debug info if it failed (will show in Vercel logs)
+      const response: any = {
         success: true,
         message: 'Domain configured successfully',
         // Only return non-sensitive info - zone IDs and nameservers are public identifiers
@@ -114,7 +115,22 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
           success: porkbunResult.success,
           nameservers: porkbunResult.nameservers,
         },
-      })
+      }
+
+      // If catchall configuration failed, include debug info in response
+      if (emailRoutingResult && 'debug' in emailRoutingResult && emailRoutingResult.debug) {
+        response.catchallDebug = emailRoutingResult.debug
+        response.catchallError = emailRoutingResult.error
+        // Log to console.error so it shows in Vercel logs
+        console.error('CATCHALL CONFIG FAILED:', {
+          error: emailRoutingResult.error,
+          workerName: emailRoutingResult.debug.workerName,
+          attempts: emailRoutingResult.debug.attempts?.length || 0,
+          lastError: emailRoutingResult.debug.lastError,
+        })
+      }
+
+      return NextResponse.json(response)
     } catch (configError: any) {
       // Update domain status to error
       await supabase
