@@ -35,7 +35,7 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Admin routes - require authentication (admin check happens in page)
+  // Admin routes - require authentication AND admin status
   const isAdminRoute = request.nextUrl.pathname.startsWith('/admin') || 
                        request.nextUrl.pathname.startsWith('/dashboard/admin') ||
                        request.nextUrl.pathname.startsWith('/api/admin')
@@ -61,11 +61,28 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Admin routes require authentication (admin check happens in page/API route)
-  if (!user && isAdminRoute) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+  // Admin routes require authentication AND admin status
+  if (isAdminRoute) {
+    if (!user) {
+      // Not authenticated - redirect to login
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      return NextResponse.redirect(url)
+    }
+
+    // User is authenticated - check if they're admin
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('is_admin')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!profile || !profile.is_admin) {
+      // Not an admin - redirect to dashboard (403 Forbidden)
+      const url = request.nextUrl.clone()
+      url.pathname = '/dashboard'
+      return NextResponse.redirect(url)
+    }
   }
 
   if (
