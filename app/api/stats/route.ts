@@ -25,30 +25,40 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Ensure user has all required database rows (user_credits, user_stats, user_profiles)
+    // Ensure user has all required database rows (user_credits, user_profiles)
     await initializeUserData(user.id)
 
-    // Fetch user stats
+    // Fetch user stats from user_jobs
     const supabase = await createClient()
-    const { data, error } = await supabase
-      .from('user_stats')
-      .select('business_centers, requested, successful, failures')
+    const { data: jobs, error: jobsError } = await supabase
+      .from('user_jobs')
+      .select('requested_count, successful_count, failed_count')
       .eq('user_id', user.id)
-      .single()
 
-    if (error) {
-      console.error('Error fetching user stats:', error)
+    if (jobsError) {
+      console.error('Error fetching user jobs:', jobsError)
       return NextResponse.json(
         { error: 'Failed to fetch stats' },
         { status: 500 }
       )
     }
 
+    // Calculate totals from jobs
+    const requested = jobs?.reduce((sum, job) => sum + (job.requested_count || 0), 0) ?? 0
+    const successful = jobs?.reduce((sum, job) => sum + (job.successful_count || 0), 0) ?? 0
+    const failures = jobs?.reduce((sum, job) => sum + (job.failed_count || 0), 0) ?? 0
+
+    // Get business centers count
+    const { count: businessCenters } = await supabase
+      .from('user_accounts')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+
     return NextResponse.json({
-      business_centers: data.business_centers,
-      requested: data.requested,
-      successful: data.successful,
-      failures: data.failures,
+      business_centers: businessCenters ?? 0,
+      requested,
+      successful,
+      failures,
     })
   } catch (error) {
     console.error('Unexpected error in GET /api/stats:', error)
@@ -59,7 +69,8 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// PATCH - Update user stats (for backend/internal use)
+// PATCH - Create or update user job (for backend use)
+// Backend should call this to save job results
 export async function PATCH(request: NextRequest) {
   try {
     // Rate limiting
@@ -80,61 +91,61 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    // Ensure user has all required database rows
-    await initializeUserData(user.id)
-
     const body = await request.json()
-    const { business_centers, requested, successful, failures } = body
+    const { job_id, requested_count, successful_count, failed_count, status } = body
 
     // Validate input
+    if (!job_id || typeof job_id !== 'string') {
+      return NextResponse.json(
+        { error: 'job_id is required' },
+        { status: 400 }
+      )
+    }
+
     if (
-      (business_centers !== undefined && (typeof business_centers !== 'number' || business_centers < 0)) ||
-      (requested !== undefined && (typeof requested !== 'number' || requested < 0)) ||
-      (successful !== undefined && (typeof successful !== 'number' || successful < 0)) ||
-      (failures !== undefined && (typeof failures !== 'number' || failures < 0))
+      (requested_count !== undefined && (typeof requested_count !== 'number' || requested_count < 0)) ||
+      (successful_count !== undefined && (typeof successful_count !== 'number' || successful_count < 0)) ||
+      (failed_count !== undefined && (typeof failed_count !== 'number' || failed_count < 0))
     ) {
       return NextResponse.json(
-        { error: 'Invalid input values' },
+        { error: 'Invalid count values' },
         { status: 400 }
       )
     }
 
-    // Build update object
-    const updates: Record<string, number> = {}
-    if (business_centers !== undefined) updates.business_centers = business_centers
-    if (requested !== undefined) updates.requested = requested
-    if (successful !== undefined) updates.successful = successful
-    if (failures !== undefined) updates.failures = failures
-
-    if (Object.keys(updates).length === 0) {
-      return NextResponse.json(
-        { error: 'No fields to update' },
-        { status: 400 }
-      )
-    }
-
-    // Update stats (should exist after initializeUserData)
+    // Upsert job record
     const supabase = await createClient()
+    const jobData: any = {
+      user_id: user.id,
+      job_id,
+      status: status || 'completed',
+    }
+
+    if (requested_count !== undefined) jobData.requested_count = requested_count
+    if (successful_count !== undefined) jobData.successful_count = successful_count
+    if (failed_count !== undefined) jobData.failed_count = failed_count
+    if (status === 'completed') jobData.completed_at = new Date().toISOString()
+
     const { data, error } = await supabase
-      .from('user_stats')
-      .update(updates)
-      .eq('user_id', user.id)
-      .select('business_centers, requested, successful, failures')
+      .from('user_jobs')
+      .upsert(jobData, { onConflict: 'job_id' })
+      .select('job_id, requested_count, successful_count, failed_count, status')
       .single()
 
     if (error) {
-      console.error('Error updating user stats:', error)
+      console.error('Error upserting user job:', error)
       return NextResponse.json(
-        { error: 'Failed to update stats' },
+        { error: 'Failed to save job' },
         { status: 500 }
       )
     }
 
     return NextResponse.json({
-      business_centers: data.business_centers,
-      requested: data.requested,
-      successful: data.successful,
-      failures: data.failures,
+      job_id: data.job_id,
+      requested_count: data.requested_count,
+      successful_count: data.successful_count,
+      failed_count: data.failed_count,
+      status: data.status,
     })
   } catch (error) {
     console.error('Unexpected error in PATCH /api/stats:', error)

@@ -4,7 +4,7 @@
 
 ### When Adding New User-Related Tables
 
-**CRITICAL**: If you add a new table that requires one row per user (like `user_credits`, `user_stats`, `user_profiles`), you MUST:
+**CRITICAL**: If you add a new table that requires one row per user (like `user_credits`, `user_profiles`), you MUST:
 
 1. **Update `handle_new_user()` trigger function** in a migration to create the row for new signups
 2. **Update `initializeUserData()` function** in `lib/api/user-initialization.ts` to check and create the row for existing users

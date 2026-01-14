@@ -18,54 +18,53 @@ export async function getUserFilteredStats(startDate?: Date, endDate?: Date) {
 
   const supabase = await createClient()
 
-  // If no date range, return all-time stats from user_stats
-  if (!startDate || !endDate) {
-    const { data: statsData } = await supabase
-      .from('user_stats')
-      .select('requested, successful, failures')
-      .eq('user_id', user.id)
-      .single()
+  // Convert dates to UTC for database queries
+  let start: string | undefined
+  let end: string | undefined
 
-    const { count: businessCentersCount } = await supabase
-      .from('user_accounts')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-
-    return {
-      requested: statsData?.requested ?? 0,
-      successful: statsData?.successful ?? 0,
-      failures: statsData?.failures ?? 0,
-      businessCenters: businessCentersCount ?? 0,
-    }
+  if (startDate && endDate) {
+    start = dayjs(startDate).utc().startOf('day').toISOString()
+    end = dayjs(endDate).utc().endOf('day').toISOString()
   }
 
-  // Convert local dates to UTC for database queries
-  const start = dayjs(startDate).utc().startOf('day').toISOString()
-  const end = dayjs(endDate).utc().endOf('day').toISOString()
+  // Calculate stats from user_jobs table
+  let jobsQuery = supabase
+    .from('user_jobs')
+    .select('requested_count, successful_count, failed_count, created_at')
+    .eq('user_id', user.id)
 
-  // For date-filtered stats:
-  // - Successful: Count accounts created in date range (accurate)
-  // - Requested/Failures: Can't filter accurately from user_stats (cumulative totals)
-  //   So we'll show all-time totals for these when filtering
+  if (start && end) {
+    jobsQuery = jobsQuery.gte('created_at', start).lte('created_at', end)
+  }
 
-  const { count: successfulCount } = await supabase
+  const { data: jobs, error: jobsError } = await jobsQuery
+
+  if (jobsError) {
+    console.error('Error fetching user jobs:', jobsError)
+    return { error: 'Failed to fetch stats' }
+  }
+
+  // Calculate totals from jobs
+  const requested = jobs?.reduce((sum, job) => sum + (job.requested_count || 0), 0) ?? 0
+  const successful = jobs?.reduce((sum, job) => sum + (job.successful_count || 0), 0) ?? 0
+  const failures = jobs?.reduce((sum, job) => sum + (job.failed_count || 0), 0) ?? 0
+
+  // Also get business centers count from user_accounts (for consistency)
+  let accountsQuery = supabase
     .from('user_accounts')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', user.id)
-    .gte('created_at', start)
-    .lte('created_at', end)
 
-  // Get all-time totals for requested/failures (since we can't filter accurately)
-  const { data: statsData } = await supabase
-    .from('user_stats')
-    .select('requested, failures')
-    .eq('user_id', user.id)
-    .single()
+  if (start && end) {
+    accountsQuery = accountsQuery.gte('created_at', start).lte('created_at', end)
+  }
+
+  const { count: businessCentersCount } = await accountsQuery
 
   return {
-    requested: statsData?.requested ?? 0, // All-time (can't filter accurately)
-    successful: successfulCount ?? 0, // Filtered by date range
-    failures: statsData?.failures ?? 0, // All-time (can't filter accurately)
-    businessCenters: successfulCount ?? 0, // Same as successful
+    requested,
+    successful,
+    failures,
+    businessCenters: businessCentersCount ?? 0,
   }
 }

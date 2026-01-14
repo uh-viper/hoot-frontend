@@ -16,8 +16,9 @@ export default async function DashboardLayout({
     redirect('/login')
   }
 
-  // Ensure user has all required database rows (user_credits, user_stats, user_profiles)
+  // Ensure user has all required database rows (user_credits, user_profiles)
   // This check runs on every dashboard page load to handle manually deleted rows
+  // Note: user_jobs are created when jobs are submitted, no initialization needed
   await initializeUserData(user.id)
 
   // Fetch user credits from database

@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Ensure user has all required database rows (user_credits, user_stats, user_profiles)
+    // Ensure user has all required database rows (user_credits, user_profiles)
     await initializeUserData(user.id)
 
     // Fetch user credits

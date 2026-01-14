@@ -65,21 +65,16 @@ export async function getFilteredStats(startDate: Date, endDate: Date) {
 
   const filteredSuccessful = filteredAccounts?.length ?? 0
 
-  // Fetch user_stats to get requested and failures in date range
-  // We need to sum up the stats for all users, but only count stats that were updated in the date range
-  // Since user_stats tracks cumulative totals, we need a different approach
-  // Let's query user_accounts to get successful count, and use a jobs table if available
-  // For now, we'll use user_stats but this might not be accurate for date ranges
-  // Actually, let's check if we can query user_stats with updated_at in range
-  const { data: statsInRange } = await supabase
-    .from('user_stats')
-    .select('requested, successful, failures')
-    .gte('updated_at', start)
-    .lte('updated_at', end)
+  // Fetch user_jobs to get requested and failures in date range
+  const { data: jobsInRange } = await supabase
+    .from('user_jobs')
+    .select('requested_count, failed_count')
+    .gte('created_at', start)
+    .lte('created_at', end)
 
-  // Sum up the stats
-  const filteredRequested = statsInRange?.reduce((sum, s) => sum + (s.requested || 0), 0) ?? 0
-  const filteredFailures = statsInRange?.reduce((sum, s) => sum + (s.failures || 0), 0) ?? 0
+  // Sum up the stats from jobs
+  const filteredRequested = jobsInRange?.reduce((sum, job) => sum + (job.requested_count || 0), 0) ?? 0
+  const filteredFailures = jobsInRange?.reduce((sum, job) => sum + (job.failed_count || 0), 0) ?? 0
 
   return {
     requested: filteredRequested,

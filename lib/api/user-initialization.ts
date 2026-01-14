@@ -30,25 +30,8 @@ export async function initializeUserData(userId: string) {
       }
     }
 
-    // Check if user_stats exists
-    const { data: statsData, error: statsError } = await supabase
-      .from('user_stats')
-      .select('id')
-      .eq('user_id', userId)
-      .single()
-
-    // Create stats if they don't exist
-    // Use RPC function directly to bypass RLS (more reliable than direct insert)
-    if (statsError && statsError.code === 'PGRST116') {
-      const { error: rpcError } = await supabase.rpc('ensure_user_stats', {
-        p_user_id: userId,
-      })
-
-      if (rpcError) {
-        console.error('Error initializing user stats:', rpcError)
-        return { success: false, error: rpcError.message }
-      }
-    }
+    // user_stats removed - stats are now calculated from user_jobs table
+    // No initialization needed for user_jobs (jobs are created when user creates them)
 
     // Check if user_profiles exists
     const { data: profileData, error: profileError } = await supabase

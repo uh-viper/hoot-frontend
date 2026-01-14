@@ -230,7 +230,7 @@ export async function fetchJobStatus(jobId: string): Promise<{ success: boolean;
 
 /**
  * @deprecated This function is no longer used.
- * Backend automatically updates user_stats table after each job completes.
+ * Backend automatically saves job records to user_jobs table after each job completes.
  * Stats are updated server-side, so they work even if the user closes the tab.
  * 
  * The backend:

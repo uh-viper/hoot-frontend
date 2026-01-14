@@ -47,11 +47,23 @@ export default async function AdminDashboardPage() {
     console.error('Error fetching users:', usersError)
   }
 
-  // Fetch user stats
-  const { data: allStats, error: statsError } = await supabase
-    .from('user_stats')
-    .select('user_id, requested, successful, failures')
-    .order('successful', { ascending: false })
+  // Fetch user stats from user_jobs (calculate per user)
+  const { data: allJobs, error: jobsError } = await supabase
+    .from('user_jobs')
+    .select('user_id, requested_count, successful_count, failed_count')
+
+  // Calculate stats per user from jobs
+  const allStats = allJobs?.reduce((acc, job) => {
+    if (!acc[job.user_id]) {
+      acc[job.user_id] = { user_id: job.user_id, requested: 0, successful: 0, failures: 0 }
+    }
+    acc[job.user_id].requested += job.requested_count || 0
+    acc[job.user_id].successful += job.successful_count || 0
+    acc[job.user_id].failures += job.failed_count || 0
+    return acc
+  }, {} as Record<string, { user_id: string; requested: number; successful: number; failures: number }>)
+
+  const statsError = jobsError
 
   // Fetch user credits
   const { data: allCredits, error: creditsError } = await supabase

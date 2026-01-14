@@ -63,20 +63,14 @@ export default function DashboardStats() {
         .on(
           'postgres_changes',
           {
-            event: 'UPDATE',
+            event: '*', // Listen to INSERT, UPDATE, DELETE
             schema: 'public',
-            table: 'user_stats',
+            table: 'user_jobs',
             filter: `user_id=eq.${user.id}`,
           },
-          (payload) => {
-            if (payload.new) {
-              setStats(prev => ({
-                ...prev,
-                requested: payload.new.requested ?? prev.requested,
-                successful: payload.new.successful ?? prev.successful,
-                failures: payload.new.failures ?? prev.failures,
-              }));
-            }
+          () => {
+            // When any job changes, refetch stats
+            fetchStats();
           }
         )
         .subscribe();
