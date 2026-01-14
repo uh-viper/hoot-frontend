@@ -1,10 +1,30 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
 // GET /api/domains/active - Get all active domains
 // This endpoint is used by backend services to fetch active domains for email routing
-export async function GET() {
+// Requires API key authentication via X-API-Key header
+export async function GET(request: NextRequest) {
   try {
+    // Check for API key in headers
+    const apiKey = request.headers.get('X-API-Key')
+    const expectedApiKey = process.env.DOMAINS_API_KEY
+
+    if (!expectedApiKey) {
+      console.error('DOMAINS_API_KEY environment variable not set')
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+
+    if (!apiKey || apiKey !== expectedApiKey) {
+      return NextResponse.json(
+        { error: 'Unauthorized. Invalid or missing API key' },
+        { status: 401 }
+      )
+    }
+
     const supabase = await createClient()
 
     // Fetch all domains with status 'active'
