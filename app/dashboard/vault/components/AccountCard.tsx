@@ -16,35 +16,56 @@ export default function AccountCard({ id, email, password, region, currency }: A
   const [isFetchingCode, setIsFetchingCode] = useState(false);
 
   const copyToClipboard = async (text: string, type: 'email' | 'password' | 'code'): Promise<boolean> => {
+    // Try fallback method first (works better in async contexts)
     try {
-      // Try modern clipboard API first
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(text);
-        return true;
-      }
-      
-      // Fallback for older browsers or when clipboard API is not available
       const textArea = document.createElement('textarea');
       textArea.value = text;
       textArea.style.position = 'fixed';
       textArea.style.left = '-999999px';
       textArea.style.top = '-999999px';
+      textArea.style.opacity = '0';
+      textArea.setAttribute('readonly', '');
       document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
+      
+      // Select the text
+      if (navigator.userAgent.match(/ipad|iphone/i)) {
+        // iOS requires a different approach
+        const range = document.createRange();
+        range.selectNodeContents(textArea);
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+        textArea.setSelectionRange(0, 999999);
+      } else {
+        textArea.select();
+        textArea.setSelectionRange(0, 999999);
+      }
       
       try {
         const successful = document.execCommand('copy');
         document.body.removeChild(textArea);
-        return successful;
+        if (successful) {
+          return true;
+        }
       } catch (err) {
         document.body.removeChild(textArea);
-        throw err;
+        // Continue to try clipboard API
+      }
+    } catch (err) {
+      // Continue to try clipboard API
+    }
+    
+    // Try modern clipboard API as fallback
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
       }
     } catch (err) {
       console.error('Failed to copy:', err);
-      return false;
     }
+    
+    return false;
   };
 
   const handleFetchCode = async () => {
