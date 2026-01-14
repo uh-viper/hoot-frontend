@@ -626,23 +626,17 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
     // CatchAllAction = { type, value }
     // CatchAllMatcher = { type }
     // The catchall rule has: { id, actions, enabled, matcher, name, tag }
-    // Try multiple API payload formats based on docs
+    // Based on current status from API, the format is:
+    // { matchers: [{ type: "all" }], actions: [{ type: "worker", value: "..." }], enabled: true }
+    // Note: matchers (plural, array) and actions (plural, array)
     const payloadFormats = [
-      // Format 1: Based on API docs - CatchAllAction with type and value
+      // Format 1: Correct format based on current status - matchers (plural) and actions (plural)
       {
-        actions: [
+        matchers: [
           {
-            type: 'worker',
-            value: workerName,
+            type: 'all',
           },
         ],
-        enabled: true,
-        matcher: {
-          type: 'all',
-        },
-      },
-      // Format 2: Without matcher (might be optional)
-      {
         actions: [
           {
             type: 'worker',
@@ -651,23 +645,44 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
         ],
         enabled: true,
       },
-      // Format 3: Single action object (not array)
+      // Format 2: Without matchers (might be optional)
       {
-        action: {
-          type: 'worker',
-          value: workerName,
-        },
+        actions: [
+          {
+            type: 'worker',
+            value: workerName,
+          },
+        ],
         enabled: true,
-        matcher: {
-          type: 'all',
-        },
       },
-      // Format 4: Just action and enabled
+      // Format 3: Try with just the action value as string (some APIs use this)
       {
-        action: {
-          type: 'worker',
-          value: workerName,
-        },
+        matchers: [
+          {
+            type: 'all',
+          },
+        ],
+        actions: [
+          {
+            type: 'worker',
+            value: [workerName], // Try as array
+          },
+        ],
+        enabled: true,
+      },
+      // Format 4: Try with name instead of value
+      {
+        matchers: [
+          {
+            type: 'all',
+          },
+        ],
+        actions: [
+          {
+            type: 'worker',
+            name: workerName,
+          },
+        ],
         enabled: true,
       },
     ]
