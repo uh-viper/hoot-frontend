@@ -25,6 +25,7 @@ export default function DomainManagement() {
   const [newDomain, setNewDomain] = useState('')
   const [isConfiguring, setIsConfiguring] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
+  const [deleteModal, setDeleteModal] = useState<{ domainId: string; domainName: string } | null>(null)
 
   // Fetch domains on mount
   useEffect(() => {
@@ -102,11 +103,15 @@ export default function DomainManagement() {
     }
   }
 
-  const handleDeleteDomain = async (domainId: string, domainName: string) => {
-    if (!confirm(`Are you sure you want to delete ${domainName}? This action cannot be undone.`)) {
-      return
-    }
+  const handleDeleteClick = (domainId: string, domainName: string) => {
+    setDeleteModal({ domainId, domainName })
+  }
 
+  const handleDeleteConfirm = async () => {
+    if (!deleteModal) return
+
+    const { domainId, domainName } = deleteModal
+    setDeleteModal(null)
     setIsDeleting(domainId)
     const deletingToastId = showInfo('Deleting domain...')
 
@@ -128,6 +133,10 @@ export default function DomainManagement() {
     } finally {
       setIsDeleting(null)
     }
+  }
+
+  const handleDeleteCancel = () => {
+    setDeleteModal(null)
   }
 
   const formatDate = (dateString: string) => {
@@ -355,6 +364,98 @@ export default function DomainManagement() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+          onClick={handleDeleteCancel}
+        >
+          <div
+            style={{
+              background: 'rgba(20, 20, 20, 0.95)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '16px',
+              padding: '2rem',
+              maxWidth: '500px',
+              width: '90%',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ marginBottom: '1.5rem' }}>
+              <span
+                className="material-icons"
+                style={{
+                  fontSize: '3rem',
+                  color: '#f44336',
+                  display: 'block',
+                  marginBottom: '1rem',
+                }}
+              >
+                warning
+              </span>
+              <h3
+                style={{
+                  fontSize: '1.5rem',
+                  fontWeight: 600,
+                  marginBottom: '0.5rem',
+                  color: '#fff',
+                }}
+              >
+                Delete Domain?
+              </h3>
+              <p style={{ color: 'rgba(255, 255, 255, 0.7)', lineHeight: '1.6' }}>
+                Are you sure you want to delete <strong style={{ color: '#fff' }}>{deleteModal.domainName}</strong>?
+                This action cannot be undone.
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+              <button
+                onClick={handleDeleteCancel}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  background: 'transparent',
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: '#f44336',
+                  color: '#fff',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                }}
+              >
+                Delete Domain
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
