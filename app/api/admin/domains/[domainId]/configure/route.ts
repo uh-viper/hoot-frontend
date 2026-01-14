@@ -708,6 +708,10 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
 
       if (catchallData.success) {
         catchallConfigured = true
+        // Success - log which format worked
+        console.error(`✅ CATCHALL CONFIGURED SUCCESSFULLY WITH FORMAT ${formatIndex + 1}`)
+        console.error('Successful Payload:', JSON.stringify(catchallPayload))
+        console.error('Response:', JSON.stringify(catchallData.result))
         // Success - break out of loop
         break
       } else {
