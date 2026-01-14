@@ -27,6 +27,7 @@ export default function DomainManagement() {
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
   const [isUpdatingStatus, setIsUpdatingStatus] = useState<string | null>(null)
   const [deleteModal, setDeleteModal] = useState<{ domainId: string; domainName: string } | null>(null)
+  const [openStatusDropdown, setOpenStatusDropdown] = useState<string | null>(null)
 
   // Fetch domains on mount
   useEffect(() => {
