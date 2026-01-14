@@ -203,6 +203,21 @@ All routes require admin authentication:
 
 These routes automatically check for admin access using `validateAdmin()`.
 
+### Backend Server API
+
+- `GET /api/domains/active` - Get all active domains (API key required)
+  - **Authentication**: Requires `X-API-Key` header with `DOMAINS_API_KEY` value
+  - **Response**: Array of domain names (strings)
+  - **Usage**: For backend servers to fetch active domains for email routing
+  - **Example**:
+    ```bash
+    curl -H "X-API-Key: your-api-key-here" https://your-domain.com/api/domains/active
+    ```
+  - **Response Format**:
+    ```json
+    ["example.com", "test.com", "another.com"]
+    ```
+
 ## Files Modified/Created
 
 - `supabase/migrations/029_add_admin_role.sql` - Adds is_admin field to user_profiles
