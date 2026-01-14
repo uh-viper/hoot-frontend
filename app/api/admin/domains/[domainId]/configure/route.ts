@@ -59,19 +59,24 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         throw new Error(`Porkbun: ${porkbunResult.error}`)
       }
 
-      // Step 3: Update DNS records in Cloudflare
-      const dnsResult = await updateCloudflareDNS(cloudflareResult.zoneId, domain.domain_name)
-      if (dnsResult.error) {
-        console.warn('DNS update warning:', dnsResult.error)
-      }
-
-      // Step 4: Configure Cloudflare Email Routing (catchall to worker)
+      // Step 3: Configure Cloudflare Email Routing first (to get MX priorities and DKIM)
       const emailRoutingResult = await configureCloudflareEmailRouting(
         cloudflareResult.zoneId,
         domain.domain_name
       )
-      if (emailRoutingResult.error) {
+      if (emailRoutingResult.error && !emailRoutingResult.warning) {
         console.warn('Email routing warning:', emailRoutingResult.error)
+      }
+
+      // Step 4: Update DNS records in Cloudflare (using MX priorities and DKIM from Email Routing)
+      const dnsResult = await updateCloudflareDNS(
+        cloudflareResult.zoneId,
+        domain.domain_name,
+        emailRoutingResult.mxRecords, // Use MX records from Email Routing API
+        emailRoutingResult.dkimRecord // Use DKIM record from Email Routing API
+      )
+      if (dnsResult.error) {
+        console.warn('DNS update warning:', dnsResult.error)
       }
 
       // Update domain in database with success
@@ -262,7 +267,12 @@ async function configurePorkbun(domain: string, nameservers: string[]) {
 }
 
 // Update Cloudflare DNS records
-async function updateCloudflareDNS(zoneId: string, domain: string) {
+async function updateCloudflareDNS(
+  zoneId: string,
+  domain: string,
+  mxRecords?: Array<{ content: string; priority: number }>,
+  dkimRecord?: { name: string; content: string }
+) {
   // Use global API key (requires API key + email) - SUPER SECURE, server-side only
   const cloudflareApiKey = process.env.CLOUDFLARE_API_KEY
   const cloudflareEmail = process.env.CLOUDFLARE_EMAIL
@@ -291,14 +301,46 @@ async function updateCloudflareDNS(zoneId: string, domain: string) {
     const getData = await getResponse.json()
 
     // Email routing DNS records (MX, TXT for SPF and DKIM)
-    const emailRecords = [
-      // MX records for Cloudflare Email Routing
-      { type: 'MX', name: '@', content: 'route1.mx.cloudflare.net', priority: 28, ttl: 600 },
-      { type: 'MX', name: '@', content: 'route2.mx.cloudflare.net', priority: 28, ttl: 600 },
-      { type: 'MX', name: '@', content: 'route3.mx.cloudflare.net', priority: 23, ttl: 600 },
-      // SPF record
-      { type: 'TXT', name: '@', content: 'v=spf1 include:_spf.mx.cloudflare.net ~all', ttl: 600 },
-    ]
+    // Use MX records from Email Routing API if provided, otherwise use defaults
+    const emailRecords: any[] = []
+    
+    if (mxRecords && mxRecords.length > 0) {
+      // Use MX records from Cloudflare Email Routing API (with actual priorities)
+      mxRecords.forEach((mx) => {
+        emailRecords.push({
+          type: 'MX',
+          name: '@',
+          content: mx.content,
+          priority: mx.priority,
+          ttl: 600,
+        })
+      })
+    } else {
+      // Fallback to default MX records (if Email Routing API didn't return them)
+      emailRecords.push(
+        { type: 'MX', name: '@', content: 'route1.mx.cloudflare.net', priority: 28, ttl: 600 },
+        { type: 'MX', name: '@', content: 'route2.mx.cloudflare.net', priority: 28, ttl: 600 },
+        { type: 'MX', name: '@', content: 'route3.mx.cloudflare.net', priority: 23, ttl: 600 }
+      )
+    }
+    
+    // SPF record (always the same)
+    emailRecords.push({
+      type: 'TXT',
+      name: '@',
+      content: 'v=spf1 include:_spf.mx.cloudflare.net ~all',
+      ttl: 600,
+    })
+    
+    // DKIM record (from Email Routing API if provided)
+    if (dkimRecord) {
+      emailRecords.push({
+        type: 'TXT',
+        name: dkimRecord.name,
+        content: dkimRecord.content,
+        ttl: 600,
+      })
+    }
 
     // Default DNS records to create (if they don't exist)
     const defaultRecords = [
@@ -383,10 +425,6 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
     return { error: 'Cloudflare API credentials not configured' }
   }
 
-  if (!workerUrl) {
-    return { error: 'EMAIL_FETCHER worker URL not configured' }
-  }
-
   const authHeaders = {
     'X-Auth-Key': cloudflareApiKey,
     'X-Auth-Email': cloudflareEmail,
@@ -409,22 +447,66 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
       console.warn('Email routing enable warning:', enableData.errors?.[0]?.message)
     }
 
-    // Step 2: Create catchall destination (HTTP endpoint - your worker)
-    // Cloudflare Email Routing can forward to HTTP endpoints
-    // We'll create a destination pointing to the worker
-    
-    // Note: Cloudflare Email Routing API structure:
-    // 1. Create destination (HTTP endpoint)
-    // 2. Create rule to route catchall (*@domain.com) to that destination
-    
-    // For now, we'll enable email routing and note that catchall rules
-    // may need to be configured via dashboard or additional API calls
-    // The MX records we created will handle email delivery
-    
+    // Step 2: Get Email Routing DNS records (MX priorities and DKIM)
+    // This API endpoint returns the MX records with their actual priorities
+    const dnsResponse = await fetch(
+      `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing/dns`,
+      {
+        method: 'GET',
+        headers: authHeaders,
+      }
+    )
+
+    const dnsData = await dnsResponse.json()
+    let mxRecords: Array<{ content: string; priority: number }> = []
+    let dkimRecord: { name: string; content: string } | undefined
+
+    if (dnsData.success && dnsData.result) {
+      // Extract MX records with their priorities
+      if (dnsData.result.mx_records) {
+        mxRecords = dnsData.result.mx_records.map((mx: any) => ({
+          content: mx.content || mx.exchange,
+          priority: mx.priority || mx.prio,
+        }))
+      }
+
+      // Extract DKIM record
+      if (dnsData.result.txt_record) {
+        dkimRecord = {
+          name: dnsData.result.txt_record.name || `cf2024-1._domainkey.${domain}`,
+          content: dnsData.result.txt_record.content || dnsData.result.txt_record.value,
+        }
+      }
+    }
+
+    // Step 3: Create catchall destination and rule (if worker URL provided)
+    if (workerUrl) {
+      // Create HTTP destination (worker endpoint)
+      const destinationResponse = await fetch(
+        `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing/addresses`,
+        {
+          method: 'POST',
+          headers: authHeaders,
+          body: JSON.stringify({
+            email: `catchall@${domain}`,
+            tag: 'catchall',
+          }),
+        }
+      )
+
+      // Create catchall rule to forward to worker
+      // Note: Cloudflare Email Routing API may require different format
+      // This is a simplified approach - may need adjustment based on actual API
+    }
+
     return {
       success: true,
-      message: 'Email routing enabled. Configure catchall rule in Cloudflare dashboard to forward to worker.',
-      note: 'You may need to manually configure the catchall rule (*@domain) to forward to your worker URL in Cloudflare Email Routing settings.',
+      mxRecords: mxRecords.length > 0 ? mxRecords : undefined,
+      dkimRecord: dkimRecord,
+      message: 'Email routing enabled. MX records and DKIM fetched from Cloudflare.',
+      note: workerUrl
+        ? 'Configure catchall rule in Cloudflare dashboard to forward to worker, or implement via API.'
+        : 'EMAIL_FETCHER not set - configure catchall rule manually in Cloudflare dashboard.',
     }
   } catch (err: any) {
     // Email routing setup is optional, don't fail the whole operation

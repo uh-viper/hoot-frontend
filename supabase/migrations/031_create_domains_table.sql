@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS public.domains (
   cloudflare_nameservers TEXT[], -- Array of nameservers
   porkbun_nameservers TEXT[], -- Array of nameservers from Porkbun
   dns_records JSONB DEFAULT '[]'::jsonb, -- Store DNS records as JSON
+  mx_priorities JSONB DEFAULT '{"route1": 28, "route2": 28, "route3": 23}'::jsonb, -- Custom MX priorities per domain
   notes TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
