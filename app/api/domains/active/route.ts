@@ -22,16 +22,10 @@ export async function GET() {
       )
     }
 
-    // Return only the domain names as an array for easy consumption
+    // Return only the domain names as an array
     const domainNames = domains?.map((domain) => domain.domain_name) || []
 
-    return NextResponse.json({
-      success: true,
-      domains: domainNames,
-      count: domainNames.length,
-      // Include full domain objects if needed
-      full: domains || [],
-    })
+    return NextResponse.json(domainNames)
   } catch (err: any) {
     console.error('Unexpected error fetching active domains:', err)
     return NextResponse.json(
