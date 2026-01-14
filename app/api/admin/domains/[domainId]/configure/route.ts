@@ -117,16 +117,12 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         },
       }
 
-      // If catchall configuration failed, include debug info in response
-      if (emailRoutingResult && 'debug' in emailRoutingResult && emailRoutingResult.debug) {
-        response.catchallDebug = emailRoutingResult.debug
+      // If catchall configuration failed, include error in response
+      if (emailRoutingResult && emailRoutingResult.error) {
         response.catchallError = emailRoutingResult.error
         // Log to console.error so it shows in Vercel logs
         console.error('CATCHALL CONFIG FAILED:', {
           error: emailRoutingResult.error,
-          workerName: emailRoutingResult.debug.workerName,
-          attempts: emailRoutingResult.debug.attempts?.length || 0,
-          lastError: emailRoutingResult.debug.lastError,
         })
       }
 
