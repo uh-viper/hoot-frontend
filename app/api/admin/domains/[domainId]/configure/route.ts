@@ -2,21 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateAdmin } from '@/lib/auth/admin'
 import { createClient } from '@/lib/supabase/server'
 
-interface RouteParams {
-  params: {
+interface RouteContext {
+  params: Promise<{
     domainId: string
-  }
+  }>
 }
 
 // POST /api/admin/domains/[domainId]/configure - Configure domain (DNS + Nameservers)
-export async function POST(request: NextRequest, { params }: RouteParams) {
+export async function POST(request: NextRequest, { params }: RouteContext) {
   const adminCheck = await validateAdmin()
   if ('error' in adminCheck) {
     return NextResponse.json({ error: adminCheck.error, message: adminCheck.message }, { status: 401 })
   }
 
   const { supabase } = adminCheck
-  const { domainId } = params
+  const { domainId } = await params
 
   try {
     // Fetch domain from database

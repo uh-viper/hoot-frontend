@@ -202,11 +202,15 @@ These routes automatically check for admin access using `validateAdmin()`.
 
 - `supabase/migrations/029_add_admin_role.sql` - Adds is_admin field to user_profiles
 - `supabase/migrations/030_add_admin_rls_policies.sql` - Adds RLS policies for admin access
+- `supabase/migrations/031_create_domains_table.sql` - Creates domains table for domain management
 - `lib/auth/admin.ts` - Admin utility functions
 - `lib/supabase/middleware.ts` - Middleware protection for admin routes
 - `app/dashboard/admin/page.tsx` - Admin dashboard page
 - `app/dashboard/admin/components/AdminDashboardClient.tsx` - Admin dashboard client component
+- `app/dashboard/admin/components/DomainManagement.tsx` - Domain management UI component
 - `app/dashboard/admin/admin.css` - Admin dashboard styles
 - `app/dashboard/components/Sidebar.tsx` - Added admin link (only visible to admins)
 - `app/dashboard/layout.tsx` - Pass admin status to sidebar
 - `app/api/admin/*` - Protected admin API routes
+- `app/api/admin/domains/route.ts` - Domain CRUD operations
+- `app/api/admin/domains/[domainId]/configure/route.ts` - Domain configuration (DNS + Nameservers)
