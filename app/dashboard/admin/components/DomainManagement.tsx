@@ -311,10 +311,8 @@ export default function DomainManagement() {
                           onClick={() => setOpenStatusDropdown(openStatusDropdown === domain.id ? null : domain.id)}
                           disabled={isUpdatingStatus === domain.id}
                         >
-                          <span className={`status-badge-inline ${domain.status || 'pending'}`}>
-                            {domain.status === 'active' ? 'Active' : 'Pending'}
-                          </span>
-                          <span className="material-icons" style={{ fontSize: '1rem', marginLeft: '0.25rem' }}>
+                          {domain.status === 'active' ? 'Active' : 'Pending'}
+                          <span className="material-icons" style={{ fontSize: '1rem', marginLeft: '0.5rem' }}>
                             {openStatusDropdown === domain.id ? 'expand_less' : 'expand_more'}
                           </span>
                         </button>
@@ -330,7 +328,6 @@ export default function DomainManagement() {
                               }}
                               disabled={isUpdatingStatus === domain.id}
                             >
-                              <span className="material-icons" style={{ fontSize: '1rem' }}>schedule</span>
                               Pending
                             </button>
                             <button
@@ -343,7 +340,6 @@ export default function DomainManagement() {
                               }}
                               disabled={isUpdatingStatus === domain.id}
                             >
-                              <span className="material-icons" style={{ fontSize: '1rem' }}>check_circle</span>
                               Active
                             </button>
                           </div>

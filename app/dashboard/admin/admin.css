@@ -650,38 +650,16 @@
   opacity: 0.6;
 }
 
-.status-badge-inline {
-  display: inline-block;
-  padding: 0.125rem 0.5rem;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.status-badge-inline.pending {
-  background: rgba(255, 165, 0, 0.2);
-  color: #ffa500;
-  border: 1px solid rgba(255, 165, 0, 0.3);
-}
-
-.status-badge-inline.active {
-  background: rgba(76, 175, 80, 0.2);
-  color: #4caf50;
-  border: 1px solid rgba(76, 175, 80, 0.3);
-}
-
 .status-dropdown-menu {
   position: absolute;
-  top: calc(100% + 0.5rem);
+  top: calc(100% + 0.25rem);
   left: 0;
   background: rgba(10, 10, 10, 0.98);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  z-index: 1000;
-  min-width: 140px;
+  z-index: 10000;
+  min-width: 120px;
   overflow: hidden;
 }
 
@@ -689,7 +667,6 @@
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
   padding: 0.75rem 1rem;
   background: transparent;
   border: none;
@@ -715,13 +692,4 @@
 .status-dropdown-item.active {
   background: rgba(212, 175, 55, 0.1);
   color: #d4af37;
-}
-
-.status-dropdown-item.active .material-icons {
-  color: #d4af37;
-}
-
-.status-dropdown-item .material-icons {
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.6);
 }
