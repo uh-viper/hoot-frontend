@@ -191,26 +191,39 @@ async function configurePorkbun(domain: string, nameservers: string[]) {
   }
 
   try {
-    // Porkbun API typically requires both API key and secret key
+    // Porkbun API v3 requires both API key and secret key
     const requestBody: any = {
-      domain: domain,
       apikey: porkbunApiKey,
+      secretapikey: porkbunSecretKey || porkbunApiKey, // Fallback to API key if secret not provided
       nameservers: nameservers,
     }
 
-    // Add secret key if provided
-    if (porkbunSecretKey) {
-      requestBody.secretapikey = porkbunSecretKey
+    // Ensure API URL ends with proper path (Porkbun API v3 format)
+    let apiEndpoint = porkbunApiUrl.trim()
+    if (!apiEndpoint.endsWith('/')) {
+      apiEndpoint += '/'
     }
+    // Porkbun API v3 endpoint format: /api/json/v3/domain/updateNameservers/{domain}
+    const endpoint = `${apiEndpoint}domain/updateNameservers/${encodeURIComponent(domain)}`
 
     // Update nameservers via Porkbun API
-    const response = await fetch(`${porkbunApiUrl}/domain/updateNameservers`, {
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(requestBody),
     })
+
+    // Check if response is JSON
+    const contentType = response.headers.get('content-type')
+    if (!contentType || !contentType.includes('application/json')) {
+      const textResponse = await response.text()
+      console.error('Porkbun API returned non-JSON response:', textResponse.substring(0, 200))
+      return {
+        error: `Porkbun API error: Received HTML response. Check API endpoint and credentials. Status: ${response.status}`,
+      }
+    }
 
     const data = await response.json()
 
@@ -226,6 +239,12 @@ async function configurePorkbun(domain: string, nameservers: string[]) {
       nameservers: nameservers,
     }
   } catch (err: any) {
+    // Handle JSON parse errors specifically
+    if (err.message && err.message.includes('JSON')) {
+      return {
+        error: `Porkbun API error: Invalid response format. Check API endpoint URL (${porkbunApiUrl}).`,
+      }
+    }
     return { error: err.message || 'Porkbun API error' }
   }
 }
