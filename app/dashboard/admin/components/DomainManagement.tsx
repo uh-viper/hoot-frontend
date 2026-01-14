@@ -377,7 +377,7 @@ export default function DomainManagement() {
                         {openStatusDropdown === domain.id && (
                           <StatusDropdownMenu
                             domainId={domain.id}
-                            currentStatus={domain.status || 'pending'}
+                            currentStatus={(domain.status === 'pending' || domain.status === 'active') ? domain.status : 'pending'}
                             onStatusChange={(newStatus) => {
                               handleStatusChange(domain.id, newStatus)
                               setOpenStatusDropdown(null)
