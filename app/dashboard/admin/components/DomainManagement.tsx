@@ -23,7 +23,7 @@ export default function DomainManagement() {
   const [isLoading, setIsLoading] = useState(true)
   const [isAdding, setIsAdding] = useState(false)
   const [newDomain, setNewDomain] = useState('')
-  const [isConfiguring, setIsConfiguring] = useState<string | null>(null)
+  const [isConfiguring, setIsConfiguring] = useState<Set<string>>(new Set())
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
   const [isUpdatingStatus, setIsUpdatingStatus] = useState<string | null>(null)
   const [deleteModal, setDeleteModal] = useState<{ domainId: string; domainName: string } | null>(null)
@@ -100,8 +100,12 @@ export default function DomainManagement() {
   }
 
   const handleConfigureDomain = async (domainId: string) => {
-    setIsConfiguring(domainId)
-    const configuringToastId = showInfo('Configuring domain...')
+    const domain = domains.find(d => d.id === domainId)
+    const domainName = domain?.domain_name || 'domain'
+    
+    // Add to configuring set
+    setIsConfiguring(prev => new Set(prev).add(domainId))
+    const configuringToastId = showInfo(`Configuring domain ${domainName}...`)
 
     try {
       const response = await fetch(`/api/admin/domains/${domainId}/configure`, {
@@ -114,12 +118,17 @@ export default function DomainManagement() {
         throw new Error(data.error || 'Failed to configure domain')
       }
 
-      showSuccess('Domain configured successfully!')
+      showSuccess(`Successfully configured ${domainName}`)
       fetchDomains()
     } catch (err: any) {
-      showError(err.message || 'Failed to configure domain')
+      showError(err.message || `Failed to configure ${domainName}`)
     } finally {
-      setIsConfiguring(null)
+      // Remove from configuring set
+      setIsConfiguring(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(domainId)
+        return newSet
+      })
     }
   }
 
@@ -418,22 +427,22 @@ export default function DomainManagement() {
                       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                         <button
                           onClick={() => handleConfigureDomain(domain.id)}
-                          disabled={isConfiguring === domain.id || isDeleting === domain.id}
+                          disabled={isConfiguring.has(domain.id) || isDeleting === domain.id}
                           style={{
                             padding: '0.5rem 1rem',
                             borderRadius: '6px',
                             border: 'none',
                             background:
-                              isConfiguring === domain.id
+                              isConfiguring.has(domain.id)
                                 ? 'rgba(212, 175, 55, 0.5)'
                                 : '#d4af37',
                             color: '#000',
                             fontWeight: 500,
-                            cursor: isConfiguring === domain.id || isDeleting === domain.id ? 'not-allowed' : 'pointer',
+                            cursor: isConfiguring.has(domain.id) || isDeleting === domain.id ? 'not-allowed' : 'pointer',
                             fontSize: '0.875rem',
                           }}
                         >
-                          {isConfiguring === domain.id ? (
+                          {isConfiguring.has(domain.id) ? (
                             <span className="spinner" style={{ display: 'inline-block', width: '16px', height: '16px', verticalAlign: 'middle' }}></span>
                           ) : (
                             'Configure'
@@ -441,7 +450,7 @@ export default function DomainManagement() {
                         </button>
                         <button
                           onClick={() => handleDeleteClick(domain.id, domain.domain_name)}
-                          disabled={isConfiguring === domain.id || isDeleting === domain.id}
+                          disabled={isConfiguring.has(domain.id) || isDeleting === domain.id}
                           style={{
                             padding: '0.5rem 1rem',
                             borderRadius: '6px',
@@ -449,7 +458,7 @@ export default function DomainManagement() {
                             background: isDeleting === domain.id ? 'rgba(244, 67, 54, 0.5)' : 'rgba(244, 67, 54, 0.2)',
                             color: '#f44336',
                             fontWeight: 500,
-                            cursor: isConfiguring === domain.id || isDeleting === domain.id ? 'not-allowed' : 'pointer',
+                            cursor: isConfiguring.has(domain.id) || isDeleting === domain.id ? 'not-allowed' : 'pointer',
                             fontSize: '0.875rem',
                           }}
                         >
