@@ -284,7 +284,7 @@ export default function DomainManagement() {
                         <span style={{ opacity: 0.5 }}>Not set</span>
                       )}
                     </td>
-                    <td>{formatDate(domain.created_at)}</td>
+                    <td>{domain.created_at ? formatDate(domain.created_at) : 'N/A'}</td>
                     <td>
                       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                         <button

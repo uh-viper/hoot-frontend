@@ -596,7 +596,12 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
       }
     )
     const getCatchallData = await getCatchallResponse.json()
-    console.log('Current catchall status:', JSON.stringify(getCatchallData, null, 2))
+    // Log to response for debugging (will show in Vercel logs)
+    const catchallDebugInfo = {
+      currentStatus: getCatchallData,
+      workerName,
+      zoneId: zoneId.slice(0, 8) + '...',
+    }
 
     // Try multiple API payload formats to find the correct one
     const payloadFormats = [
@@ -641,8 +646,6 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
     for (let formatIndex = 0; formatIndex < payloadFormats.length; formatIndex++) {
       const catchallPayload = payloadFormats[formatIndex]
       
-      console.log(`Trying catchall format ${formatIndex + 1}:`, JSON.stringify(catchallPayload, null, 2))
-
       const catchallResponse = await fetch(
         `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing/catch_all`,
         {
@@ -653,33 +656,30 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
       )
 
       const catchallData = await catchallResponse.json()
-      console.log(`Catchall response format ${formatIndex + 1}:`, JSON.stringify(catchallData, null, 2))
 
       if (catchallData.success) {
         catchallConfigured = true
-        console.log(`✅ Catchall configured successfully with format ${formatIndex + 1}:`, {
-          workerName,
-          enabled: catchallData.result?.enabled,
-          action: catchallData.result?.action,
-        })
+        // Success - break out of loop
         break
       } else {
         lastError = catchallData.errors?.[0] || catchallData
-        console.error(`❌ Format ${formatIndex + 1} failed:`, lastError)
+        // Store attempt info for debugging
+        catchallDebugInfo.attempts = catchallDebugInfo.attempts || []
+        catchallDebugInfo.attempts.push({
+          format: formatIndex + 1,
+          payload: catchallPayload,
+          error: lastError,
+        })
       }
     }
 
     if (!catchallConfigured) {
-      console.error('❌ All catchall configuration formats failed. Last error:', lastError)
+      // Return error with full debug info - this will show in Vercel logs
       return {
         success: false,
         error: `Failed to configure catchall: ${lastError?.message || JSON.stringify(lastError)}`,
         warning: true,
-        debug: {
-          workerName,
-          zoneId: zoneId.slice(0, 8) + '...',
-          lastError,
-        },
+        debug: catchallDebugInfo,
       }
     }
 
