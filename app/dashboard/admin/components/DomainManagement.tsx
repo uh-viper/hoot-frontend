@@ -25,6 +25,7 @@ export default function DomainManagement() {
   const [newDomain, setNewDomain] = useState('')
   const [isConfiguring, setIsConfiguring] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState<string | null>(null)
   const [deleteModal, setDeleteModal] = useState<{ domainId: string; domainName: string } | null>(null)
 
   // Fetch domains on mount

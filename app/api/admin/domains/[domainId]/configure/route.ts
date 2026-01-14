@@ -88,11 +88,11 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         console.warn('DNS update warning:', dnsResult.error)
       }
 
-      // Update domain in database with success
+      // Update domain in database with configuration details (but keep status as-is for manual review)
       await supabase
         .from('domains')
         .update({
-          status: 'active',
+          // Don't automatically set status to 'active' - let admin review and set manually
           cloudflare_zone_id: cloudflareResult.zoneId,
           cloudflare_nameservers: cloudflareResult.nameservers,
           porkbun_nameservers: porkbunResult.nameservers || cloudflareResult.nameservers,
