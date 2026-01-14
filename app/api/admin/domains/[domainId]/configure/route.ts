@@ -613,13 +613,6 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
       }
     )
     const getCatchallData = await getCatchallResponse.json()
-    // Log to response for debugging (will show in Vercel logs)
-    const catchallDebugInfo: any = {
-      currentStatus: getCatchallData,
-      workerName,
-      zoneId: zoneId.slice(0, 8) + '...',
-      attempts: [] as any[],
-    }
 
     // Based on Cloudflare API docs:
     // PUT /zones/{zone_id}/email/routing/rules/catch_all
