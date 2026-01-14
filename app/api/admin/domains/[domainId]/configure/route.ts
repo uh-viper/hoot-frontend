@@ -573,67 +573,113 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
     // We don't need to fetch or create them - they're auto-generated when Email Routing is enabled
 
     // Step 3: Configure catchall to send to worker
-    // Note: This requires nameservers to be fully propagated (can take 2-3 minutes)
-    // If it fails, user can manually configure in Cloudflare dashboard or reconfigure later
+    // Extract worker name from URL (e.g., "https://bc-generator.xxx.workers.dev" -> "bc-generator")
     const workerName = workerUrl 
       ? workerUrl.replace(/^https?:\/\//, '').split('.')[0] 
       : 'bc-generator' // Default worker name
 
-    if (workerName) {
-      // Try to configure catchall with retry logic (nameservers may still be propagating)
-      let catchallConfigured = false
-      let catchallError = null
-
-      // Try up to 3 times with delays (nameservers take time to propagate)
-      for (let attempt = 1; attempt <= 3; attempt++) {
-        // Wait before retry (except first attempt)
-        if (attempt > 1) {
-          await new Promise(resolve => setTimeout(resolve, 30000)) // 30 seconds between attempts
-        }
-
-        const catchallPayload = {
-          action: {
-            type: 'worker',
-            value: workerName,
-          },
-          enabled: true,
-        }
-
-        const catchallResponse = await fetch(
-          `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing/catch_all`,
-          {
-            method: 'PUT',
-            headers: authHeaders,
-            body: JSON.stringify(catchallPayload),
-          }
-        )
-
-        const catchallData = await catchallResponse.json()
-
-        if (catchallData.success) {
-          catchallConfigured = true
-          console.log(`Catchall configured successfully on attempt ${attempt}:`, {
-            workerName,
-            enabled: catchallData.result?.enabled,
-          })
-          break
-        } else {
-          catchallError = catchallData.errors?.[0]?.message || 'Unknown error'
-          console.warn(`Catchall configuration attempt ${attempt} failed:`, catchallError)
-          
-          // If error suggests nameservers aren't ready, continue retrying
-          // Otherwise, stop trying
-          if (catchallError.includes('not ready') || catchallError.includes('propagat') || catchallError.includes('pending')) {
-            continue // Try again
-          } else {
-            break // Different error, stop retrying
-          }
-        }
+    if (!workerName) {
+      console.warn('No worker name available for catchall configuration')
+      return {
+        success: true,
+        message: 'Email routing enabled. MX and DKIM records are automatically created by Cloudflare (read-only).',
+        note: 'EMAIL_FETCHER not set - configure catchall rule manually in Cloudflare dashboard.',
       }
+    }
 
-      if (!catchallConfigured) {
-        console.warn('Catchall not configured - nameservers may still be propagating:', catchallError)
-        // Don't fail the whole operation - user can configure manually later
+    // First, check current catchall status
+    const getCatchallResponse = await fetch(
+      `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing/catch_all`,
+      {
+        method: 'GET',
+        headers: authHeaders,
+      }
+    )
+    const getCatchallData = await getCatchallResponse.json()
+    console.log('Current catchall status:', JSON.stringify(getCatchallData, null, 2))
+
+    // Try multiple API payload formats to find the correct one
+    const payloadFormats = [
+      // Format 1: Standard format
+      {
+        action: {
+          type: 'worker',
+          value: workerName,
+        },
+        enabled: true,
+      },
+      // Format 2: Alternative format
+      {
+        action: {
+          type: 'worker',
+          name: workerName,
+        },
+        enabled: true,
+      },
+      // Format 3: Direct worker reference
+      {
+        action: 'worker',
+        worker: workerName,
+        enabled: true,
+      },
+      // Format 4: With matcher
+      {
+        matcher: {
+          type: 'all',
+        },
+        action: {
+          type: 'worker',
+          value: workerName,
+        },
+        enabled: true,
+      },
+    ]
+
+    let catchallConfigured = false
+    let lastError = null
+
+    for (let formatIndex = 0; formatIndex < payloadFormats.length; formatIndex++) {
+      const catchallPayload = payloadFormats[formatIndex]
+      
+      console.log(`Trying catchall format ${formatIndex + 1}:`, JSON.stringify(catchallPayload, null, 2))
+
+      const catchallResponse = await fetch(
+        `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing/catch_all`,
+        {
+          method: 'PUT',
+          headers: authHeaders,
+          body: JSON.stringify(catchallPayload),
+        }
+      )
+
+      const catchallData = await catchallResponse.json()
+      console.log(`Catchall response format ${formatIndex + 1}:`, JSON.stringify(catchallData, null, 2))
+
+      if (catchallData.success) {
+        catchallConfigured = true
+        console.log(`✅ Catchall configured successfully with format ${formatIndex + 1}:`, {
+          workerName,
+          enabled: catchallData.result?.enabled,
+          action: catchallData.result?.action,
+        })
+        break
+      } else {
+        lastError = catchallData.errors?.[0] || catchallData
+        console.error(`❌ Format ${formatIndex + 1} failed:`, lastError)
+      }
+    }
+
+    if (!catchallConfigured) {
+      console.error('❌ All catchall configuration formats failed. Last error:', lastError)
+      return {
+        success: false,
+        error: `Failed to configure catchall: ${lastError?.message || JSON.stringify(lastError)}`,
+        warning: true,
+        debug: {
+          workerName,
+          zoneId: zoneId.slice(0, 8) + '...',
+          lastError,
+        },
       }
     }
 
