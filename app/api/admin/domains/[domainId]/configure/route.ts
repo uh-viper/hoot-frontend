@@ -626,10 +626,54 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
     // CatchAllAction = { type, value }
     // CatchAllMatcher = { type }
     // The catchall rule has: { id, actions, enabled, matcher, name, tag }
-    // Based on current status from API, the format is:
-    // { matchers: [{ type: "all" }], actions: [{ type: "worker", value: "..." }], enabled: true }
-    // Note: matchers (plural, array) and actions (plural, array)
-    // "Bad JSON input" error suggests the value field might need different structure
+    // Correct format based on successful tests (Format 3 worked!):
+    // - matchers: array with { type: "all" }
+    // - actions: array with { type: "worker", value: ["worker-name"] } - NOTE: value must be an array!
+    // - enabled: true
+    const catchallPayload = {
+      matchers: [
+        {
+          type: 'all',
+        },
+      ],
+      actions: [
+        {
+          type: 'worker',
+          value: [workerName], // Value MUST be an array, not a string!
+        },
+      ],
+      enabled: true,
+    }
+
+    // Based on API docs: PUT /zones/{zone_id}/email/routing/rules/catch_all
+    const catchallResponse = await fetch(
+      `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing/rules/catch_all`,
+      {
+        method: 'PUT',
+        headers: authHeaders,
+        body: JSON.stringify(catchallPayload),
+      }
+    )
+
+    const catchallData = await catchallResponse.json()
+
+    if (!catchallData.success) {
+      const lastError = catchallData.errors?.[0] || catchallData
+      console.error('CATCHALL CONFIGURATION FAILED:', {
+        error: lastError,
+        workerName,
+        zoneId: zoneId.slice(0, 8) + '...',
+        payload: JSON.stringify(catchallPayload),
+      })
+      return {
+        success: false,
+        error: `Failed to configure catchall: ${lastError?.message || JSON.stringify(lastError)}`,
+        warning: true,
+      }
+    }
+
+    // Remove old format attempts code - keeping for reference but commented out
+    /* OLD CODE - REMOVED - Format 3 is the correct one
     const payloadFormats = [
       // Format 1: Try with value as string (standard)
       {
