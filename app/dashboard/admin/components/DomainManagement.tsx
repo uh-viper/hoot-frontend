@@ -255,10 +255,10 @@ export default function DomainManagement() {
                 {domains.map((domain) => (
                   <tr key={domain.id}>
                     <td>
-                      <strong>{domain.domain_name}</strong>
+                      <strong>{domain.domain_name || 'N/A'}</strong>
                     </td>
-                    <td>{getStatusBadge(domain.status)}</td>
-                    <td>{domain.registrar}</td>
+                    <td>{getStatusBadge(domain.status || 'pending')}</td>
+                    <td>{domain.registrar || 'N/A'}</td>
                     <td>
                       {domain.cloudflare_zone_id ? (
                         <span style={{ fontSize: '0.875rem', opacity: 0.8 }}>

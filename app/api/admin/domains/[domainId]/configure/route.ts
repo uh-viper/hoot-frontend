@@ -681,20 +681,38 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
       } else {
         lastError = catchallData.errors?.[0] || catchallData
         // Store attempt info for debugging
-        catchallDebugInfo.attempts = catchallDebugInfo.attempts || []
         catchallDebugInfo.attempts.push({
           format: formatIndex + 1,
           payload: catchallPayload,
           error: lastError,
+          response: catchallData,
         })
+        // Log each failed attempt immediately - use console.error which shows in Vercel
+        const attemptError = `CATCHALL ATTEMPT ${formatIndex + 1} FAILED`
+        console.error(attemptError)
+        console.error('Payload:', JSON.stringify(catchallPayload))
+        console.error('Error:', JSON.stringify(lastError))
+        console.error('Full Response:', JSON.stringify(catchallData))
       }
     }
 
     if (!catchallConfigured) {
-      // Return error with full debug info - this will show in Vercel logs
+      // Log comprehensive error - use multiple console.error calls so they show in Vercel
+      console.error('========================================')
+      console.error('CATCHALL CONFIGURATION FAILED')
+      console.error('========================================')
+      console.error('Worker Name:', workerName)
+      console.error('Zone ID:', zoneId.slice(0, 8) + '...')
+      console.error('Total Attempts:', catchallDebugInfo.attempts.length)
+      console.error('Last Error:', JSON.stringify(lastError))
+      console.error('Current Status:', JSON.stringify(catchallDebugInfo.currentStatus))
+      console.error('All Attempts:', JSON.stringify(catchallDebugInfo.attempts))
+      console.error('========================================')
+      
+      // Return error with full debug info
       return {
         success: false,
-        error: `Failed to configure catchall: ${lastError?.message || JSON.stringify(lastError)}`,
+        error: errorMessage,
         warning: true,
         debug: catchallDebugInfo,
       }
