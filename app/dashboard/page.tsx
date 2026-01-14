@@ -4,11 +4,15 @@ import { redirect } from 'next/navigation'
 import { Metadata } from 'next'
 import { initializeUserData } from '@/lib/api/user-initialization'
 import GraphSection from './components/GraphSection'
+import DashboardStats from './components/DashboardStats'
 import '../styles/dashboard.css'
 
 export const metadata: Metadata = {
   title: 'Hoot - Dashboard',
 }
+
+// Force dynamic rendering to always fetch fresh data
+export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
   const user = await getSessionUser()
@@ -26,26 +30,6 @@ export default async function DashboardPage() {
   // Ensure user stats are initialized (creates if they don't exist)
   await initializeUserData(user.id)
 
-  // Fetch user stats from database
-  const { data: statsData } = await supabase
-    .from('user_stats')
-    .select('requested, successful, failures')
-    .eq('user_id', user.id)
-    .single()
-
-  // Business Centers = count of accounts in vault (same as successful)
-  const { count: businessCentersCount } = await supabase
-    .from('user_accounts')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', user.id)
-
-  const stats = {
-    businessCenters: businessCentersCount ?? 0,
-    requested: statsData?.requested ?? 0,
-    successful: statsData?.successful ?? 0,
-    failures: statsData?.failures ?? 0,
-  }
-
   return (
     <div className="dashboard-content">
       <div className="dashboard-header">
@@ -53,48 +37,8 @@ export default async function DashboardPage() {
         <p className="dashboard-subtitle">Welcome back, {firstName || user.email?.split('@')[0] || 'User'}</p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="dashboard-stats">
-        <div className="stat-card">
-          <div className="stat-icon">
-            <span className="material-icons">account_balance</span>
-          </div>
-          <div className="stat-content">
-            <p className="stat-label">Business Centers</p>
-            <p className="stat-value">{stats.businessCenters.toLocaleString()}</p>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">
-            <span className="material-icons">pending_actions</span>
-          </div>
-          <div className="stat-content">
-            <p className="stat-label">Requested</p>
-            <p className="stat-value">{stats.requested.toLocaleString()}</p>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">
-            <span className="material-icons">check_circle</span>
-          </div>
-          <div className="stat-content">
-            <p className="stat-label">Successful</p>
-            <p className="stat-value">{stats.successful.toLocaleString()}</p>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">
-            <span className="material-icons">error</span>
-          </div>
-          <div className="stat-content">
-            <p className="stat-label">Failures</p>
-            <p className="stat-value">{stats.failures.toLocaleString()}</p>
-          </div>
-        </div>
-      </div>
+      {/* Stats Cards - Client component that fetches fresh data */}
+      <DashboardStats />
 
       {/* Graph Section */}
       <GraphSection />
