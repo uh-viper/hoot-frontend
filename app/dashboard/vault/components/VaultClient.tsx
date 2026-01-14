@@ -37,7 +37,7 @@ export default function VaultClient({ accounts }: VaultClientProps) {
         
         {accounts.length === 0 ? (
           <div className="vault-empty">
-            <span className="material-icons">account_circle</span>
+            <span className="material-icons">account_box</span>
             <p>No accounts yet</p>
             <span className="vault-empty-hint">Your business center accounts will appear here after deployment</span>
           </div>
