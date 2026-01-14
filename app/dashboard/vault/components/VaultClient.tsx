@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import AccountCard from './AccountCard';
 
 interface Account {
@@ -13,13 +15,103 @@ interface Account {
 }
 
 interface VaultClientProps {
-  accounts: Account[];
+  initialAccounts: Account[];
 }
 
-export default function VaultClient({ accounts }: VaultClientProps) {
+export default function VaultClient({ initialAccounts }: VaultClientProps) {
+  const pathname = usePathname();
+  const [accounts, setAccounts] = useState<Account[]>(initialAccounts);
+  const [isLoading, setIsLoading] = useState(false);
   const [displayCount, setDisplayCount] = useState(6);
   const accountsToShow = accounts.slice(0, displayCount);
   const hasMore = accounts.length > displayCount;
+
+  // Fetch accounts function
+  const fetchAccounts = async () => {
+    setIsLoading(true);
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
+
+    const { data: userAccounts, error } = await supabase
+      .from('user_accounts')
+      .select('id, email, password, region, currency, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching accounts:', error);
+      setIsLoading(false);
+      return;
+    }
+
+    setAccounts(userAccounts || []);
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    // Fetch fresh accounts when component mounts or pathname changes
+    fetchAccounts();
+
+    // Set up real-time subscription
+    const supabase = createClient();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    const setupRealtime = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      channel = supabase
+        .channel('vault-accounts-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: '*', // Listen to INSERT, UPDATE, DELETE
+            schema: 'public',
+            table: 'user_accounts',
+            filter: `user_id=eq.${user.id}`,
+          },
+          () => {
+            // When any account changes, refetch accounts
+            fetchAccounts();
+          }
+        )
+        .subscribe();
+
+      return channel;
+    };
+
+    setupRealtime().then(ch => {
+      channel = ch;
+    });
+
+    // Listen for custom event when job completes
+    const handleAccountsUpdate = () => {
+      fetchAccounts();
+    };
+    
+    // Listen for when page becomes visible (user switches back to tab)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchAccounts();
+      }
+    };
+    
+    window.addEventListener('accounts-updated', handleAccountsUpdate);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+      window.removeEventListener('accounts-updated', handleAccountsUpdate);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [pathname]); // Re-run when pathname changes (user navigates to vault)
 
   const loadMore = () => {
     setDisplayCount(prev => prev + 6);

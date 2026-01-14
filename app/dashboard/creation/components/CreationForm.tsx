@@ -347,9 +347,10 @@ export default function CreationForm() {
                 : `${status.credits.amount} credits deducted`;
               addMessage('success', creditMsg);
               
-              // Trigger sidebar credits refresh and dashboard stats refresh
+              // Trigger sidebar credits refresh, dashboard stats refresh, and vault accounts refresh
               window.dispatchEvent(new CustomEvent('credits-updated'));
               window.dispatchEvent(new CustomEvent('stats-updated'));
+              window.dispatchEvent(new CustomEvent('accounts-updated'));
             } else {
               addMessage('warning', `⚠ Credit deduction failed: ${status.credits.error || 'Unknown error'}`);
               if (status.credits.amount_should_have_been_deducted) {
