@@ -47,8 +47,8 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       const cloudflareResult = await configureCloudflare(domain.domain_name)
       results.cloudflare = cloudflareResult
 
-      if (cloudflareResult.error) {
-        throw new Error(`Cloudflare: ${cloudflareResult.error}`)
+      if (cloudflareResult.error || !cloudflareResult.zoneId || !cloudflareResult.nameservers) {
+        throw new Error(`Cloudflare: ${cloudflareResult.error || 'Failed to get zone ID or nameservers'}`)
       }
 
       // Step 2: Update Porkbun nameservers to Cloudflare nameservers
@@ -109,7 +109,10 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 }
 
 // Configure Cloudflare zone
-async function configureCloudflare(domain: string) {
+async function configureCloudflare(domain: string): Promise<
+  | { error: string; zoneId?: never; nameservers?: never }
+  | { zoneId: string; nameservers: string[]; error?: never }
+> {
   const cloudflareApiToken = process.env.CLOUDFLARE_API_TOKEN
   const cloudflareAccountId = process.env.CLOUDFLARE_ACCOUNT_ID
 
