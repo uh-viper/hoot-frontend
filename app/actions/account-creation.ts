@@ -158,24 +158,14 @@ export async function createJob(
     console.log('[createJob] Successfully retrieved access token (JWT format verified)')
 
     // Create job via backend API
-    // NOTE: Credits are NOT deducted here - they will be deducted when accounts are actually saved
+    // NOTE: Backend handles everything automatically:
+    // - Credits deduction when accounts are saved
+    // - Account saving to user_accounts table
+    // - Stats updates (requested, successful, failures)
+    // All happens server-side, even if user closes the tab
     console.log('[createJob] Creating job with:', { accounts, region, currency })
     const jobResponse = await createAccountsJob(accounts, region, currency, accessToken)
     console.log('[createJob] Job created successfully:', jobResponse)
-
-    // Update user stats
-    const { data: statsData } = await supabase
-      .from('user_stats')
-      .select('requested')
-      .eq('user_id', user.id)
-      .single()
-
-    if (statsData) {
-      await supabase
-        .from('user_stats')
-        .update({ requested: (statsData.requested ?? 0) + accounts })
-        .eq('user_id', user.id)
-    }
 
     revalidatePath('/dashboard')
     revalidatePath('/dashboard/creation')
@@ -239,54 +229,25 @@ export async function fetchJobStatus(jobId: string): Promise<{ success: boolean;
 }
 
 /**
- * Update user stats incrementally (for real-time updates)
+ * @deprecated This function is no longer used.
+ * Backend automatically updates user_stats table after each job completes.
+ * Stats are updated server-side, so they work even if the user closes the tab.
+ * 
+ * The backend:
+ * - Increments `requested` by total accounts requested
+ * - Increments `successful` by accounts successfully created
+ * - Increments `failures` by accounts that failed
+ * 
+ * Frontend should only read stats from the database, never update them.
  */
 export async function updateUserStatsIncremental(
   accountsCreated: number = 0,
   failures: number = 0
 ): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    return { success: false, error: 'Not authenticated' }
-  }
-
-  try {
-    const { data: statsData } = await supabase
-      .from('user_stats')
-      .select('successful, failures')
-      .eq('user_id', user.id)
-      .single()
-
-    if (statsData) {
-      await supabase
-        .from('user_stats')
-        .update({
-          successful: (statsData.successful ?? 0) + accountsCreated,
-          failures: (statsData.failures ?? 0) + failures,
-        })
-        .eq('user_id', user.id)
-    } else {
-      // Stats don't exist - create them
-      await supabase
-        .from('user_stats')
-        .insert({
-          user_id: user.id,
-          successful: accountsCreated,
-          failures: failures,
-          requested: 0,
-        })
-    }
-
-    revalidatePath('/dashboard')
-    return { success: true }
-  } catch (error) {
-    console.error('Failed to update user stats:', error)
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to update stats',
-    }
+  console.warn('[DEPRECATED] updateUserStatsIncremental called - backend handles stats automatically')
+  return {
+    success: false,
+    error: 'Stats updates are now handled by backend. This function should not be called.',
   }
 }
 

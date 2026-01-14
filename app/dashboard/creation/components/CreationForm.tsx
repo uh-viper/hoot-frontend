@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useToast } from '../../../contexts/ToastContext';
 import { useConsole } from '../contexts/ConsoleContext';
-import { checkCredits, createJob, fetchJobStatus, updateUserStatsIncremental } from '../../../actions/account-creation';
+import { checkCredits, createJob, fetchJobStatus } from '../../../actions/account-creation';
 import { useTransition } from 'react';
 
 interface Country {
@@ -285,10 +285,7 @@ export default function CreationForm() {
             addMessage('success', 'Account Created');
           }
           
-          // Update stats in real-time: +1 successful for each new account
-          if (newAccountCount > 0) {
-            await updateUserStatsIncremental(newAccountCount, 0);
-          }
+          // Backend automatically updates stats - no frontend action needed
           
           lastProgress.accountCount = currentAccountCount;
         }
@@ -304,10 +301,7 @@ export default function CreationForm() {
             addMessage('error', `Account Failed - Error Code: ${errorCode}`);
           });
           
-          // Update stats in real-time: +1 failure for each new failure
-          if (newFailureCount > 0) {
-            await updateUserStatsIncremental(0, newFailureCount);
-          }
+          // Backend automatically updates stats - no frontend action needed
           
           lastProgress.failureCount = currentFailureCount;
         }
@@ -333,22 +327,10 @@ export default function CreationForm() {
           const finalAccountCount = status.accounts?.length || status.total_created || 0;
           const finalFailureCount = status.total_failed || (status.total_requested - status.total_created);
           
-          // Calculate how many accounts/failures we haven't tracked yet in real-time
-          const accountsToUpdate = Math.max(0, finalAccountCount - lastProgress.accountCount);
-          const failuresToUpdate = Math.max(0, finalFailureCount - lastProgress.failureCount);
-          
-          // Update any remaining stats that weren't tracked in real-time
-          if (accountsToUpdate > 0 || failuresToUpdate > 0) {
-            await updateUserStatsIncremental(accountsToUpdate, failuresToUpdate);
-          }
+          // Backend automatically updates stats when job completes - no frontend action needed
           
           if (status.total_created === 0) {
             addMessage('error', `No accounts created. ${status.error || 'Check backend logs.'}`);
-            
-            // Still update failure stats even if no accounts were created
-            if (failuresToUpdate > 0) {
-              await updateUserStatsIncremental(0, failuresToUpdate);
-            }
             
             clearJobState();
             return;
