@@ -159,6 +159,63 @@ export default function DomainManagement() {
     setDeleteModal(null)
   }
 
+  // Status Dropdown Menu Component with fixed positioning
+  const StatusDropdownMenu = ({ 
+    domainId, 
+    currentStatus, 
+    onStatusChange, 
+    isUpdating 
+  }: { 
+    domainId: string
+    currentStatus: 'pending' | 'active'
+    onStatusChange: (status: 'pending' | 'active') => void
+    isUpdating: boolean
+  }) => {
+    const [position, setPosition] = useState({ top: 0, left: 0 })
+
+    useEffect(() => {
+      const button = document.querySelector(`[data-domain-id="${domainId}"]`) as HTMLElement
+      if (button) {
+        const rect = button.getBoundingClientRect()
+        setPosition({
+          top: rect.bottom + window.scrollY + 4,
+          left: rect.left + window.scrollX
+        })
+      }
+    }, [domainId])
+
+    return (
+      <div 
+        className="status-dropdown-menu"
+        style={{
+          top: `${position.top}px`,
+          left: `${position.left}px`
+        }}
+      >
+        {currentStatus !== 'pending' && (
+          <button
+            className="status-dropdown-item"
+            onClick={() => onStatusChange('pending')}
+            disabled={isUpdating}
+          >
+            <span className="material-icons" style={{ fontSize: '1rem' }}>schedule</span>
+            Pending
+          </button>
+        )}
+        {currentStatus !== 'active' && (
+          <button
+            className="status-dropdown-item"
+            onClick={() => onStatusChange('active')}
+            disabled={isUpdating}
+          >
+            <span className="material-icons" style={{ fontSize: '1rem' }}>check_circle</span>
+            Active
+          </button>
+        )}
+      </div>
+    )
+  }
+
   const handleStatusChange = async (domainId: string, newStatus: 'pending' | 'active') => {
     setIsUpdatingStatus(domainId)
     try {
