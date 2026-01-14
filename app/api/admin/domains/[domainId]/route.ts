@@ -22,8 +22,8 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     const body = await request.json()
     const { status } = body
 
-    if (!status || !['pending', 'active', 'error'].includes(status)) {
-      return NextResponse.json({ error: 'Invalid status. Must be pending, active, or error' }, { status: 400 })
+    if (!status || !['pending', 'active'].includes(status)) {
+      return NextResponse.json({ error: 'Invalid status. Must be pending or active' }, { status: 400 })
     }
 
     // Check if domain exists

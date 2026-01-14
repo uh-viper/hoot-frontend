@@ -140,7 +140,7 @@ export default function DomainManagement() {
     setDeleteModal(null)
   }
 
-  const handleStatusChange = async (domainId: string, newStatus: 'pending' | 'active' | 'error') => {
+  const handleStatusChange = async (domainId: string, newStatus: 'pending' | 'active') => {
     setIsUpdatingStatus(domainId)
     try {
       const response = await fetch(`/api/admin/domains/${domainId}`, {
