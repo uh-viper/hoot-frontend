@@ -4,11 +4,12 @@ import { createContext, useContext, useState, useCallback, ReactNode } from 'rea
 import { ToastContainer, Toast, ToastType } from '../components/Toast';
 
 interface ToastContextType {
-  showToast: (message: string, type?: ToastType, action?: { label: string; onClick: () => void }) => void;
-  showError: (message: string) => void;
-  showSuccess: (message: string, action?: { label: string; onClick: () => void }) => void;
-  showWarning: (message: string) => void;
-  showInfo: (message: string) => void;
+  showToast: (message: string, type?: ToastType, action?: { label: string; onClick: () => void }) => string;
+  showError: (message: string) => string;
+  showSuccess: (message: string, action?: { label: string; onClick: () => void }) => string;
+  showWarning: (message: string) => string;
+  showInfo: (message: string) => string;
+  removeToast: (id: string) => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -31,22 +32,24 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, newToast];
     });
+    
+    return id;
   }, []);
 
   const showError = useCallback((message: string) => {
-    showToast(message, 'error');
+    return showToast(message, 'error');
   }, [showToast]);
 
   const showSuccess = useCallback((message: string, action?: { label: string; onClick: () => void }) => {
-    showToast(message, 'success', action);
+    return showToast(message, 'success', action);
   }, [showToast]);
 
   const showWarning = useCallback((message: string) => {
-    showToast(message, 'warning');
+    return showToast(message, 'warning');
   }, [showToast]);
 
   const showInfo = useCallback((message: string) => {
-    showToast(message, 'info');
+    return showToast(message, 'info');
   }, [showToast]);
 
   return (
@@ -57,6 +60,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         showSuccess,
         showWarning,
         showInfo,
+        removeToast,
       }}
     >
       {children}

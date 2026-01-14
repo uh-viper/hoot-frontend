@@ -12,7 +12,7 @@ interface AccountCardProps {
 }
 
 export default function AccountCard({ id, email, password, region, currency }: AccountCardProps) {
-  const { showSuccess, showError, showInfo } = useToast();
+  const { showSuccess, showError, showInfo, removeToast } = useToast();
   const [isFetchingCode, setIsFetchingCode] = useState(false);
 
   const copyToClipboard = async (text: string, type: 'email' | 'password' | 'code'): Promise<boolean> => {
@@ -72,7 +72,7 @@ export default function AccountCard({ id, email, password, region, currency }: A
     if (isFetchingCode) return;
 
     setIsFetchingCode(true);
-    showInfo('Fetching verification code...');
+    const fetchingToastId = showInfo('Fetching verification code...');
 
     try {
       const response = await fetch('/api/fetch-code', {
@@ -84,6 +84,9 @@ export default function AccountCard({ id, email, password, region, currency }: A
       });
 
       const data = await response.json();
+
+      // Remove the "Fetching..." toast
+      removeToast(fetchingToastId);
 
       if (response.ok && data.success && data.code) {
         const code = data.code; // Capture code in variable for closure
@@ -107,6 +110,8 @@ export default function AccountCard({ id, email, password, region, currency }: A
       }
     } catch (err) {
       console.error('Error fetching code:', err);
+      // Remove the "Fetching..." toast on error too
+      removeToast(fetchingToastId);
       showError('Failed to fetch verification code. Please try again.');
     } finally {
       setIsFetchingCode(false);
