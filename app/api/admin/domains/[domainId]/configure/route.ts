@@ -429,10 +429,11 @@ async function updateCloudflareDNS(zoneId: string, domain: string) {
     }
 
     // Default DNS records to create (if they don't exist)
+    // NOTE: emailRecords is empty - we don't create SPF manually (Cloudflare does it)
     const defaultRecords = [
       { type: 'A', name: '@', content: '192.0.2.1', ttl: 3600 }, // Placeholder IP
       { type: 'CNAME', name: 'www', content: domain, ttl: 3600 },
-      ...emailRecords, // Include email records
+      // NO SPF record - Cloudflare Email Routing creates it automatically
     ]
 
     const records = []
