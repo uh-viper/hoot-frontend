@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from 'react';
 import { useToast } from '../../../contexts/ToastContext';
 
 interface AccountCardProps {
@@ -11,20 +12,49 @@ interface AccountCardProps {
 }
 
 export default function AccountCard({ id, email, password, region, currency }: AccountCardProps) {
-  const { showSuccess } = useToast();
+  const { showSuccess, showError, showInfo } = useToast();
+  const [isFetchingCode, setIsFetchingCode] = useState(false);
 
-  const copyToClipboard = async (text: string, type: 'email' | 'password') => {
+  const copyToClipboard = async (text: string, type: 'email' | 'password' | 'code') => {
     try {
       await navigator.clipboard.writeText(text);
-      showSuccess(`${type === 'email' ? 'Email' : 'Password'} copied to clipboard!`);
+      showSuccess(`${type === 'email' ? 'Email' : type === 'password' ? 'Password' : 'Verification code'} copied to clipboard!`);
     } catch (err) {
       console.error('Failed to copy:', err);
+      showError('Failed to copy to clipboard');
     }
   };
 
-  const handleFetchCode = () => {
-    // TODO: Implement fetch code functionality
-    console.log('Fetching code for account:', id);
+  const handleFetchCode = async () => {
+    if (isFetchingCode) return;
+
+    setIsFetchingCode(true);
+    showInfo('Fetching verification code...');
+
+    try {
+      const response = await fetch('/api/fetch-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ accountId: id }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success && data.code) {
+        // Copy code to clipboard
+        await copyToClipboard(data.code, 'code');
+        showSuccess(`Verification code fetched and copied: ${data.code}`);
+      } else {
+        showError(data.error || 'Failed to fetch verification code');
+      }
+    } catch (err) {
+      console.error('Error fetching code:', err);
+      showError('Failed to fetch verification code. Please try again.');
+    } finally {
+      setIsFetchingCode(false);
+    }
   };
 
   return (
@@ -51,8 +81,9 @@ export default function AccountCard({ id, email, password, region, currency }: A
               type="button"
               className="action-btn"
               onClick={handleFetchCode}
+              disabled={isFetchingCode}
               aria-label="Fetch Code"
-              title="Fetch Code"
+              title={isFetchingCode ? "Fetching code..." : "Fetch Code"}
             >
               <span className="material-icons">mail</span>
             </button>
