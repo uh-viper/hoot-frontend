@@ -144,8 +144,9 @@ For domain management to work, set these in Vercel (or `.env.local`):
 
 ```bash
 # Porkbun API (Domain Registrar)
-DOMAIN_API_URL=your_porkbun_api_url  # Set to your Porkbun API endpoint URL
-DOMAIN_API_KEY=your_porkbun_api_key  # Only API key needed, no secret key
+DOMAIN_API_URL=https://api.porkbun.com/api/json/v3  # Porkbun API base URL
+DOMAIN_API_KEY=your_porkbun_api_key  # Your Porkbun API key
+DOMAIN_API_SECRET=your_porkbun_secret_key  # Your Porkbun secret API key (required)
 
 # Cloudflare API (DNS Management) - Global API Key (SUPER SECURE, server-side only)
 CLOUDFLARE_API_KEY=your_cloudflare_global_api_key
@@ -157,9 +158,12 @@ CLOUDFLARE_ACCOUNT_ID=your_cloudflare_account_id
 
 #### Porkbun API
 1. Log in to your Porkbun account
-2. Navigate to API Access
-3. Generate API key
-4. Add API key and API URL to environment variables
+2. Navigate to API Access (porkbun.com/account/api)
+3. Generate both API key and secret API key
+4. Add all three to environment variables:
+   - `DOMAIN_API_URL` = `https://api.porkbun.com/api/json/v3`
+   - `DOMAIN_API_KEY` = your API key
+   - `DOMAIN_API_SECRET` = your secret API key
 
 #### Cloudflare API
 1. Log in to Cloudflare Dashboard

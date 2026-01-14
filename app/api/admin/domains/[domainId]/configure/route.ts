@@ -184,30 +184,30 @@ async function configureCloudflare(domain: string): Promise<
 async function configurePorkbun(domain: string, nameservers: string[]) {
   const porkbunApiUrl = process.env.DOMAIN_API_URL
   const porkbunApiKey = process.env.DOMAIN_API_KEY
+  const porkbunSecretKey = process.env.DOMAIN_API_SECRET
 
-  if (!porkbunApiUrl || !porkbunApiKey) {
-    return { error: 'Porkbun API credentials not configured' }
+  if (!porkbunApiUrl || !porkbunApiKey || !porkbunSecretKey) {
+    return { error: 'Porkbun API credentials not configured (need API URL, API key, and secret key)' }
   }
 
   try {
-    // Porkbun API v3 only requires API key (no secret key)
+    // Porkbun API v3 requires both API key and secret API key
+    // Endpoint: /api/json/v3/domain/updateNs/DOMAIN
+    // Body: { secretapikey, apikey, ns: [array] }
     const requestBody: any = {
+      secretapikey: porkbunSecretKey,
       apikey: porkbunApiKey,
-      nameservers: nameservers,
+      ns: nameservers, // Use 'ns' not 'nameservers' per API docs
     }
 
-    // Ensure API URL is properly formatted (Porkbun API v3 format)
+    // Ensure API URL is properly formatted
     let apiEndpoint = porkbunApiUrl.trim()
     // Remove trailing slash if present
     if (apiEndpoint.endsWith('/')) {
       apiEndpoint = apiEndpoint.slice(0, -1)
     }
-    // Porkbun API v3 endpoint format: /api/json/v3/domain/updateNameservers/{domain}
-    // Domain should be in the URL path, not the body
-    const endpoint = `${apiEndpoint}/domain/updateNameservers/${encodeURIComponent(domain)}`
-    
-    // Also include domain in body for compatibility
-    requestBody.domain = domain
+    // Porkbun API v3 endpoint: /api/json/v3/domain/updateNs/DOMAIN
+    const endpoint = `${apiEndpoint}/domain/updateNs/${encodeURIComponent(domain)}`
 
     // Update nameservers via Porkbun API
     const response = await fetch(endpoint, {
