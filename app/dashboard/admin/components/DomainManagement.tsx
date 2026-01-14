@@ -286,25 +286,29 @@ export default function DomainManagement() {
                       <strong>{domain.domain_name || 'N/A'}</strong>
                     </td>
                     <td>
-                      <select
-                        value={domain.status || 'pending'}
-                        onChange={(e) => handleStatusChange(domain.id, e.target.value as 'pending' | 'active' | 'error')}
-                        disabled={isUpdatingStatus === domain.id}
-                        style={{
-                          padding: '0.25rem 0.5rem',
-                          borderRadius: '4px',
-                          border: '1px solid rgba(0,0,0,0.1)',
-                          background: 'white',
-                          fontSize: '0.875rem',
-                          cursor: isUpdatingStatus === domain.id ? 'not-allowed' : 'pointer',
-                          color: domain.status === 'active' ? '#4caf50' : domain.status === 'error' ? '#f44336' : '#ffa500',
-                          fontWeight: 500,
-                        }}
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="active">Active</option>
-                        <option value="error">Error</option>
-                      </select>
+                      <div className="status-selector">
+                        <button
+                          className={`status-option ${domain.status === 'pending' ? 'active' : ''}`}
+                          onClick={() => handleStatusChange(domain.id, 'pending')}
+                          disabled={isUpdatingStatus === domain.id || domain.status === 'pending'}
+                        >
+                          Pending
+                        </button>
+                        <button
+                          className={`status-option ${domain.status === 'active' ? 'active' : ''}`}
+                          onClick={() => handleStatusChange(domain.id, 'active')}
+                          disabled={isUpdatingStatus === domain.id || domain.status === 'active'}
+                        >
+                          Active
+                        </button>
+                        <button
+                          className={`status-option ${domain.status === 'error' ? 'active' : ''}`}
+                          onClick={() => handleStatusChange(domain.id, 'error')}
+                          disabled={isUpdatingStatus === domain.id || domain.status === 'error'}
+                        >
+                          Error
+                        </button>
+                      </div>
                     </td>
                     <td>{domain.registrar || 'N/A'}</td>
                     <td>
@@ -356,8 +360,6 @@ export default function DomainManagement() {
                         >
                           {isConfiguring === domain.id ? (
                             <span className="spinner" style={{ display: 'inline-block', width: '16px', height: '16px', verticalAlign: 'middle' }}></span>
-                          ) : domain.status === 'active' ? (
-                            'Reconfigure'
                           ) : (
                             'Configure'
                           )}
