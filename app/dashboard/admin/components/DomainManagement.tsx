@@ -277,6 +277,11 @@ export default function DomainManagement() {
                           {domain.cloudflare_nameservers.slice(0, 2).map((ns, i) => (
                             <div key={i}>{ns}</div>
                           ))}
+                          {domain.cloudflare_nameservers.length > 2 && (
+                            <div style={{ opacity: 0.6, fontSize: '0.75rem' }}>
+                              +{domain.cloudflare_nameservers.length - 2} more
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <span style={{ opacity: 0.5 }}>Not set</span>

@@ -100,11 +100,19 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         })
         .eq('id', domainId)
 
+      // Return sanitized response (no sensitive data)
       return NextResponse.json({
         success: true,
         message: 'Domain configured successfully',
-        cloudflare: cloudflareResult,
-        porkbun: porkbunResult,
+        // Only return non-sensitive info - zone IDs and nameservers are public identifiers
+        cloudflare: {
+          zoneId: cloudflareResult.zoneId ? `${cloudflareResult.zoneId.slice(0, 8)}...` : null,
+          nameservers: cloudflareResult.nameservers,
+        },
+        porkbun: {
+          success: porkbunResult.success,
+          nameservers: porkbunResult.nameservers,
+        },
       })
     } catch (configError: any) {
       // Update domain status to error
