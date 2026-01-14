@@ -15,13 +15,35 @@ export default function AccountCard({ id, email, password, region, currency }: A
   const { showSuccess, showError, showInfo } = useToast();
   const [isFetchingCode, setIsFetchingCode] = useState(false);
 
-  const copyToClipboard = async (text: string, type: 'email' | 'password' | 'code') => {
+  const copyToClipboard = async (text: string, type: 'email' | 'password' | 'code'): Promise<boolean> => {
     try {
-      await navigator.clipboard.writeText(text);
-      showSuccess(`${type === 'email' ? 'Email' : type === 'password' ? 'Password' : 'Verification code'} copied to clipboard!`);
+      // Try modern clipboard API first
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+      
+      // Fallback for older browsers or when clipboard API is not available
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      try {
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textArea);
+        return successful;
+      } catch (err) {
+        document.body.removeChild(textArea);
+        throw err;
+      }
     } catch (err) {
       console.error('Failed to copy:', err);
-      showError('Failed to copy to clipboard');
+      return false;
     }
   };
 
@@ -43,9 +65,15 @@ export default function AccountCard({ id, email, password, region, currency }: A
       const data = await response.json();
 
       if (response.ok && data.success && data.code) {
-        // Copy code to clipboard
-        await copyToClipboard(data.code, 'code');
-        showSuccess(`Verification code fetched and copied: ${data.code}`);
+        // Try to copy code to clipboard
+        const copySuccess = await copyToClipboard(data.code, 'code');
+        
+        if (copySuccess) {
+          showSuccess(`Verification code fetched and copied: ${data.code}`);
+        } else {
+          // Show code even if copy failed
+          showSuccess(`Verification code fetched: ${data.code} (Copy failed - please copy manually)`);
+        }
       } else {
         showError(data.error || 'Failed to fetch verification code');
       }
@@ -139,7 +167,14 @@ export default function AccountCard({ id, email, password, region, currency }: A
               <button
                 type="button"
                 className="account-copy-btn"
-                onClick={() => copyToClipboard(email, 'email')}
+                onClick={async () => {
+                  const success = await copyToClipboard(email, 'email');
+                  if (success) {
+                    showSuccess('Email copied to clipboard!');
+                  } else {
+                    showError('Failed to copy email. Please copy manually.');
+                  }
+                }}
                 aria-label="Copy email"
               >
                 <span className="material-icons">content_copy</span>
@@ -157,7 +192,14 @@ export default function AccountCard({ id, email, password, region, currency }: A
               <button
                 type="button"
                 className="account-copy-btn"
-                onClick={() => copyToClipboard(password, 'password')}
+                onClick={async () => {
+                  const success = await copyToClipboard(password, 'password');
+                  if (success) {
+                    showSuccess('Password copied to clipboard!');
+                  } else {
+                    showError('Failed to copy password. Please copy manually.');
+                  }
+                }}
                 aria-label="Copy password"
               >
                 <span className="material-icons">content_copy</span>
