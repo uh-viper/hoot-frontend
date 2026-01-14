@@ -217,22 +217,46 @@ These routes automatically check for admin access using `validateAdmin()`.
      - Add `FETCH_DOMAINS` with a strong random value (e.g., `openssl rand -hex 32`)
      - Deploy to apply changes
   
-  2. **Set API key on your backend server:**
-     - Store the same API key value as an environment variable on your backend server
-     - Name it `FETCH_DOMAINS_API_KEY` or similar (or use the same name `FETCH_DOMAINS`)
-     - Example for Python:
-       ```python
-       import os
-       FETCH_DOMAINS_API_KEY = os.getenv('FETCH_DOMAINS_API_KEY')
-       ```
-     - Example for Node.js:
-       ```javascript
-       const FETCH_DOMAINS_API_KEY = process.env.FETCH_DOMAINS_API_KEY;
-       ```
-     - Example for environment file (`.env`):
-       ```
-       FETCH_DOMAINS_API_KEY=your-api-key-value-here
-       ```
+  2. **Set API key on your backend server (separate server):**
+     - **Copy the API key value** from Vercel (the value you set for `FETCH_DOMAINS`)
+     - **Manually add it** to your backend server's environment variables
+     - Since your backend server is separate from Vercel, you need to manually copy the key value
+     - Store it as an environment variable on your backend server (name it `FETCH_DOMAINS_API_KEY` or similar)
+     
+     **Steps:**
+     1. Go to Vercel → Your Project → Settings → Environment Variables
+     2. Find `FETCH_DOMAINS` and copy its value
+     3. Add that same value to your backend server's environment variables
+     
+     **Example for Python:**
+     ```python
+     import os
+     FETCH_DOMAINS_API_KEY = os.getenv('FETCH_DOMAINS_API_KEY')
+     ```
+     
+     **Example for Node.js:**
+     ```javascript
+     const FETCH_DOMAINS_API_KEY = process.env.FETCH_DOMAINS_API_KEY;
+     ```
+     
+     **Example for environment file (`.env` on your backend server):**
+     ```
+     FETCH_DOMAINS_API_KEY=paste-the-exact-value-from-vercel-here
+     ```
+     
+     **Example for systemd service (Linux):**
+     ```ini
+     [Service]
+     Environment="FETCH_DOMAINS_API_KEY=paste-the-exact-value-from-vercel-here"
+     ```
+     
+     **Example for Docker:**
+     ```yaml
+     environment:
+       - FETCH_DOMAINS_API_KEY=paste-the-exact-value-from-vercel-here
+     ```
+     
+     **Important:** Use the exact same API key value in both places!
   
   3. **Call the endpoint from your backend:**
      - Include the API key in the `X-API-Key` header
