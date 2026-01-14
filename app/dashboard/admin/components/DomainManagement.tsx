@@ -305,21 +305,49 @@ export default function DomainManagement() {
                       <strong>{domain.domain_name || 'N/A'}</strong>
                     </td>
                     <td>
-                      <div className="status-selector">
+                      <div className="status-dropdown">
                         <button
-                          className={`status-option ${domain.status === 'pending' ? 'active pending' : ''}`}
-                          onClick={() => handleStatusChange(domain.id, 'pending')}
-                          disabled={isUpdatingStatus === domain.id || domain.status === 'pending'}
+                          className="status-dropdown-toggle"
+                          onClick={() => setOpenStatusDropdown(openStatusDropdown === domain.id ? null : domain.id)}
+                          disabled={isUpdatingStatus === domain.id}
                         >
-                          Pending
+                          <span className={`status-badge-inline ${domain.status || 'pending'}`}>
+                            {domain.status === 'active' ? 'Active' : 'Pending'}
+                          </span>
+                          <span className="material-icons" style={{ fontSize: '1rem', marginLeft: '0.25rem' }}>
+                            {openStatusDropdown === domain.id ? 'expand_less' : 'expand_more'}
+                          </span>
                         </button>
-                        <button
-                          className={`status-option ${domain.status === 'active' ? 'active' : ''}`}
-                          onClick={() => handleStatusChange(domain.id, 'active')}
-                          disabled={isUpdatingStatus === domain.id || domain.status === 'active'}
-                        >
-                          Active
-                        </button>
+                        {openStatusDropdown === domain.id && (
+                          <div className="status-dropdown-menu">
+                            <button
+                              className={`status-dropdown-item ${domain.status === 'pending' ? 'active' : ''}`}
+                              onClick={() => {
+                                if (domain.status !== 'pending') {
+                                  handleStatusChange(domain.id, 'pending')
+                                }
+                                setOpenStatusDropdown(null)
+                              }}
+                              disabled={isUpdatingStatus === domain.id}
+                            >
+                              <span className="material-icons" style={{ fontSize: '1rem' }}>schedule</span>
+                              Pending
+                            </button>
+                            <button
+                              className={`status-dropdown-item ${domain.status === 'active' ? 'active' : ''}`}
+                              onClick={() => {
+                                if (domain.status !== 'active') {
+                                  handleStatusChange(domain.id, 'active')
+                                }
+                                setOpenStatusDropdown(null)
+                              }}
+                              disabled={isUpdatingStatus === domain.id}
+                            >
+                              <span className="material-icons" style={{ fontSize: '1rem' }}>check_circle</span>
+                              Active
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td>{domain.registrar || 'N/A'}</td>
