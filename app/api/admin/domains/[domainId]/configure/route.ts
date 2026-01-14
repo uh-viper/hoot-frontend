@@ -629,8 +629,9 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
     // Based on current status from API, the format is:
     // { matchers: [{ type: "all" }], actions: [{ type: "worker", value: "..." }], enabled: true }
     // Note: matchers (plural, array) and actions (plural, array)
+    // "Bad JSON input" error suggests the value field might need different structure
     const payloadFormats = [
-      // Format 1: Correct format based on current status - matchers (plural) and actions (plural)
+      // Format 1: Try with value as string (standard)
       {
         matchers: [
           {
@@ -645,7 +646,7 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
         ],
         enabled: true,
       },
-      // Format 2: Without matchers (might be optional)
+      // Format 2: Try without matchers (might be auto-added)
       {
         actions: [
           {
@@ -655,7 +656,7 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
         ],
         enabled: true,
       },
-      // Format 3: Try with just the action value as string (some APIs use this)
+      // Format 3: Try with value as array of strings
       {
         matchers: [
           {
@@ -665,12 +666,12 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
         actions: [
           {
             type: 'worker',
-            value: [workerName], // Try as array
+            value: [workerName],
           },
         ],
         enabled: true,
       },
-      // Format 4: Try with name instead of value
+      // Format 4: Try with worker object structure
       {
         matchers: [
           {
@@ -680,7 +681,7 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
         actions: [
           {
             type: 'worker',
-            name: workerName,
+            worker: workerName,
           },
         ],
         enabled: true,
