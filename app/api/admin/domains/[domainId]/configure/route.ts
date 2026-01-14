@@ -712,7 +712,7 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
       // Return error with full debug info
       return {
         success: false,
-        error: errorMessage,
+        error: `Failed to configure catchall: ${lastError?.message || JSON.stringify(lastError)}`,
         warning: true,
         debug: catchallDebugInfo,
       }
