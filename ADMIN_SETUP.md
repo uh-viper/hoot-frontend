@@ -125,6 +125,65 @@ WHERE user_id = 'user-id-here';
 4. **Secure Credentials** - Never commit service role keys to git
 5. **Environment Variables** - Use `.env.local` for sensitive keys
 
+## Domain Management
+
+The admin dashboard includes a **Management** tab for domain management with automatic DNS and nameserver configuration.
+
+### Features
+
+- **Add Domains** - Log domains purchased from Porkbun
+- **Automatic Configuration** - One-click setup that:
+  - Creates/verifies Cloudflare zone
+  - Updates Porkbun nameservers to Cloudflare
+  - Configures DNS records in Cloudflare
+- **Domain Status Tracking** - Monitor domain configuration status (pending, active, error)
+
+### Required Environment Variables
+
+For domain management to work, set these in Vercel (or `.env.local`):
+
+```bash
+# Porkbun API (Domain Registrar)
+DOMAIN_API_URL=https://porkbun.com/api/json/v3
+DOMAIN_API_KEY=your_porkbun_api_key
+DOMAIN_API_SECRET=your_porkbun_secret_key  # Optional but recommended
+
+# Cloudflare API (DNS Management)
+CLOUDFLARE_API_TOKEN=your_cloudflare_api_token
+CLOUDFLARE_ACCOUNT_ID=your_cloudflare_account_id
+```
+
+### How to Get API Credentials
+
+#### Porkbun API
+1. Log in to your Porkbun account
+2. Navigate to API Access
+3. Generate API key and secret key
+4. Add to environment variables
+
+#### Cloudflare API
+1. Log in to Cloudflare Dashboard
+2. Go to My Profile → API Tokens
+3. Create a token with:
+   - Zone permissions: Zone:Read, DNS:Edit
+   - Account permissions: Account:Read
+4. Copy the token and Account ID
+5. Add to environment variables
+
+### Usage
+
+1. Navigate to Admin Dashboard → Management tab
+2. Enter domain name (e.g., `example.com`)
+3. Click "Add Domain" to log it
+4. Click "Configure" to automatically:
+   - Set up Cloudflare zone
+   - Update nameservers in Porkbun
+   - Configure DNS records
+
+### Database
+
+Domains are stored in the `domains` table (created by migration `031_create_domains_table.sql`).
+
 ## API Endpoints
 
 ### Protected Admin Routes
@@ -133,6 +192,9 @@ All routes require admin authentication:
 
 - `POST /api/admin/fix-purchase` - Fix stuck purchases
 - `POST /api/admin/process-stuck-purchases` - Process all stuck purchases
+- `GET /api/admin/domains` - List all domains
+- `POST /api/admin/domains` - Add a new domain
+- `POST /api/admin/domains/[domainId]/configure` - Configure domain (DNS + Nameservers)
 
 These routes automatically check for admin access using `validateAdmin()`.
 

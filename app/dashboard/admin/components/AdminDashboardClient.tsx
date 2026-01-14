@@ -9,6 +9,7 @@ import {
   formatDateRange as formatDateRangeUtil,
   formatUTCDateToLocal 
 } from '@/lib/utils/date-timezone'
+import DomainManagement from './DomainManagement'
 import './admin-client.css'
 
 interface User {
@@ -49,7 +50,7 @@ interface AdminDashboardClientProps {
 }
 
 export default function AdminDashboardClient({ users, recentPurchases, allPurchases, initialStats }: AdminDashboardClientProps) {
-  const [selectedTab, setSelectedTab] = useState<'users' | 'purchases' | 'analytics'>('users')
+  const [selectedTab, setSelectedTab] = useState<'users' | 'purchases' | 'analytics' | 'management'>('users')
   const [searchTerm, setSearchTerm] = useState('')
   const [filterAdmin, setFilterAdmin] = useState<'all' | 'admins' | 'users'>('all')
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
@@ -221,6 +222,13 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
         >
           <span className="material-icons">insights</span>
           Analytics
+        </button>
+        <button
+          className={`admin-tab ${selectedTab === 'management' ? 'active' : ''}`}
+          onClick={() => setSelectedTab('management')}
+        >
+          <span className="material-icons">settings</span>
+          Management
         </button>
       </div>
 
@@ -508,6 +516,14 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Management Tab */}
+      {selectedTab === 'management' && (
+        <div className="admin-section">
+          <h2 className="admin-section-title">Domain Management</h2>
+          <DomainManagement />
         </div>
       )}
 
