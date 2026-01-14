@@ -81,7 +81,7 @@ export default function DomainManagement() {
 
   const handleConfigureDomain = async (domainId: string) => {
     setIsConfiguring(domainId)
-    const configuringToastId = showInfo('Configuring domain (DNS & Nameservers)...')
+    const configuringToastId = showInfo('Configuring domain...')
 
     try {
       const response = await fetch(`/api/admin/domains/${domainId}/configure`, {
@@ -94,7 +94,7 @@ export default function DomainManagement() {
         throw new Error(data.error || 'Failed to configure domain')
       }
 
-      showSuccess('Domain configured successfully! DNS records and nameservers updated.')
+      showSuccess('Domain configured successfully!')
       fetchDomains()
     } catch (err: any) {
       showError(err.message || 'Failed to configure domain')
