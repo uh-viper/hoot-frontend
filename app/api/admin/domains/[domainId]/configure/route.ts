@@ -51,7 +51,15 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         throw new Error(`Cloudflare: ${cloudflareResult.error || 'Failed to get zone ID or nameservers'}`)
       }
 
-      // Step 2: Update Porkbun nameservers to Cloudflare nameservers
+      // Step 2: Clean up Porkbun DNS records and update nameservers
+      // First, get and delete all existing DNS records from Porkbun
+      const porkbunCleanupResult = await cleanupPorkbunDNS(domain.domain_name)
+      if (porkbunCleanupResult.error) {
+        console.warn('Porkbun DNS cleanup warning:', porkbunCleanupResult.error)
+        // Don't fail - nameservers change will make these irrelevant anyway
+      }
+
+      // Then update Porkbun nameservers to Cloudflare nameservers
       const porkbunResult = await configurePorkbun(domain.domain_name, cloudflareResult.nameservers)
       results.porkbun = porkbunResult
 
@@ -191,6 +199,89 @@ async function configureCloudflare(domain: string): Promise<
     }
   } catch (err: any) {
     return { error: err.message || 'Cloudflare API error' }
+  }
+}
+
+// Clean up Porkbun DNS records (get all and delete them)
+async function cleanupPorkbunDNS(domain: string) {
+  const porkbunApiUrl = process.env.DOMAIN_API_URL
+  const porkbunApiKey = process.env.DOMAIN_API_KEY
+  const porkbunSecretKey = process.env.DOMAIN_API_SECRET
+
+  if (!porkbunApiUrl || !porkbunApiKey || !porkbunSecretKey) {
+    return { error: 'Porkbun API credentials not configured' }
+  }
+
+  try {
+    let apiEndpoint = porkbunApiUrl.trim()
+    if (apiEndpoint.endsWith('/')) {
+      apiEndpoint = apiEndpoint.slice(0, -1)
+    }
+
+    const requestBody = {
+      secretapikey: porkbunSecretKey,
+      apikey: porkbunApiKey,
+    }
+
+    // Step 1: Get all DNS records from Porkbun
+    const getResponse = await fetch(
+      `${apiEndpoint}/dns/retrieve/${encodeURIComponent(domain)}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      }
+    )
+
+    const contentType = getResponse.headers.get('content-type')
+    if (!contentType || !contentType.includes('application/json')) {
+      const textResponse = await getResponse.text()
+      console.error('Porkbun API returned non-JSON response:', textResponse.substring(0, 200))
+      return { error: 'Failed to retrieve DNS records from Porkbun' }
+    }
+
+    const getData = await getResponse.json()
+
+    if (getData.status !== 'SUCCESS' && getData.status !== 'success') {
+      return { error: getData.message || 'Failed to retrieve DNS records' }
+    }
+
+    const records = getData.records || []
+    const deletedRecords: string[] = []
+
+    // Step 2: Delete each DNS record
+    for (const record of records) {
+      try {
+        const deleteResponse = await fetch(
+          `${apiEndpoint}/dns/delete/${encodeURIComponent(domain)}/${record.id}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+          }
+        )
+
+        const deleteData = await deleteResponse.json()
+        if (deleteData.status === 'SUCCESS' || deleteData.status === 'success') {
+          deletedRecords.push(record.id)
+        }
+      } catch (err) {
+        console.warn(`Failed to delete record ${record.id}:`, err)
+      }
+    }
+
+    return {
+      success: true,
+      totalRecords: records.length,
+      deletedRecords: deletedRecords.length,
+      message: `Deleted ${deletedRecords.length} of ${records.length} DNS records from Porkbun`,
+    }
+  } catch (err: any) {
+    return { error: err.message || 'Failed to cleanup Porkbun DNS records' }
   }
 }
 
