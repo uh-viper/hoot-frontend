@@ -1,8 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 
 /**
- * Ensures user has credits and stats rows, creating them if they don't exist
- * This is useful for existing users who signed up before the tables were created
+ * Ensures user has credits row, creating it if it doesn't exist
+ * This is useful for existing users who signed up before the table was created
+ * Note: user_jobs are created when jobs are submitted, no initialization needed
  */
 export async function ensureUserData(userId: string) {
   const supabase = await createClient()
@@ -29,29 +30,8 @@ export async function ensureUserData(userId: string) {
       }
     }
 
-    // Check and create stats if needed
-    const { data: statsData, error: statsError } = await supabase
-      .from('user_stats')
-      .select('id')
-      .eq('user_id', userId)
-      .single()
-
-    if (statsError && statsError.code === 'PGRST116') {
-      // Stats don't exist, create them
-      const { error: insertStatsError } = await supabase
-        .from('user_stats')
-        .insert({
-          user_id: userId,
-          business_centers: 0,
-          requested: 0,
-          successful: 0,
-          failures: 0,
-        })
-
-      if (insertStatsError) {
-        console.error('Error creating user stats:', insertStatsError)
-      }
-    }
+    // user_stats removed - stats are now calculated from user_jobs table
+    // No initialization needed for user_jobs (jobs are created when user creates them)
   } catch (error) {
     console.error('Unexpected error ensuring user data:', error)
   }
