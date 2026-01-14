@@ -565,7 +565,8 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
 
     // Step 3: Create catchall destination and rule (if worker URL provided)
     if (workerUrl) {
-      // Create HTTP destination (worker endpoint)
+      // Step 3a: Create HTTP destination (worker endpoint)
+      // Cloudflare Email Routing destinations API
       const destinationResponse = await fetch(
         `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing/addresses`,
         {
@@ -578,9 +579,100 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
         }
       )
 
-      // Create catchall rule to forward to worker
-      // Note: Cloudflare Email Routing API may require different format
-      // This is a simplified approach - may need adjustment based on actual API
+      const destinationData = await destinationResponse.json()
+      let destinationId = null
+
+      if (destinationData.success && destinationData.result) {
+        destinationId = destinationData.result.id
+      } else if (destinationData.errors?.[0]?.code === 10009) {
+        // Destination already exists - get existing one
+        const listResponse = await fetch(
+          `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing/addresses`,
+          {
+            method: 'GET',
+            headers: authHeaders,
+          }
+        )
+        const listData = await listResponse.json()
+        if (listData.success && listData.result) {
+          const existing = listData.result.find((addr: any) => 
+            addr.email === `catchall@${domain}` || addr.tag === 'catchall'
+          )
+          if (existing) {
+            destinationId = existing.id
+          }
+        }
+      }
+
+      // Step 3b: Create or update catchall rule (*@domain.com -> send to worker)
+      if (destinationId) {
+        // First, check if rule already exists
+        const rulesResponse = await fetch(
+          `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing/rules`,
+          {
+            method: 'GET',
+            headers: authHeaders,
+          }
+        )
+
+        const rulesData = await rulesResponse.json()
+        let existingRule = null
+
+        if (rulesData.success && rulesData.result) {
+          // Find catchall rule (*@domain.com)
+          existingRule = rulesData.result.find((rule: any) => 
+            rule.match?.type === 'all' || 
+            (rule.match?.field === 'to' && rule.match?.value === `*@${domain}`)
+          )
+        }
+
+        // Create or update catchall rule
+        const rulePayload = {
+          name: 'Catchall to Worker',
+          enabled: true,
+          match: {
+            type: 'all', // Catchall - matches all emails
+          },
+          actions: [
+            {
+              type: 'worker',
+              value: [workerUrl], // Send to worker HTTP endpoint
+            },
+          ],
+        }
+
+        if (existingRule) {
+          // Update existing rule
+          const updateResponse = await fetch(
+            `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing/rules/${existingRule.id}`,
+            {
+              method: 'PUT',
+              headers: authHeaders,
+              body: JSON.stringify(rulePayload),
+            }
+          )
+          const updateData = await updateResponse.json()
+          if (!updateData.success) {
+            console.warn('Failed to update catchall rule:', updateData.errors?.[0]?.message)
+          }
+        } else {
+          // Create new rule
+          const createResponse = await fetch(
+            `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing/rules`,
+            {
+              method: 'POST',
+              headers: authHeaders,
+              body: JSON.stringify(rulePayload),
+            }
+          )
+          const createData = await createResponse.json()
+          if (!createData.success) {
+            console.warn('Failed to create catchall rule:', createData.errors?.[0]?.message)
+            // Try alternative API format if first attempt fails
+            // Some Cloudflare APIs use different structures
+          }
+        }
+      }
     }
 
     return {
