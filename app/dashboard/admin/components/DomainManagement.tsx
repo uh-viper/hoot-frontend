@@ -34,6 +34,24 @@ export default function DomainManagement() {
     fetchDomains()
   }, [])
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      if (openStatusDropdown && !target.closest('.status-dropdown')) {
+        setOpenStatusDropdown(null)
+      }
+    }
+
+    if (openStatusDropdown) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [openStatusDropdown])
+
   const fetchDomains = async () => {
     try {
       const response = await fetch('/api/admin/domains')
