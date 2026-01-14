@@ -8,10 +8,10 @@ export async function GET(request: NextRequest) {
   try {
     // Check for API key in headers
     const apiKey = request.headers.get('X-API-Key')
-    const expectedApiKey = process.env.DOMAINS_API_KEY
+    const expectedApiKey = process.env.FETCH_DOMAINS
 
     if (!expectedApiKey) {
-      console.error('DOMAINS_API_KEY environment variable not set')
+      console.error('FETCH_DOMAINS environment variable not set')
       return NextResponse.json(
         { error: 'Server configuration error' },
         { status: 500 }

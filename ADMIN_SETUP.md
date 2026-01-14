@@ -206,17 +206,70 @@ These routes automatically check for admin access using `validateAdmin()`.
 ### Backend Server API
 
 - `GET /api/domains/active` - Get all active domains (API key required)
-  - **Authentication**: Requires `X-API-Key` header with `DOMAINS_API_KEY` value
+  - **Authentication**: Requires `X-API-Key` header with `FETCH_DOMAINS` value
   - **Response**: Array of domain names (strings)
   - **Usage**: For backend servers to fetch active domains for email routing
-  - **Example**:
-    ```bash
-    curl -H "X-API-Key: your-api-key-here" https://your-domain.com/api/domains/active
-    ```
-  - **Response Format**:
-    ```json
-    ["example.com", "test.com", "another.com"]
-    ```
+  
+  **Setup Instructions:**
+  
+  1. **Set API key in Vercel:**
+     - Go to Vercel project → Settings → Environment Variables
+     - Add `FETCH_DOMAINS` with a strong random value (e.g., `openssl rand -hex 32`)
+     - Deploy to apply changes
+  
+  2. **Set API key on your backend server:**
+     - Store the same API key value as an environment variable on your backend server
+     - Name it `FETCH_DOMAINS_API_KEY` or similar (or use the same name `FETCH_DOMAINS`)
+     - Example for Python:
+       ```python
+       import os
+       FETCH_DOMAINS_API_KEY = os.getenv('FETCH_DOMAINS_API_KEY')
+       ```
+     - Example for Node.js:
+       ```javascript
+       const FETCH_DOMAINS_API_KEY = process.env.FETCH_DOMAINS_API_KEY;
+       ```
+     - Example for environment file (`.env`):
+       ```
+       FETCH_DOMAINS_API_KEY=your-api-key-value-here
+       ```
+  
+  3. **Call the endpoint from your backend:**
+     - Include the API key in the `X-API-Key` header
+     - Example (Python with `requests`):
+       ```python
+       import requests
+       
+       headers = {
+           'X-API-Key': os.getenv('FETCH_DOMAINS_API_KEY')
+       }
+       response = requests.get('https://your-domain.com/api/domains/active', headers=headers)
+       domains = response.json()  # Returns: ["example.com", "test.com"]
+       ```
+     - Example (Node.js with `fetch`):
+       ```javascript
+       const response = await fetch('https://your-domain.com/api/domains/active', {
+           headers: {
+               'X-API-Key': process.env.FETCH_DOMAINS_API_KEY
+           }
+       });
+       const domains = await response.json(); // Returns: ["example.com", "test.com"]
+       ```
+     - Example (curl):
+       ```bash
+       curl -H "X-API-Key: $FETCH_DOMAINS_API_KEY" https://your-domain.com/api/domains/active
+       ```
+  
+  **Response Format:**
+  ```json
+  ["example.com", "test.com", "another.com"]
+  ```
+  
+  **Security Notes:**
+  - Never commit the API key to git
+  - Store it securely as an environment variable
+  - Use the same key value in both Vercel and your backend server
+  - Rotate the key periodically for better security
 
 ## Files Modified/Created
 
