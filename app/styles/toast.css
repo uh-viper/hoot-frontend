@@ -73,23 +73,25 @@
 }
 
 .toast-action-btn {
-  padding: 0.5rem 1rem;
-  background: rgba(212, 175, 55, 0.15);
-  border: 1px solid rgba(212, 175, 55, 0.3);
-  border-radius: 8px;
-  color: #d4af37;
-  font-size: 0.85rem;
-  font-weight: 600;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: var(--font-poppins);
   white-space: nowrap;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: rgba(255, 255, 255, 0.3);
 }
 
 .toast-action-btn:hover {
-  background: rgba(212, 175, 55, 0.25);
-  border-color: rgba(212, 175, 55, 0.5);
-  transform: scale(1.05);
+  color: rgba(255, 255, 255, 1);
+  text-decoration-color: rgba(255, 255, 255, 0.6);
 }
 
 /* Animations */
