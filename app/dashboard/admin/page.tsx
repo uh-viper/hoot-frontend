@@ -53,7 +53,7 @@ export default async function AdminDashboardPage() {
     .select('user_id, requested_count, successful_count, failed_count')
 
   // Calculate stats per user from jobs
-  const allStats = allJobs?.reduce((acc, job) => {
+  const allStatsMap = allJobs?.reduce((acc, job) => {
     if (!acc[job.user_id]) {
       acc[job.user_id] = { user_id: job.user_id, requested: 0, successful: 0, failures: 0 }
     }
@@ -63,6 +63,8 @@ export default async function AdminDashboardPage() {
     return acc
   }, {} as Record<string, { user_id: string; requested: number; successful: number; failures: number }>)
 
+  // Convert to array for compatibility with existing code
+  const allStats = allStatsMap ? Object.values(allStatsMap) : []
   const statsError = jobsError
 
   // Fetch user credits

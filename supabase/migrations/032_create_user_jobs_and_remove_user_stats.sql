@@ -52,10 +52,37 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Drop user_stats table and related objects
-DROP TRIGGER IF EXISTS update_user_stats_updated_at ON public.user_stats;
-DROP FUNCTION IF EXISTS public.ensure_user_stats(UUID);
-DROP TABLE IF EXISTS public.user_stats CASCADE;
+-- Drop user_stats table and related objects (only if they exist)
+DO $$ 
+BEGIN
+  -- Drop trigger if it exists
+  IF EXISTS (
+    SELECT 1 FROM pg_trigger 
+    WHERE tgname = 'update_user_stats_updated_at' 
+    AND tgrelid = 'public.user_stats'::regclass
+  ) THEN
+    DROP TRIGGER update_user_stats_updated_at ON public.user_stats;
+  END IF;
 
--- Remove admin policies for user_stats (if they exist)
-DROP POLICY IF EXISTS "Admins can view all stats" ON public.user_stats;
+  -- Drop function if it exists
+  IF EXISTS (
+    SELECT 1 FROM pg_proc p
+    JOIN pg_namespace n ON p.pronamespace = n.oid
+    WHERE n.nspname = 'public' AND p.proname = 'ensure_user_stats'
+  ) THEN
+    DROP FUNCTION IF EXISTS public.ensure_user_stats(UUID);
+  END IF;
+
+  -- Drop policies if table exists
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'user_stats') THEN
+    DROP POLICY IF EXISTS "Admins can view all stats" ON public.user_stats;
+    DROP POLICY IF EXISTS "Users can view their own stats" ON public.user_stats;
+    DROP POLICY IF EXISTS "Users can update their own stats" ON public.user_stats;
+    DROP POLICY IF EXISTS "Users can insert their own stats" ON public.user_stats;
+  END IF;
+
+  -- Drop table if it exists
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'user_stats') THEN
+    DROP TABLE public.user_stats CASCADE;
+  END IF;
+END $$;
