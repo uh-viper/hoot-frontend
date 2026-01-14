@@ -96,7 +96,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
           cloudflare_zone_id: cloudflareResult.zoneId,
           cloudflare_nameservers: cloudflareResult.nameservers,
           porkbun_nameservers: porkbunResult.nameservers || cloudflareResult.nameservers,
-          dns_records: dnsResult.records || [],
+          // DNS records are managed by Cloudflare - no need to store them
           updated_at: new Date().toISOString(),
         })
         .eq('id', domainId)

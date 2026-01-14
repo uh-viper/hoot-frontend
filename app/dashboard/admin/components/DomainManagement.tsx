@@ -247,7 +247,6 @@ export default function DomainManagement() {
                   <th>Registrar</th>
                   <th>Cloudflare Zone</th>
                   <th>Nameservers</th>
-                  <th>DNS Records</th>
                   <th>Added</th>
                   <th>Actions</th>
                 </tr>
@@ -283,13 +282,6 @@ export default function DomainManagement() {
                         </div>
                       ) : (
                         <span style={{ opacity: 0.5 }}>Not set</span>
-                      )}
-                    </td>
-                    <td>
-                      {domain.dns_records && domain.dns_records.length > 0 ? (
-                        <span>{domain.dns_records.length} records</span>
-                      ) : (
-                        <span style={{ opacity: 0.5 }}>None</span>
                       )}
                     </td>
                     <td>{formatDate(domain.created_at)}</td>
