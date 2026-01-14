@@ -1,3 +1,16 @@
+/* Spinner Animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.spinner {
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top: 2px solid #d4af37;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
 /* Admin Dashboard Styles */
 .admin-dashboard-content {
   margin-top: 2rem;

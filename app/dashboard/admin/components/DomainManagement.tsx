@@ -175,9 +175,7 @@ export default function DomainManagement() {
   if (isLoading) {
     return (
       <div style={{ textAlign: 'center', padding: '2rem' }}>
-        <span className="material-icons" style={{ fontSize: '2rem', opacity: 0.5 }}>
-          hourglass_empty
-        </span>
+        <div className="spinner" style={{ margin: '0 auto 1rem', width: '40px', height: '40px' }}></div>
         <p>Loading domains...</p>
       </div>
     )
@@ -315,9 +313,7 @@ export default function DomainManagement() {
                         >
                           {isConfiguring === domain.id ? (
                             <>
-                              <span className="material-icons" style={{ fontSize: '1rem', verticalAlign: 'middle' }}>
-                                hourglass_empty
-                              </span>{' '}
+                              <span className="spinner" style={{ display: 'inline-block', width: '12px', height: '12px', marginRight: '0.5rem', verticalAlign: 'middle' }}></span>
                               Configuring...
                             </>
                           ) : domain.status === 'active' ? (
@@ -342,9 +338,7 @@ export default function DomainManagement() {
                         >
                           {isDeleting === domain.id ? (
                             <>
-                              <span className="material-icons" style={{ fontSize: '1rem', verticalAlign: 'middle' }}>
-                                hourglass_empty
-                              </span>{' '}
+                              <span className="spinner" style={{ display: 'inline-block', width: '12px', height: '12px', marginRight: '0.5rem', verticalAlign: 'middle' }}></span>
                               Deleting...
                             </>
                           ) : (
