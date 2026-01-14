@@ -308,6 +308,7 @@ export default function DomainManagement() {
                       <div className="status-dropdown">
                         <button
                           className="status-dropdown-toggle"
+                          data-domain-id={domain.id}
                           onClick={() => setOpenStatusDropdown(openStatusDropdown === domain.id ? null : domain.id)}
                           disabled={isUpdatingStatus === domain.id}
                         >
@@ -317,34 +318,15 @@ export default function DomainManagement() {
                           </span>
                         </button>
                         {openStatusDropdown === domain.id && (
-                          <div className="status-dropdown-menu">
-                            {domain.status !== 'pending' && (
-                              <button
-                                className="status-dropdown-item"
-                                onClick={() => {
-                                  handleStatusChange(domain.id, 'pending')
-                                  setOpenStatusDropdown(null)
-                                }}
-                                disabled={isUpdatingStatus === domain.id}
-                              >
-                                <span className="material-icons" style={{ fontSize: '1rem' }}>schedule</span>
-                                Pending
-                              </button>
-                            )}
-                            {domain.status !== 'active' && (
-                              <button
-                                className="status-dropdown-item"
-                                onClick={() => {
-                                  handleStatusChange(domain.id, 'active')
-                                  setOpenStatusDropdown(null)
-                                }}
-                                disabled={isUpdatingStatus === domain.id}
-                              >
-                                <span className="material-icons" style={{ fontSize: '1rem' }}>check_circle</span>
-                                Active
-                              </button>
-                            )}
-                          </div>
+                          <StatusDropdownMenu
+                            domainId={domain.id}
+                            currentStatus={domain.status || 'pending'}
+                            onStatusChange={(newStatus) => {
+                              handleStatusChange(domain.id, newStatus)
+                              setOpenStatusDropdown(null)
+                            }}
+                            isUpdating={isUpdatingStatus === domain.id}
+                          />
                         )}
                       </div>
                     </td>
