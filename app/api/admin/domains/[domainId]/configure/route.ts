@@ -398,19 +398,35 @@ async function updateCloudflareDNS(zoneId: string, domain: string) {
     const getData = await getResponse.json()
 
     // Email routing DNS records
-    // IMPORTANT: MX and DKIM records are automatically created by Cloudflare Email Routing
-    // They appear as "Read only" in the dashboard because Cloudflare manages them
-    // We should NOT create them manually - only create SPF record if it doesn't exist
+    // IMPORTANT: MX, DKIM, and SPF records are automatically created by Cloudflare Email Routing
+    // They appear as "Read only" or "Auto" TTL in the dashboard because Cloudflare manages them
+    // We should NOT create them manually to avoid duplicates
+    
+    // Check for existing SPF records - if Cloudflare Email Routing created one, don't create another
+    const existingSPF = getData.result?.filter((r: any) => 
+      r.type === 'TXT' && 
+      r.name === '@' && 
+      r.content && 
+      r.content.includes('v=spf1 include:_spf.mx.cloudflare.net')
+    )
+    
+    // If Cloudflare already created SPF (TTL is "Auto" or it's managed), don't create duplicate
+    const hasCloudflareSPF = existingSPF?.some((r: any) => 
+      r.ttl === 1 || r.ttl === 'auto' || r.comment?.includes('Email Routing')
+    )
+    
     const emailRecords: any[] = []
     
-    // SPF record (we create this manually, but check if it exists first)
-    // MX and DKIM are auto-created by Email Routing and will be "read-only"
-    emailRecords.push({
-      type: 'TXT',
-      name: '@',
-      content: 'v=spf1 include:_spf.mx.cloudflare.net ~all',
-      ttl: 600,
-    })
+    // Only create SPF if Cloudflare didn't create it automatically
+    // Cloudflare Email Routing usually creates SPF automatically, so we skip it
+    if (!hasCloudflareSPF && (!existingSPF || existingSPF.length === 0)) {
+      emailRecords.push({
+        type: 'TXT',
+        name: '@',
+        content: 'v=spf1 include:_spf.mx.cloudflare.net ~all',
+        ttl: 600,
+      })
+    }
 
     // Default DNS records to create (if they don't exist)
     const defaultRecords = [
@@ -421,19 +437,65 @@ async function updateCloudflareDNS(zoneId: string, domain: string) {
 
     const records = []
 
+    // Clean up duplicate SPF records (keep only one)
+    // Cloudflare Email Routing creates SPF automatically - delete any manually created duplicates
+    const allSPFRecords = getData.result?.filter((r: any) => 
+      r.type === 'TXT' && 
+      r.name === '@' && 
+      r.content && 
+      (r.content.includes('v=spf1 include:_spf.mx.cloudflare.net') || 
+       r.content === '"v=spf1 include:_spf.mx.cloudflare.net ~all"')
+    ) || []
+    
+    if (allSPFRecords.length > 1) {
+      // Keep the one with "Auto" TTL (Cloudflare managed) or lowest TTL
+      // Delete the others (manually created duplicates)
+      const cloudflareManaged = allSPFRecords.find((r: any) => r.ttl === 1 || r.ttl === 'auto')
+      const toKeep = cloudflareManaged || allSPFRecords[0]
+      
+      for (const spfRecord of allSPFRecords) {
+        if (spfRecord.id !== toKeep.id) {
+          // Delete duplicate SPF record
+          try {
+            await fetch(
+              `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records/${spfRecord.id}`,
+              {
+                method: 'DELETE',
+                headers: authHeaders,
+              }
+            )
+            console.log(`Deleted duplicate SPF record: ${spfRecord.id}`)
+          } catch (err) {
+            console.warn(`Failed to delete duplicate SPF record ${spfRecord.id}:`, err)
+          }
+        }
+      }
+    }
+
     // Create/update DNS records
     // Skip MX records - they're auto-created by Email Routing (read-only)
+    // Skip SPF if Cloudflare already created it
     for (const record of defaultRecords) {
       // Skip MX records - Cloudflare Email Routing creates these automatically
       if (record.type === 'MX') {
         continue
       }
       
+      // Skip SPF if Cloudflare already created it (to avoid duplicates)
+      if (record.type === 'TXT' && record.content.includes('v=spf1')) {
+        if (hasCloudflareSPF || allSPFRecords.length > 0) {
+          continue
+        }
+      }
+      
       // For TXT records, check by type, name, and content
       const existing = getData.result?.find((r: any) => {
         if (r.type !== record.type || r.name !== record.name) return false
         if (record.type === 'TXT') {
-          return r.content === record.content
+          // Normalize content comparison (handle quotes)
+          const recordContent = record.content.replace(/^"|"$/g, '')
+          const existingContent = r.content.replace(/^"|"$/g, '')
+          return existingContent === recordContent
         }
         return true
       })
