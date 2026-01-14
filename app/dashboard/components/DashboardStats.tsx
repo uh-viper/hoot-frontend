@@ -236,6 +236,7 @@ export default function DashboardStats() {
               </div>
             )}
           </div>
+        </div>
       </div>
 
       {/* Stats Cards */}
