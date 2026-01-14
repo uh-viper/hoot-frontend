@@ -1,7 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ckrahwiyrmginxennmxi.supabase.co'
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNrcmFod2l5cm1naW54ZW5ubXhpIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2Nzg5MTMzMSwiZXhwIjoyMDgzNDY3MzMxfQ.F4vL3gZMSlw0_K3SRA0fCs7laQZmGwhOJ6DiY-wqk4I'
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+if (!serviceRoleKey) {
+  console.error('ERROR: SUPABASE_SERVICE_ROLE_KEY environment variable is required')
+  process.exit(1)
+}
 
 const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
   auth: {
