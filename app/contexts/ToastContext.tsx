@@ -4,9 +4,9 @@ import { createContext, useContext, useState, useCallback, ReactNode } from 'rea
 import { ToastContainer, Toast, ToastType } from '../components/Toast';
 
 interface ToastContextType {
-  showToast: (message: string, type?: ToastType) => void;
+  showToast: (message: string, type?: ToastType, action?: { label: string; onClick: () => void }) => void;
   showError: (message: string) => void;
-  showSuccess: (message: string) => void;
+  showSuccess: (message: string, action?: { label: string; onClick: () => void }) => void;
   showWarning: (message: string) => void;
   showInfo: (message: string) => void;
 }
@@ -20,9 +20,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
 
-  const showToast = useCallback((message: string, type: ToastType = 'info') => {
+  const showToast = useCallback((message: string, type: ToastType = 'info', action?: { label: string; onClick: () => void }) => {
     const id = Math.random().toString(36).substring(7);
-    const newToast: Toast = { id, message, type };
+    const newToast: Toast = { id, message, type, action };
     
     setToasts((prev) => {
       // Prevent duplicate toasts with the same message
@@ -37,8 +37,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     showToast(message, 'error');
   }, [showToast]);
 
-  const showSuccess = useCallback((message: string) => {
-    showToast(message, 'success');
+  const showSuccess = useCallback((message: string, action?: { label: string; onClick: () => void }) => {
+    showToast(message, 'success', action);
   }, [showToast]);
 
   const showWarning = useCallback((message: string) => {

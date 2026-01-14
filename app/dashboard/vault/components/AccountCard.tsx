@@ -86,15 +86,22 @@ export default function AccountCard({ id, email, password, region, currency }: A
       const data = await response.json();
 
       if (response.ok && data.success && data.code) {
-        // Try to copy code to clipboard
-        const copySuccess = await copyToClipboard(data.code, 'code');
-        
-        if (copySuccess) {
-          showSuccess(`Verification code fetched and copied: ${data.code}`);
-        } else {
-          // Show code even if copy failed
-          showSuccess(`Verification code fetched: ${data.code} (Copy failed - please copy manually)`);
-        }
+        const code = data.code; // Capture code in variable for closure
+        // Show toast with copy button (copy happens on user click = proper user gesture)
+        showSuccess(
+          `Code found: ${code}`,
+          {
+            label: 'Copy',
+            onClick: async () => {
+              const copySuccess = await copyToClipboard(code, 'code');
+              if (copySuccess) {
+                showSuccess('Code copied to clipboard!');
+              } else {
+                showError('Failed to copy. Please copy manually.');
+              }
+            }
+          }
+        );
       } else {
         showError(data.error || 'Failed to fetch verification code');
       }

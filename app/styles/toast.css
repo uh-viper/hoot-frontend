@@ -64,6 +64,34 @@
   line-height: 1.5;
 }
 
+.toast-with-action {
+  cursor: default;
+}
+
+.toast-with-action:hover {
+  transform: none;
+}
+
+.toast-action-btn {
+  padding: 0.5rem 1rem;
+  background: rgba(212, 175, 55, 0.15);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 8px;
+  color: #d4af37;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: var(--font-poppins);
+  white-space: nowrap;
+}
+
+.toast-action-btn:hover {
+  background: rgba(212, 175, 55, 0.25);
+  border-color: rgba(212, 175, 55, 0.5);
+  transform: scale(1.05);
+}
+
 /* Animations */
 @keyframes slideInRight {
   from {

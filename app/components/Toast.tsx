@@ -10,6 +10,10 @@ export interface Toast {
   id: string;
   message: string;
   type: ToastType;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
 }
 
 interface ToastContainerProps {
@@ -51,10 +55,22 @@ export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className={`toast toast-${toast.type}`}
-          onClick={() => onRemove(toast.id)}
+          className={`toast toast-${toast.type} ${toast.action ? 'toast-with-action' : ''}`}
+          onClick={toast.action ? undefined : () => onRemove(toast.id)}
         >
           <span className="toast-message">{toast.message}</span>
+          {toast.action && (
+            <button
+              className="toast-action-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                toast.action?.onClick();
+                onRemove(toast.id);
+              }}
+            >
+              {toast.action.label}
+            </button>
+          )}
         </div>
       ))}
     </div>,
