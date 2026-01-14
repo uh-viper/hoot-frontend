@@ -144,8 +144,8 @@ For domain management to work, set these in Vercel (or `.env.local`):
 
 ```bash
 # Porkbun API (Domain Registrar)
-DOMAIN_API_URL=https://api.porkbun.com/api/json/v3
-DOMAIN_API_KEY=your_porkbun_api_key
+DOMAIN_API_URL=your_porkbun_api_url  # Set to your Porkbun API endpoint URL
+DOMAIN_API_KEY=your_porkbun_api_key  # Only API key needed, no secret key
 
 # Cloudflare API (DNS Management) - Global API Key (SUPER SECURE, server-side only)
 CLOUDFLARE_API_KEY=your_cloudflare_global_api_key
