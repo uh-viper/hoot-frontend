@@ -572,3 +572,48 @@
     font-size: 1.5rem;
   }
 }
+
+/* Custom Status Selector */
+.status-selector {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.status-option {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.6);
+  font-family: var(--font-poppins);
+}
+
+.status-option:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.status-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.status-option.active {
+  background: #4caf50;
+  color: white;
+}
+
+.status-option.active.pending {
+  background: #ffa500;
+  color: white;
+}
+
+.status-option.active.error {
+  background: #f44336;
+  color: white;
+}
