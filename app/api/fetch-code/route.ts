@@ -5,7 +5,7 @@ import { rateLimit } from '@/lib/api/rate-limit'
 
 // Get worker URL from environment variable (server-side only)
 const WORKER_URL = process.env.EMAIL_FETCHER
-const MAX_ATTEMPTS = 5 // Poll up to 5 times
+const MAX_ATTEMPTS = 3 // Poll up to 3 times
 const POLL_DELAY_MS = 2000 // 2 seconds between attempts
 
 interface VerificationCodeResponse {
