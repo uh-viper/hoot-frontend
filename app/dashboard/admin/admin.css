@@ -247,6 +247,7 @@
 
 .admin-table-container {
   overflow-x: auto;
+  overflow-y: visible;
   border-radius: 10px;
 }
 
@@ -651,9 +652,7 @@
 }
 
 .status-dropdown-menu {
-  position: absolute;
-  top: calc(100% + 0.25rem);
-  left: 0;
+  position: fixed;
   background: rgba(10, 10, 10, 0.98);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;

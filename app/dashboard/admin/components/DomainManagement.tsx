@@ -318,30 +318,32 @@ export default function DomainManagement() {
                         </button>
                         {openStatusDropdown === domain.id && (
                           <div className="status-dropdown-menu">
-                            <button
-                              className={`status-dropdown-item ${domain.status === 'pending' ? 'active' : ''}`}
-                              onClick={() => {
-                                if (domain.status !== 'pending') {
+                            {domain.status !== 'pending' && (
+                              <button
+                                className="status-dropdown-item"
+                                onClick={() => {
                                   handleStatusChange(domain.id, 'pending')
-                                }
-                                setOpenStatusDropdown(null)
-                              }}
-                              disabled={isUpdatingStatus === domain.id}
-                            >
-                              Pending
-                            </button>
-                            <button
-                              className={`status-dropdown-item ${domain.status === 'active' ? 'active' : ''}`}
-                              onClick={() => {
-                                if (domain.status !== 'active') {
+                                  setOpenStatusDropdown(null)
+                                }}
+                                disabled={isUpdatingStatus === domain.id}
+                              >
+                                <span className="material-icons" style={{ fontSize: '1rem' }}>schedule</span>
+                                Pending
+                              </button>
+                            )}
+                            {domain.status !== 'active' && (
+                              <button
+                                className="status-dropdown-item"
+                                onClick={() => {
                                   handleStatusChange(domain.id, 'active')
-                                }
-                                setOpenStatusDropdown(null)
-                              }}
-                              disabled={isUpdatingStatus === domain.id}
-                            >
-                              Active
-                            </button>
+                                  setOpenStatusDropdown(null)
+                                }}
+                                disabled={isUpdatingStatus === domain.id}
+                              >
+                                <span className="material-icons" style={{ fontSize: '1rem' }}>check_circle</span>
+                                Active
+                              </button>
+                            )}
                           </div>
                         )}
                       </div>
