@@ -437,34 +437,32 @@ async function updateCloudflareDNS(zoneId: string, domain: string) {
 
     const records = []
 
-    // Clean up duplicate SPF records (keep only one)
+    // Clean up duplicate SPF records (keep only Cloudflare-managed one)
     // Cloudflare Email Routing creates SPF automatically - delete any manually created duplicates
-    const allSPFRecords = getData.result?.filter((r: any) => 
-      r.type === 'TXT' && 
-      r.name === '@' && 
-      r.content && 
-      (r.content.includes('v=spf1 include:_spf.mx.cloudflare.net') || 
-       r.content === '"v=spf1 include:_spf.mx.cloudflare.net ~all"')
-    ) || []
-    
-    if (allSPFRecords.length > 1) {
-      // Keep the one with "Auto" TTL (Cloudflare managed) or lowest TTL
-      // Delete the others (manually created duplicates)
-      const cloudflareManaged = allSPFRecords.find((r: any) => r.ttl === 1 || r.ttl === 'auto')
-      const toKeep = cloudflareManaged || allSPFRecords[0]
+    if (existingSPF.length > 1) {
+      // Find Cloudflare-managed SPF (TTL = 1 or "auto" means Cloudflare manages it)
+      const cloudflareManaged = existingSPF.find((r: any) => 
+        r.ttl === 1 || r.ttl === 'auto' || r.ttl === 3600
+      )
       
-      for (const spfRecord of allSPFRecords) {
+      // Keep Cloudflare-managed one, or if none found, keep the first one
+      const toKeep = cloudflareManaged || existingSPF[0]
+      
+      // Delete all other SPF records (duplicates)
+      for (const spfRecord of existingSPF) {
         if (spfRecord.id !== toKeep.id) {
-          // Delete duplicate SPF record
           try {
-            await fetch(
+            const deleteResponse = await fetch(
               `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records/${spfRecord.id}`,
               {
                 method: 'DELETE',
                 headers: authHeaders,
               }
             )
-            console.log(`Deleted duplicate SPF record: ${spfRecord.id}`)
+            const deleteData = await deleteResponse.json()
+            if (deleteData.success) {
+              console.log(`Deleted duplicate SPF record: ${spfRecord.id}`)
+            }
           } catch (err) {
             console.warn(`Failed to delete duplicate SPF record ${spfRecord.id}:`, err)
           }
@@ -481,11 +479,10 @@ async function updateCloudflareDNS(zoneId: string, domain: string) {
         continue
       }
       
-      // Skip SPF if Cloudflare already created it (to avoid duplicates)
-      if (record.type === 'TXT' && record.content.includes('v=spf1')) {
-        if (hasCloudflareSPF || allSPFRecords.length > 0) {
-          continue
-        }
+      // Skip SPF records - Cloudflare Email Routing creates SPF automatically
+      // We should NEVER create SPF manually to avoid duplicates
+      if (record.type === 'TXT' && record.content && record.content.includes('v=spf1')) {
+        continue
       }
       
       // For TXT records, check by type, name, and content
