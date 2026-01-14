@@ -402,31 +402,16 @@ async function updateCloudflareDNS(zoneId: string, domain: string) {
     // They appear as "Read only" or "Auto" TTL in the dashboard because Cloudflare manages them
     // We should NOT create them manually to avoid duplicates
     
-    // Check for existing SPF records - if Cloudflare Email Routing created one, don't create another
+    // Check for existing SPF records for cleanup
+    // Cloudflare Email Routing automatically creates SPF - we NEVER create it manually
     const existingSPF = getData.result?.filter((r: any) => 
       r.type === 'TXT' && 
-      r.name === '@' && 
+      (r.name === '@' || r.name === domain) && 
       r.content && 
-      r.content.includes('v=spf1 include:_spf.mx.cloudflare.net')
-    )
-    
-    // If Cloudflare already created SPF (TTL is "Auto" or it's managed), don't create duplicate
-    const hasCloudflareSPF = existingSPF?.some((r: any) => 
-      r.ttl === 1 || r.ttl === 'auto' || r.comment?.includes('Email Routing')
-    )
-    
-    const emailRecords: any[] = []
-    
-    // Only create SPF if Cloudflare didn't create it automatically
-    // Cloudflare Email Routing usually creates SPF automatically, so we skip it
-    if (!hasCloudflareSPF && (!existingSPF || existingSPF.length === 0)) {
-      emailRecords.push({
-        type: 'TXT',
-        name: '@',
-        content: 'v=spf1 include:_spf.mx.cloudflare.net ~all',
-        ttl: 600,
-      })
-    }
+      (r.content.includes('v=spf1 include:_spf.mx.cloudflare.net') ||
+       r.content === 'v=spf1 include:_spf.mx.cloudflare.net ~all' ||
+       r.content === '"v=spf1 include:_spf.mx.cloudflare.net ~all"')
+    ) || []
 
     // Default DNS records to create (if they don't exist)
     // NOTE: emailRecords is empty - we don't create SPF manually (Cloudflare does it)
