@@ -288,7 +288,7 @@ export default function DomainManagement() {
                     <td>
                       <div className="status-selector">
                         <button
-                          className={`status-option ${domain.status === 'pending' ? 'active' : ''}`}
+                          className={`status-option ${domain.status === 'pending' ? 'active pending' : ''}`}
                           onClick={() => handleStatusChange(domain.id, 'pending')}
                           disabled={isUpdatingStatus === domain.id || domain.status === 'pending'}
                         >
@@ -300,13 +300,6 @@ export default function DomainManagement() {
                           disabled={isUpdatingStatus === domain.id || domain.status === 'active'}
                         >
                           Active
-                        </button>
-                        <button
-                          className={`status-option ${domain.status === 'error' ? 'active' : ''}`}
-                          onClick={() => handleStatusChange(domain.id, 'error')}
-                          disabled={isUpdatingStatus === domain.id || domain.status === 'error'}
-                        >
-                          Error
                         </button>
                       </div>
                     </td>
