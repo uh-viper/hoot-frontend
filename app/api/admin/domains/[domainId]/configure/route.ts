@@ -67,7 +67,8 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         throw new Error(`Porkbun: ${porkbunResult.error}`)
       }
 
-      // Step 3: Configure Cloudflare Email Routing first (to get MX priorities and DKIM)
+      // Step 3: Configure Cloudflare Email Routing
+      // This automatically creates MX and DKIM records (they'll be "Read only" - managed by Cloudflare)
       const emailRoutingResult = await configureCloudflareEmailRouting(
         cloudflareResult.zoneId,
         domain.domain_name
@@ -76,12 +77,12 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         console.warn('Email routing warning:', emailRoutingResult.error)
       }
 
-      // Step 4: Update DNS records in Cloudflare (using MX priorities and DKIM from Email Routing)
+      // Step 4: Update DNS records in Cloudflare
+      // Note: MX and DKIM records are automatically created by Email Routing (read-only)
+      // We only need to create SPF record and other non-email records
       const dnsResult = await updateCloudflareDNS(
         cloudflareResult.zoneId,
-        domain.domain_name,
-        emailRoutingResult.mxRecords, // Use MX records from Email Routing API
-        emailRoutingResult.dkimRecord // Use DKIM record from Email Routing API
+        domain.domain_name
       )
       if (dnsResult.error) {
         console.warn('DNS update warning:', dnsResult.error)
@@ -366,12 +367,9 @@ async function configurePorkbun(domain: string, nameservers: string[]) {
 }
 
 // Update Cloudflare DNS records
-async function updateCloudflareDNS(
-  zoneId: string,
-  domain: string,
-  mxRecords?: Array<{ content: string; priority: number }>,
-  dkimRecord?: { name: string; content: string }
-) {
+// Note: MX and DKIM records are automatically created by Cloudflare Email Routing (read-only)
+// We only create SPF and other non-email DNS records here
+async function updateCloudflareDNS(zoneId: string, domain: string) {
   // Use global API key (requires API key + email) - SUPER SECURE, server-side only
   const cloudflareApiKey = process.env.CLOUDFLARE_API_KEY
   const cloudflareEmail = process.env.CLOUDFLARE_EMAIL
@@ -399,47 +397,20 @@ async function updateCloudflareDNS(
 
     const getData = await getResponse.json()
 
-    // Email routing DNS records (MX, TXT for SPF and DKIM)
-    // Use MX records from Email Routing API if provided, otherwise use defaults
+    // Email routing DNS records
+    // IMPORTANT: MX and DKIM records are automatically created by Cloudflare Email Routing
+    // They appear as "Read only" in the dashboard because Cloudflare manages them
+    // We should NOT create them manually - only create SPF record if it doesn't exist
     const emailRecords: any[] = []
     
-    if (mxRecords && mxRecords.length > 0) {
-      // Use MX records from Cloudflare Email Routing API (with actual priorities)
-      mxRecords.forEach((mx) => {
-        emailRecords.push({
-          type: 'MX',
-          name: '@',
-          content: mx.content,
-          priority: mx.priority,
-          ttl: 600,
-        })
-      })
-    } else {
-      // Fallback to default MX records (if Email Routing API didn't return them)
-      emailRecords.push(
-        { type: 'MX', name: '@', content: 'route1.mx.cloudflare.net', priority: 28, ttl: 600 },
-        { type: 'MX', name: '@', content: 'route2.mx.cloudflare.net', priority: 28, ttl: 600 },
-        { type: 'MX', name: '@', content: 'route3.mx.cloudflare.net', priority: 23, ttl: 600 }
-      )
-    }
-    
-    // SPF record (always the same)
+    // SPF record (we create this manually, but check if it exists first)
+    // MX and DKIM are auto-created by Email Routing and will be "read-only"
     emailRecords.push({
       type: 'TXT',
       name: '@',
       content: 'v=spf1 include:_spf.mx.cloudflare.net ~all',
       ttl: 600,
     })
-    
-    // DKIM record (from Email Routing API if provided)
-    if (dkimRecord) {
-      emailRecords.push({
-        type: 'TXT',
-        name: dkimRecord.name,
-        content: dkimRecord.content,
-        ttl: 600,
-      })
-    }
 
     // Default DNS records to create (if they don't exist)
     const defaultRecords = [
@@ -451,14 +422,16 @@ async function updateCloudflareDNS(
     const records = []
 
     // Create/update DNS records
+    // Skip MX records - they're auto-created by Email Routing (read-only)
     for (const record of defaultRecords) {
-      // For MX records, check by type, name, and priority
+      // Skip MX records - Cloudflare Email Routing creates these automatically
+      if (record.type === 'MX') {
+        continue
+      }
+      
       // For TXT records, check by type, name, and content
       const existing = getData.result?.find((r: any) => {
         if (r.type !== record.type || r.name !== record.name) return false
-        if (record.type === 'MX' && 'priority' in record) {
-          return r.priority === record.priority
-        }
         if (record.type === 'TXT') {
           return r.content === record.content
         }
@@ -476,11 +449,6 @@ async function updateCloudflareDNS(
         name: record.name,
         content: record.content,
         ttl: record.ttl,
-      }
-
-      // Add priority for MX records
-      if (record.type === 'MX' && 'priority' in record) {
-        cloudflareRecord.priority = record.priority
       }
 
       const createResponse = await fetch(
@@ -546,37 +514,9 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
       console.warn('Email routing enable warning:', enableData.errors?.[0]?.message)
     }
 
-    // Step 2: Get Email Routing DNS records (MX priorities and DKIM)
-    // This API endpoint returns the MX records with their actual priorities
-    const dnsResponse = await fetch(
-      `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing/dns`,
-      {
-        method: 'GET',
-        headers: authHeaders,
-      }
-    )
-
-    const dnsData = await dnsResponse.json()
-    let mxRecords: Array<{ content: string; priority: number }> = []
-    let dkimRecord: { name: string; content: string } | undefined
-
-    if (dnsData.success && dnsData.result) {
-      // Extract MX records with their priorities
-      if (dnsData.result.mx_records) {
-        mxRecords = dnsData.result.mx_records.map((mx: any) => ({
-          content: mx.content || mx.exchange,
-          priority: mx.priority || mx.prio,
-        }))
-      }
-
-      // Extract DKIM record
-      if (dnsData.result.txt_record) {
-        dkimRecord = {
-          name: dnsData.result.txt_record.name || `cf2024-1._domainkey.${domain}`,
-          content: dnsData.result.txt_record.content || dnsData.result.txt_record.value,
-        }
-      }
-    }
+    // Step 2: Email Routing automatically creates MX and DKIM records
+    // These will appear as "Read only" in Cloudflare dashboard because Cloudflare manages them
+    // We don't need to fetch or create them - they're auto-generated when Email Routing is enabled
 
     // Step 3: Create catchall destination and rule (if worker URL provided)
     if (workerUrl) {
@@ -600,9 +540,7 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
 
     return {
       success: true,
-      mxRecords: mxRecords.length > 0 ? mxRecords : undefined,
-      dkimRecord: dkimRecord,
-      message: 'Email routing enabled. MX records and DKIM fetched from Cloudflare.',
+      message: 'Email routing enabled. MX and DKIM records are automatically created by Cloudflare (read-only).',
       note: workerUrl
         ? 'Configure catchall rule in Cloudflare dashboard to forward to worker, or implement via API.'
         : 'EMAIL_FETCHER not set - configure catchall rule manually in Cloudflare dashboard.',
