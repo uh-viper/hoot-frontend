@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { signOut } from "../../actions/auth";
+import { createClient } from "@/lib/supabase/client";
 import "../../styles/dashboard.css";
 
 interface SidebarProps {
@@ -12,13 +13,99 @@ interface SidebarProps {
   isAdmin?: boolean;
 }
 
-export default function Sidebar({ userEmail, credits = 0, isAdmin = false }: SidebarProps) {
+export default function Sidebar({ userEmail, credits: initialCredits = 0, isAdmin = false }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [isNavigating, setIsNavigating] = useState(false);
+  const [credits, setCredits] = useState(initialCredits);
 
   useEffect(() => {
     setIsNavigating(false);
+  }, [pathname]);
+
+  // Fetch credits client-side and subscribe to real-time updates
+  useEffect(() => {
+    const supabase = createClient();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    
+    const fetchCredits = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: creditsData } = await supabase
+        .from('user_credits')
+        .select('credits')
+        .eq('user_id', user.id)
+        .single();
+
+      if (creditsData) {
+        setCredits(creditsData.credits ?? 0);
+      }
+    };
+    
+    const setupCredits = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Fetch initial credits
+      await fetchCredits();
+
+      // Subscribe to real-time updates for user_credits table
+      channel = supabase
+        .channel(`user-credits-${user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'user_credits',
+            filter: `user_id=eq.${user.id}`,
+          },
+          (payload) => {
+            // Update credits when database changes
+            if (payload.new && 'credits' in payload.new) {
+              setCredits(payload.new.credits as number);
+            }
+          }
+        )
+        .subscribe();
+    };
+
+    setupCredits();
+
+    // Listen for custom event to refresh credits (triggered when job completes)
+    const handleCreditsUpdate = () => {
+      fetchCredits();
+    };
+    
+    window.addEventListener('credits-updated', handleCreditsUpdate);
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+      window.removeEventListener('credits-updated', handleCreditsUpdate);
+    };
+  }, []);
+
+  // Also refresh when navigating to a new page
+  useEffect(() => {
+    const supabase = createClient();
+    const fetchCredits = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: creditsData } = await supabase
+        .from('user_credits')
+        .select('credits')
+        .eq('user_id', user.id)
+        .single();
+
+      if (creditsData) {
+        setCredits(creditsData.credits ?? 0);
+      }
+    };
+    fetchCredits();
   }, [pathname]);
 
   const menuItems = [
