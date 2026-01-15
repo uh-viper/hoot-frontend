@@ -79,7 +79,7 @@ export default function DashboardChart({ dateRange, statType }: DashboardChartPr
     const maxCount = Math.max(...graphData.map(d => d.count), 1);
     const yScale = graphHeight / maxCount;
 
-    // Calculate points (ensure Y never goes below baseline)
+    // Calculate points
     const points: Array<{ x: number; y: number }> = [];
     const baselineY = padding.top + graphHeight; // Bottom of graph (Y = 0)
 
@@ -88,8 +88,9 @@ export default function DashboardChart({ dateRange, statType }: DashboardChartPr
       // Calculate Y position - in SVG, smaller Y is higher on screen
       // baselineY is at the bottom (Y=0), so points with count > 0 should be above it
       const y = baselineY - (point.count * yScale);
-      // Ensure Y never goes below baseline
-      points.push({ x, y: Math.max(y, baselineY) });
+      // Clamp Y to never go above the top or below the baseline
+      const clampedY = Math.max(padding.top, Math.min(y, baselineY));
+      points.push({ x, y: clampedY });
     });
 
     // Generate smooth path using cubic bezier curves
@@ -118,15 +119,12 @@ export default function DashboardChart({ dateRange, statType }: DashboardChartPr
           let cp2x = p2.x - (p3.x - p1.x) / 6 * tension;
           let cp2y = p2.y - (p3.y - p1.y) / 6 * tension;
           
-          // Clamp control points to baseline
-          if (cp1y > baselineY) cp1y = baselineY;
-          if (cp2y > baselineY) cp2y = baselineY;
+          // Clamp control points to valid range (between top and baseline)
+          cp1y = Math.max(padding.top, Math.min(cp1y, baselineY));
+          cp2y = Math.max(padding.top, Math.min(cp2y, baselineY));
           
-          // Clamp actual points to baseline
-          const finalP1y = p1.y > baselineY ? baselineY : p1.y;
-          const finalP2y = p2.y > baselineY ? baselineY : p2.y;
-          
-          path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${finalP2y}`;
+          // Use actual point Y values (already clamped)
+          path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
         }
       }
     }
