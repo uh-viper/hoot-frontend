@@ -63,6 +63,15 @@ export default async function MaintenancePage() {
         )}
         <div className="maintenance-footer">
           <p>We'll be back soon. Thank you for your patience!</p>
+          <a 
+            href="https://discord.gg/b8RSYKNNbR" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="maintenance-discord-link"
+          >
+            <span className="material-icons">discord</span>
+            Join our Discord
+          </a>
         </div>
       </div>
     </div>
