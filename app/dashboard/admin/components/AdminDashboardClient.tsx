@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { getFilteredStats } from '@/app/actions/admin-stats'
 import { updateUserCredits } from '@/app/actions/admin-credits'
+import { useToast } from '@/app/contexts/ToastContext'
 import CalendarModal from '../../components/CalendarModal'
 import { 
   localDateRangeToUTC, 
@@ -51,6 +52,7 @@ interface AdminDashboardClientProps {
 }
 
 export default function AdminDashboardClient({ users, recentPurchases, allPurchases, initialStats }: AdminDashboardClientProps) {
+  const { showError, showSuccess } = useToast()
   const [selectedTab, setSelectedTab] = useState<'users' | 'purchases' | 'analytics' | 'management'>('users')
   const [searchTerm, setSearchTerm] = useState('')
   const [filterAdmin, setFilterAdmin] = useState<'all' | 'admins' | 'users'>('all')
@@ -131,7 +133,7 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
 
     const amount = parseFloat(creditAmount)
     if (isNaN(amount) || amount === 0) {
-      alert('Please enter a valid non-zero amount')
+      showError('Please enter a valid non-zero amount')
       return
     }
 
@@ -150,13 +152,13 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
         )
         setEditingCredits(null)
         setCreditAmount('')
-        alert(`Credits ${amount > 0 ? 'added' : 'deducted'} successfully. New balance: ${result.newBalance}`)
+        showSuccess(`Credits ${amount > 0 ? 'added' : 'deducted'} successfully. New balance: ${result.newBalance.toLocaleString()}`)
       } else {
-        alert(result.error || 'Failed to update credits')
+        showError(result.error || 'Failed to update credits')
       }
     } catch (error) {
       console.error('Error updating credits:', error)
-      alert('Failed to update credits. Please try again.')
+      showError('Failed to update credits. Please try again.')
     } finally {
       setIsUpdatingCredits(false)
     }
