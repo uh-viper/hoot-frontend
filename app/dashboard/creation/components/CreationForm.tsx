@@ -609,7 +609,9 @@ export default function CreationForm() {
   };
 
   // Calculate if user has enough credits
-  const hasEnoughCredits = currentCredits !== null && currentCredits >= bcsAmount;
+  // Only show "Insufficient Credits" if we've loaded credits and they're insufficient
+  const creditsLoaded = currentCredits !== null;
+  const hasEnoughCredits = creditsLoaded && currentCredits >= bcsAmount;
   const canDeploy = !isPending && !isPolling && hasEnoughCredits && selectedCountry && selectedCurrency && bcsAmount >= 5 && bcsAmount <= 100;
   
   // Prevent form submission if already deploying
@@ -766,6 +768,11 @@ export default function CreationForm() {
               <>
                 <span className="material-icons spinning">sync</span>
                 {isPolling ? 'Deployment in Progress...' : 'Starting Deployment...'}
+              </>
+            ) : !creditsLoaded || isCheckingCredits ? (
+              <>
+                <span className="material-icons spinning">sync</span>
+                Loading...
               </>
             ) : (
               <>
