@@ -6,6 +6,8 @@ import { isAdmin } from '@/lib/auth/admin'
 export interface MaintenanceMode {
   enabled: boolean
   expected_time: string | null
+  expected_hours: number | null
+  updated_at: string | null
   message: string | null
 }
 
@@ -18,7 +20,7 @@ export async function getMaintenanceMode(): Promise<{ success: boolean; data?: M
     
     const { data, error } = await supabase
       .from('maintenance_mode')
-      .select('enabled, expected_time, message')
+      .select('enabled, expected_time, expected_hours, updated_at, message')
       .single()
 
     if (error) {
@@ -31,6 +33,8 @@ export async function getMaintenanceMode(): Promise<{ success: boolean; data?: M
       data: {
         enabled: data?.enabled ?? false,
         expected_time: data?.expected_time ?? null,
+        expected_hours: data?.expected_hours ?? null,
+        updated_at: data?.updated_at ?? null,
         message: data?.message ?? null,
       },
     }
@@ -48,7 +52,7 @@ export async function getMaintenanceMode(): Promise<{ success: boolean; data?: M
  */
 export async function updateMaintenanceMode(
   enabled: boolean,
-  expectedTime?: string | null,
+  expectedHours?: number | null,
   message?: string | null
 ): Promise<{ success: boolean; error?: string }> {
   // Verify admin
@@ -65,8 +69,16 @@ export async function updateMaintenanceMode(
       updated_at: new Date().toISOString(),
     }
 
-    if (expectedTime !== undefined) {
-      updateData.expected_time = expectedTime
+    if (expectedHours !== undefined) {
+      updateData.expected_hours = expectedHours
+      // Calculate expected_time from updated_at + hours for backwards compatibility
+      if (expectedHours && expectedHours > 0) {
+        const now = new Date()
+        const expected = new Date(now.getTime() + expectedHours * 60 * 60 * 1000)
+        updateData.expected_time = expected.toISOString()
+      } else {
+        updateData.expected_time = null
+      }
     }
 
     if (message !== undefined) {

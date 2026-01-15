@@ -15,12 +15,21 @@ export default async function MaintenancePage() {
   // Get maintenance mode info
   const { data: maintenance } = await supabase
     .from('maintenance_mode')
-    .select('enabled, expected_time, message')
+    .select('enabled, expected_hours, updated_at, message')
     .single()
 
   const isEnabled = maintenance?.enabled ?? false
-  const expectedTime = maintenance?.expected_time
+  const expectedHours = maintenance?.expected_hours
+  const updatedAt = maintenance?.updated_at
   const message = maintenance?.message
+
+  // Calculate expected time from updated_at + hours
+  let expectedTime: string | null = null
+  if (expectedHours && updatedAt && expectedHours > 0) {
+    const updated = new Date(updatedAt)
+    const expected = new Date(updated.getTime() + expectedHours * 60 * 60 * 1000)
+    expectedTime = expected.toISOString()
+  }
 
   // If maintenance is not active, show "No active maintenance" message
   if (!isEnabled) {
@@ -46,9 +55,6 @@ export default async function MaintenancePage() {
           <span className="material-icons">build</span>
         </div>
         <h1 className="maintenance-title">Undergoing Maintenance</h1>
-        <p className="maintenance-description">
-          We're currently performing scheduled maintenance to improve your experience.
-        </p>
         {expectedTime && <MaintenanceCountdown expectedTime={expectedTime} />}
         {message && (
           <div className="maintenance-message">

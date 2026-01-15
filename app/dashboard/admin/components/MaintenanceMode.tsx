@@ -8,7 +8,6 @@ import './admin-client.css'
 export default function MaintenanceMode() {
   const { showError, showSuccess } = useToast()
   const [enabled, setEnabled] = useState(false)
-  const [expectedTime, setExpectedTime] = useState('')
   const [expectedHours, setExpectedHours] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [isUpdating, setIsUpdating] = useState(false)
@@ -20,17 +19,9 @@ export default function MaintenanceMode() {
       const result = await getMaintenanceMode()
       if (result.success && result.data) {
         setEnabled(result.data.enabled)
-        if (result.data.expected_time) {
-          // Store the full ISO string for saving
-          setExpectedTime(result.data.expected_time)
-          // Calculate hours from now
-          const now = new Date()
-          const expected = new Date(result.data.expected_time)
-          const diffMs = expected.getTime() - now.getTime()
-          const diffHours = Math.max(0, Math.round(diffMs / (1000 * 60 * 60)))
-          setExpectedHours(diffHours.toString())
+        if (result.data.expected_hours) {
+          setExpectedHours(result.data.expected_hours.toString())
         } else {
-          setExpectedTime('')
           setExpectedHours('')
         }
       } else {
@@ -46,21 +37,14 @@ export default function MaintenanceMode() {
     setIsUpdating(true)
     const newEnabled = !enabled
     
-    // Calculate expected time from hours
-    let expectedTimeISO: string | null = null
-    if (expectedHours && !isNaN(Number(expectedHours)) && Number(expectedHours) > 0) {
-      const hours = Number(expectedHours)
-      const now = new Date()
-      const expected = new Date(now.getTime() + hours * 60 * 60 * 1000)
-      expectedTimeISO = expected.toISOString()
-      setExpectedTime(expectedTimeISO)
-    } else {
-      expectedTimeISO = expectedTime || null
-    }
+    // Get expected hours as number
+    const hours = expectedHours && !isNaN(Number(expectedHours)) && Number(expectedHours) > 0
+      ? Number(expectedHours)
+      : null
 
     const result = await updateMaintenanceMode(
       newEnabled,
-      expectedTimeISO,
+      hours,
       null
     )
 
@@ -84,14 +68,10 @@ export default function MaintenanceMode() {
     if (enabled && hours && !isNaN(Number(hours)) && Number(hours) > 0) {
       setIsUpdating(true)
       const hoursNum = Number(hours)
-      const now = new Date()
-      const expected = new Date(now.getTime() + hoursNum * 60 * 60 * 1000)
-      const expectedTimeISO = expected.toISOString()
-      setExpectedTime(expectedTimeISO)
 
       const result = await updateMaintenanceMode(
         enabled,
-        expectedTimeISO,
+        hoursNum,
         null
       )
 
