@@ -45,7 +45,6 @@ export default function MaintenanceCountdown({ expectedTime }: MaintenanceCountd
 
   return (
     <div className="maintenance-countdown">
-      <span className="material-icons">timer</span>
       <span className="maintenance-countdown-time">{timeRemaining}</span>
     </div>
   )
