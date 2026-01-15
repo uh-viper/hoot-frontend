@@ -342,7 +342,6 @@ export default function DomainManagement() {
 
       {/* Domains List */}
       <div className="domain-list" style={{ marginTop: '2rem' }}>
-        <h3>Domains ({domains.length})</h3>
         {domains.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '3rem', opacity: 0.6 }}>
             <span className="material-icons" style={{ fontSize: '3rem', marginBottom: '1rem' }}>

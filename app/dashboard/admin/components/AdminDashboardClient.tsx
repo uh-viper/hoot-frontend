@@ -587,10 +587,6 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
         <div className="admin-section">
           <div className="management-content">
             <div className="management-section">
-              <h3 className="management-section-title">
-                <span className="material-icons">domain</span>
-                Domain Management
-              </h3>
               <DomainManagement />
             </div>
             <div className="management-section">
