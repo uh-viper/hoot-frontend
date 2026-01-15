@@ -88,7 +88,8 @@ export async function getChartData(
     const timeSlots: string[] = []
     if (groupBy === 'hour') {
       const current = new Date(start)
-      const endTime = end.getTime()
+      const endDate = new Date(end)
+      const endTime = endDate.getTime()
       while (current.getTime() <= endTime) {
         const key = current.toISOString().slice(0, 13) + ':00:00'
         timeSlots.push(key)
@@ -97,8 +98,10 @@ export async function getChartData(
       }
     } else {
       const current = new Date(start)
-      const endDateStr = end.toISOString().slice(0, 10)
-      while (current.getTime() <= end.getTime()) {
+      const endDate = new Date(end)
+      const endDateStr = endDate.toISOString().slice(0, 10)
+      const endTime = endDate.getTime()
+      while (current.getTime() <= endTime) {
         const key = current.toISOString().slice(0, 10)
         timeSlots.push(key)
         dataMap.set(key, 0)
