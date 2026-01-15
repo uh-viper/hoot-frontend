@@ -251,6 +251,31 @@
   border-radius: 10px;
 }
 
+.domain-list-scrollable {
+  max-height: calc(5 * 3.5rem + 3rem); /* 5 rows + header + padding */
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.domain-list-scrollable::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.domain-list-scrollable::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.domain-list-scrollable::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.3);
+  border-radius: 4px;
+}
+
+.domain-list-scrollable::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.5);
+}
+
 .admin-table {
   width: 100%;
   border-collapse: collapse;
