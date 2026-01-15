@@ -1328,4 +1328,36 @@
     align-items: flex-start;
     gap: 1rem;
   }
+
+  .domain-add-form {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .domain-add-form form {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+  .domain-add-form input {
+    width: 100%;
+    font-size: 0.9rem;
+    padding: 0.75rem;
+  }
+
+  .domain-add-form button {
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  .domain-list {
+    margin-top: 1rem !important;
+  }
+
+  .domain-list h3 {
+    font-size: 1.125rem;
+    margin-bottom: 1rem;
+  }
 }
