@@ -39,10 +39,7 @@ export default function DashboardStats({ onDateRangeChange, onStatTypeChange, se
       endDate = utcRange.end;
     }
 
-    // Get user's timezone from browser
-    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    
-    const result = await getUserFilteredStats(startDate, endDate, userTimezone);
+    const result = await getUserFilteredStats(startDate, endDate);
     
     if (result.error) {
       console.error('Error fetching stats:', result.error);
