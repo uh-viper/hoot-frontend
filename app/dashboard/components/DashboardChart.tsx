@@ -383,7 +383,6 @@ export default function DashboardChart({ dateRange, statType }: DashboardChartPr
             {statType === 'failures' && 'Failures'}
           </h2>
           {total > 0 && (
-            <p className="graph-subtitle">{total.toLocaleString()} total in selected period</p>
           )}
         </div>
       </div>
