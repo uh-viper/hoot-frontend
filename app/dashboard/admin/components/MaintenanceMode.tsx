@@ -117,16 +117,9 @@ export default function MaintenanceMode() {
 
   return (
     <div className="maintenance-mode-container">
-      <div className="maintenance-mode-header">
-        <h3 className="maintenance-mode-title">
-          <span className="material-icons">build</span>
-          Maintenance Mode
-        </h3>
-        <p className="maintenance-mode-description">
-          Enable maintenance mode to temporarily shut down the site for all non-admin users.
-          Admins will still be able to access the site during maintenance.
-        </p>
-      </div>
+      <p className="maintenance-mode-description">
+        Enable maintenance mode to temporarily shut down the site for all non-admin users.
+      </p>
 
       <div className="maintenance-mode-content">
         <div className="maintenance-mode-toggle">
