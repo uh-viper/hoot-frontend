@@ -5,6 +5,7 @@ import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import { createClient } from '@/lib/supabase/server'
 import { getSessionUser } from '@/lib/auth/validate-session'
+import { getUserTimezone } from '@/lib/utils/date-timezone'
 
 // Extend dayjs with plugins
 dayjs.extend(utc)
@@ -125,25 +126,28 @@ export async function getChartData(
       }
     })
 
-    // Convert to array format
+    // Get user's timezone (defaults to server timezone if not available, but should be handled client-side)
+    // For now, we'll convert UTC to local time using dayjs
+    const userTimezone = getUserTimezone()
+
+    // Convert to array format - convert UTC times to user's local timezone for display
     const data: ChartDataPoint[] = timeSlots.map((time) => {
-      const date = new Date(time)
+      // Parse UTC time string and convert to user's local timezone
+      const utcDate = dayjs.utc(time)
+      const localDate = utcDate.tz(userTimezone)
+      
       let label: string
       
       if (groupBy === 'hour') {
-        // Format as "12 AM", "1 AM", "2 AM", ..., "11 PM"
-        const hours = date.getUTCHours()
+        // Format as "12 AM", "1 AM", "2 AM", ..., "11 PM" in user's local time
+        const hours = localDate.hour()
         const ampm = hours >= 12 ? 'PM' : 'AM'
         const displayHours = hours % 12 || 12
         label = `${displayHours} ${ampm}`
       } else {
-        // Format as "Mon, Jan 15" for multiple days
-        const dayName = date.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' })
-        const monthDay = date.toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          timeZone: 'UTC',
-        })
+        // Format as "Mon, Jan 15" for multiple days in user's local time
+        const dayName = localDate.format('ddd')
+        const monthDay = localDate.format('MMM D')
         label = `${dayName}, ${monthDay}`
       }
 
