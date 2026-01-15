@@ -46,12 +46,28 @@ export async function getChartData(
     let end: string
     let groupBy: 'hour' | 'day' = 'hour'
 
+    console.log('[CHART-DATA] Input params:', {
+      statType,
+      startDate: startDate?.toISOString(),
+      endDate: endDate?.toISOString(),
+      userTimezone,
+    })
+
     if (startDate && endDate) {
       // Check if start and end are the same calendar day (in user's local timezone)
       const tz = userTimezone || getUserTimezone()
       const startDay = dayjs(startDate).tz(tz).format('YYYY-MM-DD')
       const endDay = dayjs(endDate).tz(tz).format('YYYY-MM-DD')
       const isSameDay = startDay === endDay
+      
+      console.log('[CHART-DATA] Local date check:', {
+        tz,
+        startDay,
+        endDay,
+        isSameDay,
+        startDateLocal: dayjs(startDate).tz(tz).format('YYYY-MM-DD HH:mm:ss'),
+        endDateLocal: dayjs(endDate).tz(tz).format('YYYY-MM-DD HH:mm:ss'),
+      })
       
       // Convert local dates to UTC for database queries using timezone utility
       // This properly converts local time to UTC (same as stats cards)
@@ -60,13 +76,31 @@ export async function getChartData(
       start = utcRange.start.toISOString()
       end = utcRange.end.toISOString()
       
+      console.log('[CHART-DATA] UTC conversion:', {
+        localStart: startDate.toISOString(),
+        localEnd: endDate.toISOString(),
+        utcStart: start,
+        utcEnd: end,
+      })
+      
       groupBy = isSameDay ? 'hour' : 'day'
     } else {
       // Default to this month
       start = dayjs().utc().startOf('month').toISOString()
       end = dayjs().utc().endOf('day').toISOString()
       groupBy = 'day'
+      
+      console.log('[CHART-DATA] No date range provided, using default (this month):', {
+        start,
+        end,
+      })
     }
+
+    console.log('[CHART-DATA] Final query params:', {
+      start,
+      end,
+      groupBy,
+    })
 
     // Fetch user jobs in the date range
     const { data: jobs, error } = await supabase
@@ -77,8 +111,20 @@ export async function getChartData(
       .lte('created_at', end)
       .order('created_at', { ascending: true })
 
+    console.log('[CHART-DATA] Database query results:', {
+      jobsCount: jobs?.length || 0,
+      jobs: jobs?.map(j => ({
+        created_at: j.created_at,
+        requested: j.requested_count,
+        successful: j.successful_count,
+        failed: j.failed_count,
+        created_at_local: j.created_at ? dayjs.utc(j.created_at).tz(userTimezone || getUserTimezone()).format('YYYY-MM-DD HH:mm:ss') : null,
+      })),
+      error: error?.message,
+    })
+
     if (error) {
-      console.error('Failed to fetch jobs:', error)
+      console.error('[CHART-DATA] Failed to fetch jobs:', error)
       return { success: false, error: 'Failed to fetch job data' }
     }
 
@@ -141,6 +187,12 @@ export async function getChartData(
     }
 
     // Sum up the selected stat type for each time slot
+    console.log('[CHART-DATA] Time slots generated:', {
+      count: timeSlots.length,
+      firstFew: timeSlots.slice(0, 5),
+      lastFew: timeSlots.slice(-5),
+    })
+
     jobs?.forEach((job) => {
       const createdAt = new Date(job.created_at)
       let key: string
@@ -162,7 +214,24 @@ export async function getChartData(
         } else if (statType === 'failures') {
           value = job.failed_count || 0
         }
-        dataMap.set(key, (dataMap.get(key) || 0) + value)
+        const oldValue = dataMap.get(key) || 0
+        dataMap.set(key, oldValue + value)
+        
+        console.log('[CHART-DATA] Mapped job to time slot:', {
+          jobCreatedAt: job.created_at,
+          jobCreatedAtLocal: dayjs.utc(job.created_at).tz(userTimezone || getUserTimezone()).format('YYYY-MM-DD HH:mm:ss'),
+          key,
+          value,
+          oldValue,
+          newValue: oldValue + value,
+        })
+      } else {
+        console.log('[CHART-DATA] Job key not found in time slots:', {
+          jobCreatedAt: job.created_at,
+          jobCreatedAtLocal: dayjs.utc(job.created_at).tz(userTimezone || getUserTimezone()).format('YYYY-MM-DD HH:mm:ss'),
+          key,
+          availableKeys: timeSlots.slice(0, 10),
+        })
       }
     })
 
