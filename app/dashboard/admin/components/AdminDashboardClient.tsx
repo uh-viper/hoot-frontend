@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { getFilteredStats } from '@/app/actions/admin-stats'
+import { updateUserCredits } from '@/app/actions/admin-credits'
 import CalendarModal from '../../components/CalendarModal'
 import { 
   localDateRangeToUTC, 
@@ -69,6 +70,11 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
   const [purchaseSearchTerm, setPurchaseSearchTerm] = useState('')
   const [usersToShow, setUsersToShow] = useState(5)
   const [purchasesToShow, setPurchasesToShow] = useState(5)
+  const [editingCredits, setEditingCredits] = useState<{ userId: string; currentCredits: number } | null>(null)
+  const [creditAmount, setCreditAmount] = useState('')
+  const [creditReason, setCreditReason] = useState('')
+  const [isUpdatingCredits, setIsUpdatingCredits] = useState(false)
+  const [localUsers, setLocalUsers] = useState(users)
 
   // Calculate initial revenue from all purchases
   const initialRevenue = allPurchases
@@ -116,7 +122,49 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
     setDateRange({ start, end })
   }
 
-  const filteredUsers = users.filter(user => {
+  // Update local users when props change
+  useEffect(() => {
+    setLocalUsers(users)
+  }, [users])
+
+  const handleUpdateCredits = async () => {
+    if (!editingCredits || !creditAmount) return
+
+    const amount = parseFloat(creditAmount)
+    if (isNaN(amount) || amount === 0) {
+      alert('Please enter a valid non-zero amount')
+      return
+    }
+
+    setIsUpdatingCredits(true)
+    try {
+      const result = await updateUserCredits(editingCredits.userId, amount, creditReason)
+      
+      if (result.success && result.newBalance !== undefined) {
+        // Update local users state
+        setLocalUsers(prevUsers => 
+          prevUsers.map(u => 
+            u.user_id === editingCredits.userId 
+              ? { ...u, credits: result.newBalance! }
+              : u
+          )
+        )
+        setEditingCredits(null)
+        setCreditAmount('')
+        setCreditReason('')
+        alert(`Credits ${amount > 0 ? 'added' : 'deducted'} successfully. New balance: ${result.newBalance}`)
+      } else {
+        alert(result.error || 'Failed to update credits')
+      }
+    } catch (error) {
+      console.error('Error updating credits:', error)
+      alert('Failed to update credits. Please try again.')
+    } finally {
+      setIsUpdatingCredits(false)
+    }
+  }
+
+  const filteredUsers = localUsers.filter(user => {
     const matchesSearch = !searchTerm || 
       user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -280,6 +328,7 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
                   <th>Failures</th>
                   <th>Role</th>
                   <th>Joined</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -300,6 +349,19 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
                       )}
                     </td>
                     <td>{formatDate(user.created_at)}</td>
+                    <td>
+                      <button
+                        className="admin-action-btn"
+                        onClick={() => {
+                          setEditingCredits({ userId: user.user_id, currentCredits: user.credits })
+                          setCreditAmount('')
+                          setCreditReason('')
+                        }}
+                        title="Adjust Credits"
+                      >
+                        <span className="material-icons">edit</span>
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -541,6 +603,71 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
         initialStartDate={dateRange?.start}
         initialEndDate={dateRange?.end}
       />
+
+      {/* Credits Adjustment Modal */}
+      {editingCredits && (
+        <div className="admin-modal-overlay" onClick={() => setEditingCredits(null)}>
+          <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal-header">
+              <h2>Adjust Credits</h2>
+              <button 
+                className="admin-modal-close"
+                onClick={() => setEditingCredits(null)}
+              >
+                <span className="material-icons">close</span>
+              </button>
+            </div>
+            <div className="admin-modal-content">
+              <p className="admin-modal-info">
+                Current balance: <strong>{editingCredits.currentCredits.toLocaleString()}</strong>
+              </p>
+              <div className="admin-modal-field">
+                <label>
+                  Amount (positive to add, negative to deduct)
+                </label>
+                <input
+                  type="number"
+                  value={creditAmount}
+                  onChange={(e) => setCreditAmount(e.target.value)}
+                  placeholder="e.g., 100 or -50"
+                  disabled={isUpdatingCredits}
+                />
+              </div>
+              <div className="admin-modal-field">
+                <label>Reason (optional)</label>
+                <input
+                  type="text"
+                  value={creditReason}
+                  onChange={(e) => setCreditReason(e.target.value)}
+                  placeholder="e.g., Refund, Bonus, Correction"
+                  disabled={isUpdatingCredits}
+                />
+              </div>
+              {creditAmount && !isNaN(parseFloat(creditAmount)) && (
+                <p className="admin-modal-preview">
+                  New balance: <strong>{(editingCredits.currentCredits + parseFloat(creditAmount)).toLocaleString()}</strong>
+                </p>
+              )}
+            </div>
+            <div className="admin-modal-footer">
+              <button
+                className="admin-modal-cancel"
+                onClick={() => setEditingCredits(null)}
+                disabled={isUpdatingCredits}
+              >
+                Cancel
+              </button>
+              <button
+                className="admin-modal-submit"
+                onClick={handleUpdateCredits}
+                disabled={isUpdatingCredits || !creditAmount || parseFloat(creditAmount) === 0}
+              >
+                {isUpdatingCredits ? 'Updating...' : 'Update Credits'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
