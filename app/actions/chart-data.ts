@@ -49,9 +49,9 @@ export async function getChartData(
       start = dayjs(startDate).utc().startOf('day').toDate()
       end = dayjs(endDate).utc().endOf('day').toDate()
       
-      // If custom range is more than 1 day, use daily grouping
+      // If custom range is exactly 1 day, use hourly grouping
       const daysDiff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
-      groupBy = daysDiff > 1 ? 'day' : 'hour'
+      groupBy = daysDiff <= 1 ? 'hour' : 'day'
     } else {
       // Default to this month
       start = dayjs().utc().startOf('month').toDate()
@@ -131,12 +131,13 @@ export async function getChartData(
       let label: string
       
       if (groupBy === 'hour') {
+        // Format as "12 AM", "1 AM", "2 AM", ..., "11 PM"
         const hours = date.getUTCHours()
-        const minutes = date.getUTCMinutes().toString().padStart(2, '0')
         const ampm = hours >= 12 ? 'PM' : 'AM'
         const displayHours = hours % 12 || 12
-        label = `${displayHours}:${minutes} ${ampm}`
+        label = `${displayHours} ${ampm}`
       } else {
+        // Format as "Mon, Jan 15" for multiple days
         const dayName = date.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' })
         const monthDay = date.toLocaleDateString('en-US', {
           month: 'short',

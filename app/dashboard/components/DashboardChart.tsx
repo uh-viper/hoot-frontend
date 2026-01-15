@@ -232,7 +232,12 @@ export default function DashboardChart({ dateRange, statType }: DashboardChartPr
     }
 
     // Draw X-axis labels
-    const labelStep = Math.max(1, Math.floor(graphData.length / 10));
+    // For hourly data (single day), show every 2-3 hours. For daily data, show every day or every few days
+    const isHourly = graphData.length > 0 && graphData[0].label.includes('AM') || graphData[0].label.includes('PM');
+    const labelStep = isHourly 
+      ? Math.max(1, Math.floor(graphData.length / 12)) // Show ~12 labels for 24 hours
+      : Math.max(1, Math.floor(graphData.length / 10)); // Show ~10 labels for multiple days
+    
     graphData.forEach((point, index) => {
       if (index % labelStep === 0 || index === graphData.length - 1) {
         const x = padding.left + (index / (graphData.length - 1 || 1)) * graphWidth;
@@ -251,7 +256,7 @@ export default function DashboardChart({ dateRange, statType }: DashboardChartPr
         text.setAttribute('x', x.toString());
         text.setAttribute('y', (height - padding.bottom + 20).toString());
         text.setAttribute('fill', 'rgba(255, 255, 255, 0.6)');
-        text.setAttribute('font-size', '11');
+        text.setAttribute('font-size', isHourly ? '10' : '11');
         text.setAttribute('text-anchor', 'middle');
         text.setAttribute('font-family', 'var(--font-poppins)');
         text.textContent = point.label;
