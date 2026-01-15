@@ -5,7 +5,6 @@ import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import { createClient } from '@/lib/supabase/server'
 import { getSessionUser } from '@/lib/auth/validate-session'
-import { localDateToUTC } from '@/lib/utils/date-timezone'
 
 // Extend dayjs with plugins
 dayjs.extend(utc)
@@ -42,29 +41,26 @@ export async function getChartData(
 
   try {
     // Calculate date range
-    let start: Date
-    let end: Date = new Date()
+    let start: string
+    let end: string
     let groupBy: 'hour' | 'day' = 'hour'
 
     if (startDate && endDate) {
       // Check if start and end are the same calendar day (in local time)
-      // If they're the same day, use hourly grouping
       const startDay = dayjs(startDate).format('YYYY-MM-DD')
       const endDay = dayjs(endDate).format('YYYY-MM-DD')
       const isSameDay = startDay === endDay
       
-      // Convert local dates to UTC for database queries using the timezone utility
-      // This properly handles timezone conversion
-      start = localDateToUTC(startDate, 'start', userTimezone)
-      end = localDateToUTC(endDate, 'end', userTimezone)
+      // Convert local dates to UTC for database queries - EXACTLY like user-stats.ts
+      // user-stats.ts uses: dayjs(startDate).utc().startOf('day').toISOString()
+      start = dayjs(startDate).utc().startOf('day').toISOString()
+      end = dayjs(endDate).utc().endOf('day').toISOString()
       
       groupBy = isSameDay ? 'hour' : 'day'
     } else {
-      // Default to this month - use current time in user's timezone
-      const tz = userTimezone || 'UTC'
-      const now = dayjs().tz(tz)
-      start = now.startOf('month').utc().toDate()
-      end = now.endOf('day').utc().toDate()
+      // Default to this month
+      start = dayjs().utc().startOf('month').toISOString()
+      end = dayjs().utc().endOf('day').toISOString()
       groupBy = 'day'
     }
 
@@ -73,8 +69,8 @@ export async function getChartData(
       .from('user_jobs')
       .select('created_at, requested_count, successful_count, failed_count')
       .eq('user_id', user.id)
-      .gte('created_at', start.toISOString())
-      .lte('created_at', end.toISOString())
+      .gte('created_at', start)
+      .lte('created_at', end)
       .order('created_at', { ascending: true })
 
     if (error) {
