@@ -251,6 +251,47 @@
   border-radius: 10px;
 }
 
+/* Domain Management Styles */
+.domain-management {
+  width: 100%;
+}
+
+.domain-add-form {
+  margin-bottom: 2rem;
+}
+
+.domain-add-form form {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.domain-add-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: var(--font-poppins);
+}
+
+.domain-add-form input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-family: var(--font-poppins);
+  transition: all 0.3s;
+}
+
+.domain-add-form input:focus {
+  outline: none;
+  border-color: #d4af37;
+  background: rgba(255, 255, 255, 0.08);
+}
+
 .domain-list-scrollable {
   max-height: calc(5 * 3.5rem + 3rem); /* 5 rows + header + padding */
   overflow-y: auto;
