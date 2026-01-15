@@ -1,18 +1,19 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { getBusinessCentersGraphData, type GraphDataPoint } from '@/app/actions/graph-data';
+import { getChartData, type ChartDataPoint, type StatType } from '@/app/actions/chart-data';
 import { localDateRangeToUTC } from '@/lib/utils/date-timezone';
 
 interface DashboardChartProps {
   dateRange: { start: Date; end: Date } | null;
+  statType: StatType;
 }
 
-export default function DashboardChart({ dateRange }: DashboardChartProps) {
-  const [graphData, setGraphData] = useState<GraphDataPoint[]>([]);
+export default function DashboardChart({ dateRange, statType }: DashboardChartProps) {
+  const [graphData, setGraphData] = useState<ChartDataPoint[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [hoveredPoint, setHoveredPoint] = useState<{ x: number; y: number; data: GraphDataPoint } | null>(null);
+  const [hoveredPoint, setHoveredPoint] = useState<{ x: number; y: number; data: ChartDataPoint } | null>(null);
   const [crosshairX, setCrosshairX] = useState<number | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -20,13 +21,16 @@ export default function DashboardChart({ dateRange }: DashboardChartProps) {
   const fetchGraphData = async () => {
     setIsLoading(true);
     try {
-      let result;
+      let startDate: Date | undefined;
+      let endDate: Date | undefined;
+
       if (dateRange) {
         const utcRange = localDateRangeToUTC(dateRange.start, dateRange.end);
-        result = await getBusinessCentersGraphData('custom', utcRange.start, utcRange.end);
-      } else {
-        result = await getBusinessCentersGraphData('month');
+        startDate = utcRange.start;
+        endDate = utcRange.end;
       }
+
+      const result = await getChartData(statType, startDate, endDate);
       
       if (result.success && result.data) {
         setGraphData(result.data.data);
@@ -46,7 +50,7 @@ export default function DashboardChart({ dateRange }: DashboardChartProps) {
 
   useEffect(() => {
     fetchGraphData();
-  }, [dateRange]);
+  }, [dateRange, statType]);
 
   // Calculate graph dimensions and draw smooth line
   const drawGraph = () => {
@@ -370,9 +374,13 @@ export default function DashboardChart({ dateRange }: DashboardChartProps) {
     <div className="dashboard-graph-section">
       <div className="graph-header">
         <div>
-          <h2 className="graph-title">Business Centers Created</h2>
+          <h2 className="graph-title">
+            {statType === 'requested' && 'Requested'}
+            {statType === 'successful' && 'Successful'}
+            {statType === 'failures' && 'Failures'}
+          </h2>
           {total > 0 && (
-            <p className="graph-subtitle">{total} total in selected period</p>
+            <p className="graph-subtitle">{total.toLocaleString()} total in selected period</p>
           )}
         </div>
       </div>
@@ -408,7 +416,7 @@ export default function DashboardChart({ dateRange }: DashboardChartProps) {
                 }}
               >
                 <div className="tooltip-content">
-                  <div className="tooltip-value">{hoveredPoint.data.count} BCs</div>
+                  <div className="tooltip-value">{hoveredPoint.data.count.toLocaleString()}</div>
                   <div className="tooltip-time">{hoveredPoint.data.label}</div>
                 </div>
               </div>

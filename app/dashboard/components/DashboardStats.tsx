@@ -9,9 +9,11 @@ import { getLocalDateRange, localDateRangeToUTC, formatDateRange } from '@/lib/u
 
 interface DashboardStatsProps {
   onDateRangeChange?: (dateRange: { start: Date; end: Date } | null) => void;
+  onStatTypeChange?: (statType: 'requested' | 'successful' | 'failures') => void;
+  selectedStatType?: 'requested' | 'successful' | 'failures';
 }
 
-export default function DashboardStats({ onDateRangeChange }: DashboardStatsProps) {
+export default function DashboardStats({ onDateRangeChange, onStatTypeChange, selectedStatType = 'requested' }: DashboardStatsProps) {
   const pathname = usePathname();
   const [stats, setStats] = useState({
     requested: 0,
@@ -247,7 +249,11 @@ export default function DashboardStats({ onDateRangeChange }: DashboardStatsProp
 
       {/* Stats Cards */}
       <div className="dashboard-stats">
-        <div className="stat-card">
+        <div 
+          className={`stat-card ${selectedStatType === 'requested' ? 'stat-card-selected' : ''}`}
+          onClick={() => onStatTypeChange?.('requested')}
+          style={{ cursor: 'pointer' }}
+        >
           <div className="stat-icon">
             <span className="material-icons">pending_actions</span>
           </div>
@@ -257,7 +263,11 @@ export default function DashboardStats({ onDateRangeChange }: DashboardStatsProp
           </div>
         </div>
 
-        <div className="stat-card">
+        <div 
+          className={`stat-card ${selectedStatType === 'successful' ? 'stat-card-selected' : ''}`}
+          onClick={() => onStatTypeChange?.('successful')}
+          style={{ cursor: 'pointer' }}
+        >
           <div className="stat-icon">
             <span className="material-icons">check_circle</span>
           </div>
@@ -267,7 +277,11 @@ export default function DashboardStats({ onDateRangeChange }: DashboardStatsProp
           </div>
         </div>
 
-        <div className="stat-card">
+        <div 
+          className={`stat-card ${selectedStatType === 'failures' ? 'stat-card-selected' : ''}`}
+          onClick={() => onStatTypeChange?.('failures')}
+          style={{ cursor: 'pointer' }}
+        >
           <div className="stat-icon">
             <span className="material-icons">error</span>
           </div>
