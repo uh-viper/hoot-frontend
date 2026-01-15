@@ -5,7 +5,7 @@ import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import { createClient } from '@/lib/supabase/server'
 import { getSessionUser } from '@/lib/auth/validate-session'
-import { localDateRangeToUTC } from '@/lib/utils/date-timezone'
+import { localDateRangeToUTC, getUserTimezone } from '@/lib/utils/date-timezone'
 
 // Extend dayjs with plugins
 dayjs.extend(utc)
@@ -47,9 +47,10 @@ export async function getChartData(
     let groupBy: 'hour' | 'day' = 'hour'
 
     if (startDate && endDate) {
-      // Check if start and end are the same calendar day (in local time)
-      const startDay = dayjs(startDate).format('YYYY-MM-DD')
-      const endDay = dayjs(endDate).format('YYYY-MM-DD')
+      // Check if start and end are the same calendar day (in user's local timezone)
+      const tz = userTimezone || getUserTimezone()
+      const startDay = dayjs(startDate).tz(tz).format('YYYY-MM-DD')
+      const endDay = dayjs(endDate).tz(tz).format('YYYY-MM-DD')
       const isSameDay = startDay === endDay
       
       // Convert local dates to UTC for database queries using timezone utility
@@ -85,28 +86,57 @@ export async function getChartData(
     const dataMap = new Map<string, number>()
 
     // Initialize all time slots with 0
+    // Generate time slots based on LOCAL date range, not UTC range
+    // This ensures we show the correct hours/days for the user's selected range
     const timeSlots: string[] = []
-    if (groupBy === 'hour') {
-      const current = new Date(start)
-      const endDate = new Date(end)
-      const endTime = endDate.getTime()
-      while (current.getTime() <= endTime) {
-        const key = current.toISOString().slice(0, 13) + ':00:00'
+    const tz = userTimezone || getUserTimezone()
+    
+    if (groupBy === 'hour' && startDate && endDate) {
+      // For hourly grouping, generate slots for the local day (00:00 to 23:00)
+      const localStart = dayjs(startDate).tz(tz).startOf('day')
+      for (let hour = 0; hour < 24; hour++) {
+        const slotTime = localStart.add(hour, 'hour')
+        // Convert to UTC for the key (used for matching with database timestamps)
+        const key = slotTime.utc().toISOString().slice(0, 13) + ':00:00'
         timeSlots.push(key)
         dataMap.set(key, 0)
-        current.setUTCHours(current.getUTCHours() + 1)
+      }
+    } else if (groupBy === 'day' && startDate && endDate) {
+      // For daily grouping, generate slots for each day in the local range
+      const localStart = dayjs(startDate).tz(tz).startOf('day')
+      const localEnd = dayjs(endDate).tz(tz).startOf('day')
+      let current = localStart
+      while (current.isSameOrBefore(localEnd, 'day')) {
+        // Convert to UTC for the key (used for matching with database timestamps)
+        const key = current.utc().toISOString().slice(0, 10)
+        timeSlots.push(key)
+        dataMap.set(key, 0)
+        current = current.add(1, 'day')
       }
     } else {
-      const current = new Date(start)
-      const endDate = new Date(end)
-      const endDateStr = endDate.toISOString().slice(0, 10)
-      const endTime = endDate.getTime()
-      while (current.getTime() <= endTime) {
-        const key = current.toISOString().slice(0, 10)
-        timeSlots.push(key)
-        dataMap.set(key, 0)
-        if (key === endDateStr) break
-        current.setUTCDate(current.getUTCDate() + 1)
+      // Fallback: use UTC range (shouldn't happen if startDate/endDate are provided)
+      if (groupBy === 'hour') {
+        const current = new Date(start)
+        const endDate = new Date(end)
+        const endTime = endDate.getTime()
+        while (current.getTime() <= endTime) {
+          const key = current.toISOString().slice(0, 13) + ':00:00'
+          timeSlots.push(key)
+          dataMap.set(key, 0)
+          current.setUTCHours(current.getUTCHours() + 1)
+        }
+      } else {
+        const current = new Date(start)
+        const endDate = new Date(end)
+        const endDateStr = endDate.toISOString().slice(0, 10)
+        const endTime = endDate.getTime()
+        while (current.getTime() <= endTime) {
+          const key = current.toISOString().slice(0, 10)
+          timeSlots.push(key)
+          dataMap.set(key, 0)
+          if (key === endDateStr) break
+          current.setUTCDate(current.getUTCDate() + 1)
+        }
       }
     }
 
