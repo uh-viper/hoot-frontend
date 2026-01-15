@@ -5,7 +5,7 @@ import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import { createClient } from '@/lib/supabase/server'
 import { getSessionUser } from '@/lib/auth/validate-session'
-import { localDateToUTC } from '@/lib/utils/date-timezone'
+import { localDateRangeToUTC } from '@/lib/utils/date-timezone'
 
 // Extend dayjs with plugins
 dayjs.extend(utc)
@@ -54,11 +54,10 @@ export async function getChartData(
       
       // Convert local dates to UTC for database queries using timezone utility
       // This properly converts local time to UTC (same as stats cards)
-      const startUTC = localDateToUTC(startDate, 'start', userTimezone)
-      const endUTC = localDateToUTC(endDate, 'end', userTimezone)
+      const utcRange = localDateRangeToUTC(startDate, endDate, userTimezone)
       
-      start = startUTC.toISOString()
-      end = endUTC.toISOString()
+      start = utcRange.start.toISOString()
+      end = utcRange.end.toISOString()
       
       groupBy = isSameDay ? 'hour' : 'day'
     } else {
