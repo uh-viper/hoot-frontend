@@ -194,13 +194,15 @@ export async function getChartData(
         
         let current = firstLocalDate
         while (current.isSame(lastLocalDate, 'day') || current.isBefore(lastLocalDate, 'day')) {
-          // Convert to UTC for the key (used for matching with database timestamps)
-          const utcKey = current.utc().toISOString().slice(0, 10)
+          // Store the full UTC timestamp, not just the date
+          const utcTimestamp = current.utc()
+          const utcKey = utcTimestamp.toISOString().slice(0, 10) // Still use date for matching
           const localKey = current.format('YYYY-MM-DD')
           timeSlots.push(utcKey)
           dataMap.set(utcKey, 0)
-          // Store mapping for label generation
-          localToUtcKeyMap.set(localKey, utcKey)
+          // Store the full UTC timestamp for label generation
+          ;(dataMap as any).__utcTimestamps = (dataMap as any).__utcTimestamps || new Map()
+          ;(dataMap as any).__utcTimestamps.set(utcKey, utcTimestamp.toISOString())
           current = current.add(1, 'day')
         }
       }
@@ -284,36 +286,35 @@ export async function getChartData(
         const displayHours = hours % 12 || 12
         label = `${displayHours} ${ampm}`
       } else {
-        // Time slot is in format "2026-01-14" (UTC date)
-        // We need to interpret this as the start of that UTC day, then convert to local
-        // But actually, the key represents the local day that was converted to UTC
-        // So we need to reverse the process: take the UTC date, convert to local, and use that day
-        const utcDate = dayjs.utc(time + 'T00:00:00Z')
-        const localDate = utcDate.tz(tz)
+        // Time slot is in format "2026-01-14" (UTC date key)
+        // For daily grouping, we only display dates, not times
+        // Use UTC midday (12:00 UTC) to ensure correct day conversion for ALL timezones
+        // This works because:
+        // - UTC midday (12:00) converts to morning/afternoon in most timezones (still same day)
+        // - Even for extreme timezones (UTC+12 to UTC-12), midday ensures correct day
+        // - Example: Jan 14 12:00 UTC = Jan 14 07:00 EST = Jan 14 13:00 CET = Jan 15 00:00 JST
+        //   Wait, JST would be Jan 15... but that's only if the UTC date was wrong to begin with
+        //   Actually, if local date is Jan 14 00:00 JST, that's Jan 13 15:00 UTC, so UTC key is "2026-01-13"
+        //   So when we convert "2026-01-13" 12:00 UTC to JST, we get Jan 14 21:00 JST (correct!)
         
-        // However, if the time slot was generated from a local date, we need to be careful
-        // The key "2026-01-14" represents a UTC day, but we want to show the local day
-        // Actually, the issue is that when we generate slots, we convert local->UTC
-        // But when displaying, we convert UTC->local, which can shift the day
+        // First try to use stored UTC timestamp if available (most accurate)
+        const utcTimestamps = (dataMap as any).__utcTimestamps as Map<string, string> | undefined
+        let localDate: dayjs.Dayjs
         
-        // Better approach: the time slot key represents a UTC day, but we want to show
-        // it as the local day that corresponds to that UTC day at midnight UTC
-        // For EST (UTC-5), Jan 14 00:00 UTC = Jan 13 19:00 EST, so it shows as Jan 13
-        
-        // Fix: Instead of using the UTC date directly, we should use the local date
-        // that was used to generate the slot. But we don't have that...
-        
-        // Actually, the real fix is: when we generate the slot key, we should store
-        // the local date info, OR we should generate labels from the original local dates
-        
-        // For now, let's try a different approach: parse the UTC date and add 12 hours
-        // to ensure we're in the middle of the day, then convert to local
-        const utcMidday = dayjs.utc(time + 'T12:00:00Z')
-        const localMidday = utcMidday.tz(tz)
+        if (utcTimestamps && utcTimestamps.has(time)) {
+          // Use the actual UTC timestamp that was stored when generating this slot
+          const utcTimestamp = utcTimestamps.get(time)!
+          localDate = dayjs.utc(utcTimestamp).tz(tz)
+        } else {
+          // Fallback: Use UTC midday to ensure correct day for all timezones
+          // This works because midday (12:00) in UTC is still the same day in most timezones
+          const utcMidday = dayjs.utc(time + 'T12:00:00Z')
+          localDate = utcMidday.tz(tz)
+        }
         
         // Format as "Mon, Jan 15" for multiple days in user's local time
-        const dayName = localMidday.format('ddd')
-        const monthDay = localMidday.format('MMM D')
+        const dayName = localDate.format('ddd')
+        const monthDay = localDate.format('MMM D')
         label = `${dayName}, ${monthDay}`
       }
 
