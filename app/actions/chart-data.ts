@@ -89,11 +89,11 @@ export async function getChartData(
     // Generate time slots based on LOCAL date range, not UTC range
     // This ensures we show the correct hours/days for the user's selected range
     const timeSlots: string[] = []
-    const tz = userTimezone || getUserTimezone()
+    const tzForSlots = userTimezone || getUserTimezone()
     
     if (groupBy === 'hour' && startDate && endDate) {
       // For hourly grouping, generate slots for the local day (00:00 to 23:00)
-      const localStart = dayjs(startDate).tz(tz).startOf('day')
+      const localStart = dayjs(startDate).tz(tzForSlots).startOf('day')
       for (let hour = 0; hour < 24; hour++) {
         const slotTime = localStart.add(hour, 'hour')
         // Convert to UTC for the key (used for matching with database timestamps)
@@ -103,8 +103,8 @@ export async function getChartData(
       }
     } else if (groupBy === 'day' && startDate && endDate) {
       // For daily grouping, generate slots for each day in the local range
-      const localStart = dayjs(startDate).tz(tz).startOf('day')
-      const localEnd = dayjs(endDate).tz(tz).startOf('day')
+      const localStart = dayjs(startDate).tz(tzForSlots).startOf('day')
+      const localEnd = dayjs(endDate).tz(tzForSlots).startOf('day')
       let current = localStart
       while (current.isSameOrBefore(localEnd, 'day')) {
         // Convert to UTC for the key (used for matching with database timestamps)
