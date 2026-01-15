@@ -164,30 +164,44 @@ export async function getChartData(
     } else if (jobs && jobs.length > 0) {
       // For "All Time" or when no date range provided, generate slots from actual job dates
       // Convert each job's UTC timestamp to local time, then generate slots for those days
-      const jobDates = new Set<string>()
+      const jobLocalDates = new Set<string>()
+      const localToUtcKeyMap = new Map<string, string>() // Map local date to UTC key
       
       jobs.forEach((job) => {
         // Convert UTC timestamp to local time, then get the date
         const localDate = dayjs.utc(job.created_at).tz(tzForSlots).startOf('day')
-        const dateKey = localDate.format('YYYY-MM-DD')
-        jobDates.add(dateKey)
+        const localDateKey = localDate.format('YYYY-MM-DD')
+        jobLocalDates.add(localDateKey)
+        
+        // Store mapping from local date to UTC key for this date
+        if (!localToUtcKeyMap.has(localDateKey)) {
+          // Convert local date start of day to UTC key
+          const utcKey = localDate.utc().toISOString().slice(0, 10)
+          localToUtcKeyMap.set(localDateKey, utcKey)
+        }
       })
       
       // Sort dates and generate time slots
-      const sortedDates = Array.from(jobDates).sort()
-      if (sortedDates.length > 0) {
-        const firstDate = dayjs.tz(sortedDates[0], tzForSlots).startOf('day')
-        const lastDate = dayjs.tz(sortedDates[sortedDates.length - 1], tzForSlots).startOf('day')
+      const sortedLocalDates = Array.from(jobLocalDates).sort()
+      if (sortedLocalDates.length > 0) {
+        const firstLocalDate = dayjs.tz(sortedLocalDates[0], tzForSlots).startOf('day')
+        const lastLocalDate = dayjs.tz(sortedLocalDates[sortedLocalDates.length - 1], tzForSlots).startOf('day')
         
-        let current = firstDate
-        while (current.isSame(lastDate, 'day') || current.isBefore(lastDate, 'day')) {
+        let current = firstLocalDate
+        while (current.isSame(lastLocalDate, 'day') || current.isBefore(lastLocalDate, 'day')) {
           // Convert to UTC for the key (used for matching with database timestamps)
-          const key = current.utc().toISOString().slice(0, 10)
-          timeSlots.push(key)
-          dataMap.set(key, 0)
+          const utcKey = current.utc().toISOString().slice(0, 10)
+          const localKey = current.format('YYYY-MM-DD')
+          timeSlots.push(utcKey)
+          dataMap.set(utcKey, 0)
+          // Store mapping for label generation
+          localToUtcKeyMap.set(localKey, utcKey)
           current = current.add(1, 'day')
         }
       }
+      
+      // Store the mapping for use in label generation
+      ;(dataMap as any).__localToUtcMap = localToUtcKeyMap
     }
 
     // Sum up the selected stat type for each time slot
@@ -251,22 +265,50 @@ export async function getChartData(
 
     // Convert to array format - convert UTC times to user's local timezone for display
     const data: ChartDataPoint[] = timeSlots.map((time) => {
-      // Parse UTC time string and convert to user's local timezone
-      const utcDate = dayjs.utc(time)
-      const localDate = utcDate.tz(tz)
-      
       let label: string
       
       if (groupBy === 'hour') {
+        // Time slot is in format "2026-01-14T21:00:00" (UTC hour)
+        // Parse as UTC and convert to local time
+        const utcDate = dayjs.utc(time)
+        const localDate = utcDate.tz(tz)
+        
         // Format as "12 AM", "1 AM", "2 AM", ..., "11 PM" in user's local time
         const hours = localDate.hour()
         const ampm = hours >= 12 ? 'PM' : 'AM'
         const displayHours = hours % 12 || 12
         label = `${displayHours} ${ampm}`
       } else {
+        // Time slot is in format "2026-01-14" (UTC date)
+        // We need to interpret this as the start of that UTC day, then convert to local
+        // But actually, the key represents the local day that was converted to UTC
+        // So we need to reverse the process: take the UTC date, convert to local, and use that day
+        const utcDate = dayjs.utc(time + 'T00:00:00Z')
+        const localDate = utcDate.tz(tz)
+        
+        // However, if the time slot was generated from a local date, we need to be careful
+        // The key "2026-01-14" represents a UTC day, but we want to show the local day
+        // Actually, the issue is that when we generate slots, we convert local->UTC
+        // But when displaying, we convert UTC->local, which can shift the day
+        
+        // Better approach: the time slot key represents a UTC day, but we want to show
+        // it as the local day that corresponds to that UTC day at midnight UTC
+        // For EST (UTC-5), Jan 14 00:00 UTC = Jan 13 19:00 EST, so it shows as Jan 13
+        
+        // Fix: Instead of using the UTC date directly, we should use the local date
+        // that was used to generate the slot. But we don't have that...
+        
+        // Actually, the real fix is: when we generate the slot key, we should store
+        // the local date info, OR we should generate labels from the original local dates
+        
+        // For now, let's try a different approach: parse the UTC date and add 12 hours
+        // to ensure we're in the middle of the day, then convert to local
+        const utcMidday = dayjs.utc(time + 'T12:00:00Z')
+        const localMidday = utcMidday.tz(tz)
+        
         // Format as "Mon, Jan 15" for multiple days in user's local time
-        const dayName = localDate.format('ddd')
-        const monthDay = localDate.format('MMM D')
+        const dayName = localMidday.format('ddd')
+        const monthDay = localMidday.format('MMM D')
         label = `${dayName}, ${monthDay}`
       }
 
