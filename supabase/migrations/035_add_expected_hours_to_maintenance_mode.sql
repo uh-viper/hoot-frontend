@@ -6,4 +6,6 @@ ADD COLUMN IF NOT EXISTS expected_hours NUMERIC(5, 2);
 -- Calculate hours from expected_time and updated_at
 UPDATE public.maintenance_mode
 SET expected_hours = EXTRACT(EPOCH FROM (expected_time - updated_at)) / 3600
-WHERE expected_time IS NOT NULL AND updated_at IS NOT NULL;
+WHERE expected_time IS NOT NULL 
+  AND updated_at IS NOT NULL 
+  AND expected_hours IS NULL;
