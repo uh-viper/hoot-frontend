@@ -5,7 +5,7 @@ import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import { createClient } from '@/lib/supabase/server'
 import { getSessionUser } from '@/lib/auth/validate-session'
-import { getUserTimezone } from '@/lib/utils/date-timezone'
+import { localDateToUTC } from '@/lib/utils/date-timezone'
 
 // Extend dayjs with plugins
 dayjs.extend(utc)
@@ -46,9 +46,6 @@ export async function getChartData(
     let end: Date = new Date()
     let groupBy: 'hour' | 'day' = 'hour'
 
-    // Get user timezone (defaults to UTC if not provided)
-    const tz = userTimezone || 'UTC'
-    
     if (startDate && endDate) {
       // Check if start and end are the same calendar day (in local time)
       // If they're the same day, use hourly grouping
@@ -56,18 +53,15 @@ export async function getChartData(
       const endDay = dayjs(endDate).format('YYYY-MM-DD')
       const isSameDay = startDay === endDay
       
-      // Convert local dates to UTC for database queries
-      // Use the timezone utility to properly convert
-      const startLocal = dayjs.tz(startDate, tz).startOf('day')
-      const endLocal = dayjs.tz(endDate, tz).endOf('day')
-      
-      // Convert to UTC for database query
-      start = startLocal.utc().toDate()
-      end = endLocal.utc().toDate()
+      // Convert local dates to UTC for database queries using the timezone utility
+      // This properly handles timezone conversion
+      start = localDateToUTC(startDate, 'start', userTimezone)
+      end = localDateToUTC(endDate, 'end', userTimezone)
       
       groupBy = isSameDay ? 'hour' : 'day'
     } else {
-      // Default to this month in user's timezone
+      // Default to this month - use current time in user's timezone
+      const tz = userTimezone || 'UTC'
       const now = dayjs().tz(tz)
       start = now.startOf('month').utc().toDate()
       end = now.endOf('day').utc().toDate()
