@@ -142,7 +142,33 @@ export async function createAccountsJob(
     throw new Error(errorMsg);
   }
 
-  const result = await response.json();
+  // Check if response is JSON before parsing
+  const contentType = response.headers.get('content-type');
+  let result: any;
+  
+  try {
+    if (contentType && contentType.includes('application/json')) {
+      result = await response.json();
+    } else {
+      // Response is not JSON (likely HTML error page)
+      const textResponse = await response.text();
+      console.error('[createAccountsJob] Non-JSON response received:', {
+        status: response.status,
+        contentType,
+        preview: textResponse.substring(0, 200),
+      });
+      throw new Error('Server returned an invalid response. Please try again or contact support.');
+    }
+  } catch (error) {
+    // Handle JSON parsing errors
+    if (error instanceof SyntaxError || (error instanceof Error && error.message.includes('JSON'))) {
+      console.error('[createAccountsJob] JSON parsing error:', error);
+      throw new Error('Server returned an invalid response. Please try again or contact support.');
+    }
+    // Re-throw other errors
+    throw error;
+  }
+
   console.log('[createAccountsJob] API response:', result);
 
   // Check if API returned an error (even with 200 status)
@@ -185,7 +211,34 @@ export async function getJobStatus(jobId: string, token: string): Promise<JobSta
     throw new Error(errorMsg);
   }
 
-  const result = await response.json();
+  // Check if response is JSON before parsing
+  const contentType = response.headers.get('content-type');
+  let result: any;
+  
+  try {
+    if (contentType && contentType.includes('application/json')) {
+      result = await response.json();
+    } else {
+      // Response is not JSON (likely HTML error page)
+      const textResponse = await response.text();
+      console.error('[getJobStatus] Non-JSON response received:', {
+        jobId,
+        status: response.status,
+        contentType,
+        preview: textResponse.substring(0, 200),
+      });
+      throw new Error('Server returned an invalid response. Please try again or contact support.');
+    }
+  } catch (error) {
+    // Handle JSON parsing errors
+    if (error instanceof SyntaxError || (error instanceof Error && error.message.includes('JSON'))) {
+      console.error('[getJobStatus] JSON parsing error:', { jobId, error });
+      throw new Error('Server returned an invalid response. Please try again or contact support.');
+    }
+    // Re-throw other errors
+    throw error;
+  }
+
   console.log('[getJobStatus] API response:', { jobId, result });
 
   // Check if API returned an error (even with 200 status)
