@@ -74,7 +74,7 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
   const [creditAmount, setCreditAmount] = useState('')
   const [creditReason, setCreditReason] = useState('')
   const [isUpdatingCredits, setIsUpdatingCredits] = useState(false)
-  const [localUsers, setLocalUsers] = useState(users)
+  const [localUsers, setLocalUsers] = useState<User[]>(users)
 
   // Calculate initial revenue from all purchases
   const initialRevenue = allPurchases
