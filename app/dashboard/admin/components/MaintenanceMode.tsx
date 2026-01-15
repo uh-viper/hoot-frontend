@@ -152,9 +152,6 @@ export default function MaintenanceMode() {
               className="maintenance-mode-input"
               placeholder="Enter hours until completion (e.g., 2.5)"
             />
-            <p className="maintenance-mode-hint">
-              Optional: Set how many hours until maintenance is expected to complete. A countdown will be displayed on the maintenance page.
-            </p>
           </div>
         </div>
       </div>
