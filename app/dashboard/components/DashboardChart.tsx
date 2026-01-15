@@ -30,7 +30,10 @@ export default function DashboardChart({ dateRange, statType }: DashboardChartPr
         endDate = utcRange.end;
       }
 
-      const result = await getChartData(statType, startDate, endDate);
+      // Get user's timezone from browser
+      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      const result = await getChartData(statType, startDate, endDate, userTimezone);
       
       if (result.success && result.data) {
         setGraphData(result.data.data);

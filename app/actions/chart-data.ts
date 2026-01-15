@@ -30,7 +30,8 @@ export type StatType = 'requested' | 'successful' | 'failures'
 export async function getChartData(
   statType: StatType,
   startDate?: Date,
-  endDate?: Date
+  endDate?: Date,
+  userTimezone?: string
 ): Promise<{ success: boolean; data?: ChartData; error?: string }> {
   const user = await getSessionUser()
   if (!user) {
@@ -126,15 +127,15 @@ export async function getChartData(
       }
     })
 
-    // Get user's timezone (defaults to server timezone if not available, but should be handled client-side)
-    // For now, we'll convert UTC to local time using dayjs
-    const userTimezone = getUserTimezone()
+    // Get user's timezone - use provided timezone or default to UTC
+    // If not provided, we'll use UTC (should be provided from client)
+    const tz = userTimezone || 'UTC'
 
     // Convert to array format - convert UTC times to user's local timezone for display
     const data: ChartDataPoint[] = timeSlots.map((time) => {
       // Parse UTC time string and convert to user's local timezone
       const utcDate = dayjs.utc(time)
-      const localDate = utcDate.tz(userTimezone)
+      const localDate = utcDate.tz(tz)
       
       let label: string
       
