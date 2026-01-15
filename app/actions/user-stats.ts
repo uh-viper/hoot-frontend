@@ -11,7 +11,7 @@ import { localDateRangeToUTC } from '@/lib/utils/date-timezone'
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
-export async function getUserFilteredStats(startDate?: Date, endDate?: Date) {
+export async function getUserFilteredStats(startDate?: Date, endDate?: Date, userTimezone?: string) {
   const user = await getSessionUser()
   if (!user) {
     return { error: 'Unauthorized' }
@@ -25,7 +25,7 @@ export async function getUserFilteredStats(startDate?: Date, endDate?: Date) {
 
   if (startDate && endDate) {
     // Use timezone utility to properly convert local dates to UTC
-    const utcRange = localDateRangeToUTC(startDate, endDate)
+    const utcRange = localDateRangeToUTC(startDate, endDate, userTimezone)
     start = utcRange.start.toISOString()
     end = utcRange.end.toISOString()
   }
