@@ -42,8 +42,8 @@ export async function getChartData(
 
   try {
     // Calculate date range
-    let start: string
-    let end: string
+    let start: string | undefined
+    let end: string | undefined
     let groupBy: 'hour' | 'day' = 'hour'
 
     console.log('[CHART-DATA] Input params:', {
