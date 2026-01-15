@@ -51,9 +51,11 @@ export async function getChartData(
       start = dayjs(startDate).utc().startOf('day').toDate()
       end = dayjs(endDate).utc().endOf('day').toDate()
       
-      // If custom range is exactly 1 day, use hourly grouping
-      const daysDiff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
-      groupBy = daysDiff <= 1 ? 'hour' : 'day'
+      // Check if start and end are the same calendar day (in UTC)
+      // If they're the same day, use hourly grouping
+      const startDay = dayjs(start).utc().format('YYYY-MM-DD')
+      const endDay = dayjs(end).utc().format('YYYY-MM-DD')
+      groupBy = startDay === endDay ? 'hour' : 'day'
     } else {
       // Default to this month
       start = dayjs().utc().startOf('month').toDate()
