@@ -294,6 +294,11 @@ export default function DomainManagement() {
 
   return (
     <div className="domain-management">
+      <h3 className="management-section-title">
+        <span className="material-icons">domain</span>
+        Domain Management ({domains.length})
+      </h3>
+      
       {/* Add Domain Form */}
       <div className="domain-add-form">
         <form onSubmit={handleAddDomain}>
