@@ -351,7 +351,7 @@ export default function DomainManagement() {
             <p>No domains added yet</p>
           </div>
         ) : (
-          <div className="admin-table-container">
+          <div className="admin-table-container domain-list-scrollable">
             <table className="admin-table">
               <thead>
                 <tr>
