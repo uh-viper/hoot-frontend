@@ -155,10 +155,15 @@ export async function getChartData(
       const localEnd = dayjs(endDate).tz(tzForSlots).startOf('day')
       let current = localStart
       while (current.isSame(localEnd, 'day') || current.isBefore(localEnd, 'day')) {
-        // Convert to UTC for the key (used for matching with database timestamps)
-        const key = current.utc().toISOString().slice(0, 10)
+        // Store the full UTC timestamp, not just the date
+        // This preserves the actual UTC time (e.g., Jan 14 00:00 EST = Jan 14 05:00 UTC)
+        const utcTimestamp = current.utc()
+        const key = utcTimestamp.toISOString().slice(0, 10) // Still use date for matching
         timeSlots.push(key)
         dataMap.set(key, 0)
+        // Store the full UTC timestamp for label generation
+        ;(dataMap as any).__utcTimestamps = (dataMap as any).__utcTimestamps || new Map()
+        ;(dataMap as any).__utcTimestamps.set(key, utcTimestamp.toISOString())
         current = current.add(1, 'day')
       }
     } else if (jobs && jobs.length > 0) {
