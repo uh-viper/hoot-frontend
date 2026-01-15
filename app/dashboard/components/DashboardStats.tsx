@@ -7,7 +7,11 @@ import { getUserFilteredStats } from '@/app/actions/user-stats';
 import CalendarModal from './CalendarModal';
 import { getLocalDateRange, localDateRangeToUTC, formatDateRange } from '@/lib/utils/date-timezone';
 
-export default function DashboardStats() {
+interface DashboardStatsProps {
+  onDateRangeChange?: (dateRange: { start: Date; end: Date } | null) => void;
+}
+
+export default function DashboardStats({ onDateRangeChange }: DashboardStatsProps) {
   const pathname = usePathname();
   const [stats, setStats] = useState({
     requested: 0,
@@ -113,11 +117,13 @@ export default function DashboardStats() {
     setQuickDateRange(range);
     if (range === 'all') {
       setDateRange(null);
+      onDateRangeChange?.(null);
       return;
     }
 
     const { start, end } = getLocalDateRange(range);
     setDateRange({ start, end });
+    onDateRangeChange?.({ start, end });
   };
 
   const handleDateRangeSelect = (range: 'all' | 'today' | 'week' | 'month' | 'custom') => {
@@ -281,6 +287,7 @@ export default function DashboardStats() {
           const endDate = new Date(end.getFullYear(), end.getMonth(), end.getDate());
           setDateRange({ start: startDate, end: endDate });
           setQuickDateRange('all');
+          onDateRangeChange?.({ start: startDate, end: endDate });
         }}
         initialStartDate={dateRange?.start}
         initialEndDate={dateRange?.end}

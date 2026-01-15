@@ -3,8 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Metadata } from 'next'
 import { initializeUserData } from '@/lib/api/user-initialization'
-import GraphSection from './components/GraphSection'
-import DashboardStats from './components/DashboardStats'
+import DashboardWithChart from './components/DashboardWithChart'
 import '../styles/dashboard.css'
 
 export const metadata: Metadata = {
@@ -37,8 +36,8 @@ export default async function DashboardPage() {
         <p className="dashboard-subtitle">Welcome back, {firstName || user.email?.split('@')[0] || 'User'}</p>
       </div>
 
-      {/* Stats Cards - Client component that fetches fresh data */}
-      <DashboardStats />
+      {/* Stats Cards and Chart - Client components that fetch fresh data */}
+      <DashboardWithChart />
 
     </div>
   )
