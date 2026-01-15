@@ -12,6 +12,7 @@ import {
   formatUTCDateToLocal 
 } from '@/lib/utils/date-timezone'
 import DomainManagement from './DomainManagement'
+import MaintenanceMode from './MaintenanceMode'
 import './admin-client.css'
 
 interface User {
@@ -584,7 +585,22 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
       {/* Management Tab */}
       {selectedTab === 'management' && (
         <div className="admin-section">
-          <DomainManagement />
+          <div className="management-content">
+            <div className="management-section">
+              <h3 className="management-section-title">
+                <span className="material-icons">domain</span>
+                Domain Management
+              </h3>
+              <DomainManagement />
+            </div>
+            <div className="management-section">
+              <h3 className="management-section-title">
+                <span className="material-icons">build</span>
+                Maintenance Mode
+              </h3>
+              <MaintenanceMode />
+            </div>
+          </div>
         </div>
       )}
 

@@ -1,0 +1,111 @@
+.maintenance-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  padding: 2rem;
+}
+
+.maintenance-content {
+  text-align: center;
+  max-width: 600px;
+  width: 100%;
+}
+
+.maintenance-icon {
+  margin-bottom: 2rem;
+}
+
+.maintenance-icon .material-icons {
+  font-size: 5rem;
+  color: #d4af37;
+  animation: rotate 2s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.maintenance-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 1rem 0;
+  font-family: var(--font-poppins);
+}
+
+.maintenance-description {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 2rem 0;
+  font-family: var(--font-poppins);
+  line-height: 1.6;
+}
+
+.maintenance-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 12px;
+  color: #d4af37;
+  font-size: 1rem;
+  font-weight: 500;
+  font-family: var(--font-poppins);
+  margin-bottom: 1.5rem;
+}
+
+.maintenance-time .material-icons {
+  font-size: 1.5rem;
+}
+
+.maintenance-message {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+.maintenance-message p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  font-family: var(--font-poppins);
+  line-height: 1.6;
+}
+
+.maintenance-footer {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.maintenance-footer p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.9rem;
+  font-family: var(--font-poppins);
+}
+
+@media (max-width: 768px) {
+  .maintenance-title {
+    font-size: 2rem;
+  }
+
+  .maintenance-description {
+    font-size: 1rem;
+  }
+
+  .maintenance-icon .material-icons {
+    font-size: 4rem;
+  }
+}

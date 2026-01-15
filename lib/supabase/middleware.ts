@@ -41,7 +41,7 @@ export async function updateSession(request: NextRequest) {
                        request.nextUrl.pathname.startsWith('/api/admin')
 
   // Public routes that don't require authentication
-  const publicRoutes = ['/', '/login', '/signup', '/auth', '/learn-more', '/contact', '/terms-of-service', '/privacy-policy', '/refund-policy', '/forgot-password', '/reset-password']
+  const publicRoutes = ['/', '/login', '/signup', '/auth', '/learn-more', '/contact', '/terms-of-service', '/privacy-policy', '/refund-policy', '/forgot-password', '/reset-password', '/maintenance']
   const isPublicRoute = publicRoutes.some(route => 
     request.nextUrl.pathname === route || 
     request.nextUrl.pathname.startsWith('/auth') ||
@@ -51,8 +51,37 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/privacy-policy') ||
     request.nextUrl.pathname.startsWith('/refund-policy') ||
     request.nextUrl.pathname.startsWith('/forgot-password') ||
-    request.nextUrl.pathname.startsWith('/reset-password')
+    request.nextUrl.pathname.startsWith('/reset-password') ||
+    request.nextUrl.pathname.startsWith('/maintenance')
   ) || request.nextUrl.pathname === '/auth/confirm' || request.nextUrl.pathname === '/auth/check-email' || request.nextUrl.pathname === '/auth/callback'
+
+  // Check maintenance mode (before other checks, but allow admins and maintenance page)
+  if (request.nextUrl.pathname !== '/maintenance') {
+    const { data: maintenance } = await supabase
+      .from('maintenance_mode')
+      .select('enabled')
+      .single()
+
+    if (maintenance?.enabled) {
+      // Check if user is admin - admins can bypass maintenance
+      let userIsAdmin = false
+      if (user) {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('is_admin')
+          .eq('user_id', user.id)
+          .single()
+        userIsAdmin = profile?.is_admin === true
+      }
+
+      // If not admin, redirect to maintenance page
+      if (!userIsAdmin) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/maintenance'
+        return NextResponse.redirect(url)
+      }
+    }
+  }
 
   // Redirect authenticated users away from login/signup to dashboard
   if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup')) {
