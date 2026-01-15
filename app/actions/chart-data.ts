@@ -47,15 +47,17 @@ export async function getChartData(
     let groupBy: 'hour' | 'day' = 'hour'
 
     if (startDate && endDate) {
-      // Convert local dates to UTC
+      // Check if start and end are the same calendar day (in local time)
+      // If they're the same day, use hourly grouping
+      const startDay = dayjs(startDate).format('YYYY-MM-DD')
+      const endDay = dayjs(endDate).format('YYYY-MM-DD')
+      const isSameDay = startDay === endDay
+      
+      // Convert local dates to UTC for database queries
       start = dayjs(startDate).utc().startOf('day').toDate()
       end = dayjs(endDate).utc().endOf('day').toDate()
       
-      // Check if start and end are the same calendar day (in UTC)
-      // If they're the same day, use hourly grouping
-      const startDay = dayjs(start).utc().format('YYYY-MM-DD')
-      const endDay = dayjs(end).utc().format('YYYY-MM-DD')
-      groupBy = startDay === endDay ? 'hour' : 'day'
+      groupBy = isSameDay ? 'hour' : 'day'
     } else {
       // Default to this month
       start = dayjs().utc().startOf('month').toDate()
