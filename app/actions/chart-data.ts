@@ -106,7 +106,7 @@ export async function getChartData(
       const localStart = dayjs(startDate).tz(tzForSlots).startOf('day')
       const localEnd = dayjs(endDate).tz(tzForSlots).startOf('day')
       let current = localStart
-      while (current.isSameOrBefore(localEnd, 'day')) {
+      while (current.isSame(localEnd, 'day') || current.isBefore(localEnd, 'day')) {
         // Convert to UTC for the key (used for matching with database timestamps)
         const key = current.utc().toISOString().slice(0, 10)
         timeSlots.push(key)
