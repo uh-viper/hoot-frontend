@@ -382,8 +382,6 @@ export default function DashboardChart({ dateRange, statType }: DashboardChartPr
             {statType === 'successful' && 'Successful'}
             {statType === 'failures' && 'Failures'}
           </h2>
-          {total > 0 && (
-          )}
         </div>
       </div>
 
