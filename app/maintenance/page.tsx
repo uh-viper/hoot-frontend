@@ -15,11 +15,29 @@ export default async function MaintenancePage() {
   // Get maintenance mode info
   const { data: maintenance } = await supabase
     .from('maintenance_mode')
-    .select('expected_time, message')
+    .select('enabled, expected_time, message')
     .single()
 
+  const isEnabled = maintenance?.enabled ?? false
   const expectedTime = maintenance?.expected_time
   const message = maintenance?.message
+
+  // If maintenance is not active, show "No active maintenance" message
+  if (!isEnabled) {
+    return (
+      <div className="maintenance-container">
+        <div className="maintenance-content">
+          <div className="maintenance-icon">
+            <span className="material-icons">check_circle</span>
+          </div>
+          <h1 className="maintenance-title">No Active Maintenance</h1>
+          <p className="maintenance-description">
+            The site is currently accessible and operating normally.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="maintenance-container">
