@@ -565,6 +565,21 @@
     padding: 1.5rem;
   }
 
+  .admin-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-table {
+    min-width: 800px;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.8rem;
+  }
+
   .admin-filters {
     flex-direction: column;
     align-items: stretch;
@@ -592,10 +607,81 @@
 
   .admin-analytics {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
   .analytics-value {
     font-size: 1.5rem;
+  }
+
+  .admin-modal {
+    max-width: 95%;
+    margin: 1rem;
+    max-height: 90vh;
+  }
+
+  .admin-modal-header {
+    padding: 1rem;
+  }
+
+  .admin-modal-header h2 {
+    font-size: 1.125rem;
+  }
+
+  .admin-modal-content {
+    padding: 1rem;
+    max-height: calc(90vh - 120px);
+    overflow-y: auto;
+  }
+
+  .admin-modal-field {
+    margin-bottom: 1rem;
+  }
+
+  .admin-modal-field input {
+    font-size: 0.9rem;
+    padding: 0.75rem;
+  }
+
+  .admin-modal-footer {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .admin-modal-cancel,
+  .admin-modal-submit {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .management-section {
+    padding: 1rem;
+  }
+
+  .management-section-title {
+    font-size: 1.125rem;
+    margin-bottom: 1rem;
+  }
+
+  .domain-list-scrollable {
+    max-height: calc(5 * 3rem + 2rem);
+  }
+
+  .maintenance-mode-toggle {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .maintenance-mode-field {
+    margin-bottom: 1rem;
+  }
+
+  .maintenance-mode-input {
+    font-size: 0.9rem;
+    padding: 0.75rem;
   }
 }
 

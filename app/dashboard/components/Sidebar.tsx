@@ -142,9 +142,37 @@ export default function Sidebar({ userEmail, credits: initialCredits = 0, isAdmi
     },
   ];
 
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen)
+  }
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false)
+  }
+
+  // Close mobile menu when navigating
+  useEffect(() => {
+    setIsMobileMenuOpen(false)
+  }, [pathname])
+
   return (
-    <aside className="dashboard-sidebar">
-      <div className="sidebar-header">
+    <>
+      <button 
+        className="sidebar-mobile-toggle"
+        onClick={toggleMobileMenu}
+        aria-label="Toggle menu"
+      >
+        <span className="material-icons">{isMobileMenuOpen ? 'close' : 'menu'}</span>
+      </button>
+      
+      {isMobileMenuOpen && (
+        <div className="sidebar-overlay active" onClick={closeMobileMenu} />
+      )}
+
+      <aside className={`dashboard-sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
+        <div className="sidebar-header">
         <h2 className="sidebar-logo">Hoot Services</h2>
         <p className="sidebar-tagline">Automation Starts Here</p>
       </div>
@@ -178,7 +206,8 @@ export default function Sidebar({ userEmail, credits: initialCredits = 0, isAdmi
             Sign Out
           </button>
         </form>
-      </div>
-    </aside>
+        </div>
+      </aside>
+    </>
   );
 }

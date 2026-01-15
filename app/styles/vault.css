@@ -415,36 +415,47 @@
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .vault-section-box {
-    padding: 1.5rem;
-    border-radius: 16px;
+    padding: 1rem;
+    border-radius: 12px;
   }
 
   .vault-section-title {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
   }
 
   .vault-accounts-list {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 0.75rem;
+  }
+
+  .account-card {
+    border-radius: 12px;
   }
 
   .account-card-header {
-    padding: 1rem;
+    padding: 0.875rem;
     flex-direction: column;
     align-items: flex-start;
-    gap: 1rem;
+    gap: 0.75rem;
   }
 
   .account-card-body {
-    padding: 1.25rem;
+    padding: 1rem;
   }
 
   .account-credential-row {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 0.75rem;
   }
 
   .account-actions-group {
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .account-action-btn {
+    width: 100%;
+    justify-content: center;
   }
 }

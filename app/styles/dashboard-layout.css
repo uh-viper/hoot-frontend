@@ -307,22 +307,91 @@
   margin: 0;
 }
 
+/* Mobile Menu Toggle */
+.sidebar-mobile-toggle {
+  display: none;
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 101;
+  background: rgba(10, 10, 10, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.75rem;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.sidebar-mobile-toggle:hover {
+  background: rgba(10, 10, 10, 1);
+  border-color: rgba(212, 175, 55, 0.3);
+}
+
+.sidebar-mobile-toggle .material-icons {
+  font-size: 1.5rem;
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 99;
+}
+
+.sidebar-overlay.active {
+  display: block;
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
+  .sidebar-mobile-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   .dashboard-sidebar {
-    width: 100%;
-    height: auto;
-    position: relative;
-    border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    width: 280px;
+    position: fixed;
+    left: -280px;
+    top: 0;
+    height: 100vh;
+    z-index: 100;
+    transition: left 0.3s ease;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: none;
+  }
+
+  .dashboard-sidebar.mobile-open {
+    left: 0;
   }
 
   .dashboard-main {
     margin-left: 0;
+    width: 100%;
   }
 
   .dashboard-content {
-    padding: 1.5rem;
+    padding: 1rem;
+    padding-top: 4rem;
+  }
+
+  .dashboard-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .dashboard-title {
+    font-size: 1.75rem;
+  }
+
+  .dashboard-subtitle {
+    font-size: 1rem;
   }
 
   .dashboard-actions {
@@ -332,5 +401,22 @@
   .action-button {
     width: 100%;
     justify-content: center;
+  }
+
+  .sidebar-header {
+    padding: 1.5rem 1rem;
+  }
+
+  .sidebar-nav {
+    padding: 0.5rem 0;
+  }
+
+  .sidebar-nav-item {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .sidebar-footer {
+    padding: 1rem;
   }
 }
