@@ -72,7 +72,6 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
   const [purchasesToShow, setPurchasesToShow] = useState(5)
   const [editingCredits, setEditingCredits] = useState<{ userId: string; currentCredits: number } | null>(null)
   const [creditAmount, setCreditAmount] = useState('')
-  const [creditReason, setCreditReason] = useState('')
   const [isUpdatingCredits, setIsUpdatingCredits] = useState(false)
   const [localUsers, setLocalUsers] = useState<User[]>(users)
 
@@ -138,7 +137,7 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
 
     setIsUpdatingCredits(true)
     try {
-      const result = await updateUserCredits(editingCredits.userId, amount, creditReason)
+      const result = await updateUserCredits(editingCredits.userId, amount)
       
       if (result.success && result.newBalance !== undefined) {
         // Update local users state
@@ -151,7 +150,6 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
         )
         setEditingCredits(null)
         setCreditAmount('')
-        setCreditReason('')
         alert(`Credits ${amount > 0 ? 'added' : 'deducted'} successfully. New balance: ${result.newBalance}`)
       } else {
         alert(result.error || 'Failed to update credits')
@@ -205,7 +203,8 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
 
   const formatDate = (dateString: string) => {
     // Convert UTC date from database to local time for display
-    return formatUTCDateToLocal(dateString)
+    // Format as "Jan 12, 2026" (date only, no time)
+    return formatUTCDateToLocal(dateString, 'MMM D, YYYY')
   }
 
   const formatDateRange = () => {
@@ -355,7 +354,6 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
                         onClick={() => {
                           setEditingCredits({ userId: user.user_id, currentCredits: user.credits })
                           setCreditAmount('')
-                          setCreditReason('')
                         }}
                         title="Adjust Credits"
                       >
@@ -630,16 +628,6 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
                   value={creditAmount}
                   onChange={(e) => setCreditAmount(e.target.value)}
                   placeholder="e.g., 100 or -50"
-                  disabled={isUpdatingCredits}
-                />
-              </div>
-              <div className="admin-modal-field">
-                <label>Reason (optional)</label>
-                <input
-                  type="text"
-                  value={creditReason}
-                  onChange={(e) => setCreditReason(e.target.value)}
-                  placeholder="e.g., Refund, Bonus, Correction"
                   disabled={isUpdatingCredits}
                 />
               </div>

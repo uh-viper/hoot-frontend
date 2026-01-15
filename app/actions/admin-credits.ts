@@ -14,12 +14,10 @@ export interface UpdateCreditsResult {
  * Admin-only function to add or deduct credits for a user
  * @param targetUserId - The user ID to update credits for
  * @param amount - Positive number to add, negative number to deduct
- * @param reason - Optional reason for the credit adjustment
  */
 export async function updateUserCredits(
   targetUserId: string,
-  amount: number,
-  reason?: string
+  amount: number
 ): Promise<UpdateCreditsResult> {
   // Verify current user is admin
   const currentUser = await getSessionUser()
@@ -79,8 +77,8 @@ export async function updateUserCredits(
       return { success: false, error: 'Failed to update credits' }
     }
 
-    // Log the action (optional - you could create an admin_actions table)
-    console.log(`[ADMIN] ${currentUser.id} ${amount > 0 ? 'added' : 'deducted'} ${Math.abs(amount)} credits for user ${targetUserId}. Reason: ${reason || 'N/A'}. New balance: ${newBalance}`)
+    // Log the action to server console for audit trail
+    console.log(`[ADMIN] ${currentUser.id} ${amount > 0 ? 'added' : 'deducted'} ${Math.abs(amount)} credits for user ${targetUserId}. New balance: ${newBalance}`)
 
     return {
       success: true,
