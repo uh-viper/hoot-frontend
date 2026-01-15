@@ -59,6 +59,7 @@ export interface JobStatus {
     amount_should_have_been_deducted?: number;
   };
   error?: string;
+  error_message?: string; // User-friendly error message from backend
 }
 
 export interface Region {

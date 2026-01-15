@@ -330,7 +330,9 @@ export default function CreationForm() {
           // Backend automatically updates stats when job completes - no frontend action needed
           
           if (status.total_created === 0) {
-            addMessage('error', `No accounts created. ${status.error || 'Check backend logs.'}`);
+            // Use error_message from API response if available, otherwise fallback
+            const errorMsg = status.error_message || status.error || 'No accounts created. Please contact support.';
+            addMessage('error', errorMsg);
             
             clearJobState();
             return;
