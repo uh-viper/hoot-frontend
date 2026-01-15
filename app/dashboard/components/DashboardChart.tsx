@@ -21,14 +21,10 @@ export default function DashboardChart({ dateRange, statType }: DashboardChartPr
   const fetchGraphData = async () => {
     setIsLoading(true);
     try {
-      let startDate: Date | undefined;
-      let endDate: Date | undefined;
-
-      if (dateRange) {
-        const utcRange = localDateRangeToUTC(dateRange.start, dateRange.end);
-        startDate = utcRange.start;
-        endDate = utcRange.end;
-      }
+      // Pass local dates directly - the server action will handle UTC conversion for queries
+      // but display labels in local time
+      const startDate = dateRange?.start;
+      const endDate = dateRange?.end;
 
       // Get user's timezone from browser
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;

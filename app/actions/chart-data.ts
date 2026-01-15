@@ -46,6 +46,9 @@ export async function getChartData(
     let end: Date = new Date()
     let groupBy: 'hour' | 'day' = 'hour'
 
+    // Get user timezone (defaults to UTC if not provided)
+    const tz = userTimezone || 'UTC'
+    
     if (startDate && endDate) {
       // Check if start and end are the same calendar day (in local time)
       // If they're the same day, use hourly grouping
@@ -54,14 +57,20 @@ export async function getChartData(
       const isSameDay = startDay === endDay
       
       // Convert local dates to UTC for database queries
-      start = dayjs(startDate).utc().startOf('day').toDate()
-      end = dayjs(endDate).utc().endOf('day').toDate()
+      // Use the timezone utility to properly convert
+      const startLocal = dayjs.tz(startDate, tz).startOf('day')
+      const endLocal = dayjs.tz(endDate, tz).endOf('day')
+      
+      // Convert to UTC for database query
+      start = startLocal.utc().toDate()
+      end = endLocal.utc().toDate()
       
       groupBy = isSameDay ? 'hour' : 'day'
     } else {
-      // Default to this month
-      start = dayjs().utc().startOf('month').toDate()
-      end = dayjs().utc().endOf('day').toDate()
+      // Default to this month in user's timezone
+      const now = dayjs().tz(tz)
+      start = now.startOf('month').utc().toDate()
+      end = now.endOf('day').utc().toDate()
       groupBy = 'day'
     }
 
