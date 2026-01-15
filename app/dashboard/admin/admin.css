@@ -284,6 +284,9 @@
 
 .admin-table thead {
   background: rgba(255, 255, 255, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .admin-table th {
