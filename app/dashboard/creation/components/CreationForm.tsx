@@ -765,12 +765,12 @@ export default function CreationForm() {
             {isPending || isPolling ? (
               <>
                 <span className="material-icons spinning">sync</span>
-                {isPolling ? 'Deployment in Progress...' : 'Starting Deployment...'}
+                {isPolling ? 'Deployment in Progress...' : hasEnoughCredits ? 'Starting Deployment...' : 'Insufficient Credits'}
               </>
             ) : (
               <>
                 <span className="material-icons">rocket_launch</span>
-                Start Deployment
+                {hasEnoughCredits ? 'Start Deployment' : 'Insufficient Credits'}
               </>
             )}
           </button>
