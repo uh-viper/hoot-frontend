@@ -5,6 +5,7 @@ import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import { createClient } from '@/lib/supabase/server'
 import { getSessionUser } from '@/lib/auth/validate-session'
+import { localDateRangeToUTC } from '@/lib/utils/date-timezone'
 
 // Extend dayjs with plugins
 dayjs.extend(utc)
@@ -18,13 +19,15 @@ export async function getUserFilteredStats(startDate?: Date, endDate?: Date) {
 
   const supabase = await createClient()
 
-  // Convert dates to UTC for database queries
+  // Convert dates to UTC for database queries using timezone utility
   let start: string | undefined
   let end: string | undefined
 
   if (startDate && endDate) {
-    start = dayjs(startDate).utc().startOf('day').toISOString()
-    end = dayjs(endDate).utc().endOf('day').toISOString()
+    // Use timezone utility to properly convert local dates to UTC
+    const utcRange = localDateRangeToUTC(startDate, endDate)
+    start = utcRange.start.toISOString()
+    end = utcRange.end.toISOString()
   }
 
   // Calculate stats from user_jobs table
