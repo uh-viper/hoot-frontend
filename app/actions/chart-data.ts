@@ -85,15 +85,13 @@ export async function getChartData(
       
       groupBy = isSameDay ? 'hour' : 'day'
     } else {
-      // Default to this month
-      start = dayjs().utc().startOf('month').toISOString()
-      end = dayjs().utc().endOf('day').toISOString()
+      // For "All Time", fetch all jobs and determine range from actual data
+      // We'll fetch all jobs and then determine the date range from the data itself
+      start = undefined
+      end = undefined
       groupBy = 'day'
       
-      console.log('[CHART-DATA] No date range provided, using default (this month):', {
-        start,
-        end,
-      })
+      console.log('[CHART-DATA] No date range provided (All Time), will fetch all jobs')
     }
 
     console.log('[CHART-DATA] Final query params:', {
@@ -103,13 +101,17 @@ export async function getChartData(
     })
 
     // Fetch user jobs in the date range
-    const { data: jobs, error } = await supabase
+    let jobsQuery = supabase
       .from('user_jobs')
       .select('created_at, requested_count, successful_count, failed_count')
       .eq('user_id', user.id)
-      .gte('created_at', start)
-      .lte('created_at', end)
       .order('created_at', { ascending: true })
+    
+    if (start && end) {
+      jobsQuery = jobsQuery.gte('created_at', start).lte('created_at', end)
+    }
+    
+    const { data: jobs, error } = await jobsQuery
 
     console.log('[CHART-DATA] Database query results:', {
       jobsCount: jobs?.length || 0,
@@ -159,50 +161,58 @@ export async function getChartData(
         dataMap.set(key, 0)
         current = current.add(1, 'day')
       }
-    } else {
-      // Fallback: use UTC range (shouldn't happen if startDate/endDate are provided)
-      if (groupBy === 'hour') {
-        const current = new Date(start)
-        const endDate = new Date(end)
-        const endTime = endDate.getTime()
-        while (current.getTime() <= endTime) {
-          const key = current.toISOString().slice(0, 13) + ':00:00'
+    } else if (jobs && jobs.length > 0) {
+      // For "All Time" or when no date range provided, generate slots from actual job dates
+      // Convert each job's UTC timestamp to local time, then generate slots for those days
+      const jobDates = new Set<string>()
+      
+      jobs.forEach((job) => {
+        // Convert UTC timestamp to local time, then get the date
+        const localDate = dayjs.utc(job.created_at).tz(tzForSlots).startOf('day')
+        const dateKey = localDate.format('YYYY-MM-DD')
+        jobDates.add(dateKey)
+      })
+      
+      // Sort dates and generate time slots
+      const sortedDates = Array.from(jobDates).sort()
+      if (sortedDates.length > 0) {
+        const firstDate = dayjs.tz(sortedDates[0], tzForSlots).startOf('day')
+        const lastDate = dayjs.tz(sortedDates[sortedDates.length - 1], tzForSlots).startOf('day')
+        
+        let current = firstDate
+        while (current.isSame(lastDate, 'day') || current.isBefore(lastDate, 'day')) {
+          // Convert to UTC for the key (used for matching with database timestamps)
+          const key = current.utc().toISOString().slice(0, 10)
           timeSlots.push(key)
           dataMap.set(key, 0)
-          current.setUTCHours(current.getUTCHours() + 1)
-        }
-      } else {
-        const current = new Date(start)
-        const endDate = new Date(end)
-        const endDateStr = endDate.toISOString().slice(0, 10)
-        const endTime = endDate.getTime()
-        while (current.getTime() <= endTime) {
-          const key = current.toISOString().slice(0, 10)
-          timeSlots.push(key)
-          dataMap.set(key, 0)
-          if (key === endDateStr) break
-          current.setUTCDate(current.getUTCDate() + 1)
+          current = current.add(1, 'day')
         }
       }
     }
 
     // Sum up the selected stat type for each time slot
+    // IMPORTANT: Convert job UTC timestamps to local time before mapping to slots
     console.log('[CHART-DATA] Time slots generated:', {
       count: timeSlots.length,
       firstFew: timeSlots.slice(0, 5),
       lastFew: timeSlots.slice(-5),
     })
 
+    const tzForMapping = userTimezone || getUserTimezone()
+
     jobs?.forEach((job) => {
-      const createdAt = new Date(job.created_at)
+      // Convert UTC timestamp to local time first
+      const jobLocalTime = dayjs.utc(job.created_at).tz(tzForMapping)
       let key: string
       
       if (groupBy === 'hour') {
-        const hourDate = new Date(createdAt)
-        hourDate.setUTCMinutes(0, 0, 0)
-        key = hourDate.toISOString().slice(0, 13) + ':00:00'
+        // For hourly grouping, round down to the hour in local time, then convert to UTC key
+        const hourLocal = jobLocalTime.startOf('hour')
+        key = hourLocal.utc().toISOString().slice(0, 13) + ':00:00'
       } else {
-        key = createdAt.toISOString().slice(0, 10)
+        // For daily grouping, get the date in local time, then convert to UTC key
+        const dayLocal = jobLocalTime.startOf('day')
+        key = dayLocal.utc().toISOString().slice(0, 10)
       }
 
       if (dataMap.has(key)) {
@@ -218,8 +228,8 @@ export async function getChartData(
         dataMap.set(key, oldValue + value)
         
         console.log('[CHART-DATA] Mapped job to time slot:', {
-          jobCreatedAt: job.created_at,
-          jobCreatedAtLocal: dayjs.utc(job.created_at).tz(userTimezone || getUserTimezone()).format('YYYY-MM-DD HH:mm:ss'),
+          jobCreatedAtUTC: job.created_at,
+          jobCreatedAtLocal: jobLocalTime.format('YYYY-MM-DD HH:mm:ss'),
           key,
           value,
           oldValue,
@@ -227,8 +237,8 @@ export async function getChartData(
         })
       } else {
         console.log('[CHART-DATA] Job key not found in time slots:', {
-          jobCreatedAt: job.created_at,
-          jobCreatedAtLocal: dayjs.utc(job.created_at).tz(userTimezone || getUserTimezone()).format('YYYY-MM-DD HH:mm:ss'),
+          jobCreatedAtUTC: job.created_at,
+          jobCreatedAtLocal: jobLocalTime.format('YYYY-MM-DD HH:mm:ss'),
           key,
           availableKeys: timeSlots.slice(0, 10),
         })
