@@ -10,7 +10,6 @@ export default function MaintenanceMode() {
   const [enabled, setEnabled] = useState(false)
   const [expectedTime, setExpectedTime] = useState('')
   const [expectedHours, setExpectedHours] = useState('')
-  const [message, setMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [isUpdating, setIsUpdating] = useState(false)
 
@@ -34,7 +33,6 @@ export default function MaintenanceMode() {
           setExpectedTime('')
           setExpectedHours('')
         }
-        setMessage(result.data.message || '')
       } else {
         showError(result.error || 'Failed to load maintenance mode')
       }
@@ -63,7 +61,7 @@ export default function MaintenanceMode() {
     const result = await updateMaintenanceMode(
       newEnabled,
       expectedTimeISO,
-      message || null
+      null
     )
 
     if (result.success) {
@@ -79,33 +77,31 @@ export default function MaintenanceMode() {
     setIsUpdating(false)
   }
 
-  const handleSave = async () => {
-    setIsUpdating(true)
+  const handleHoursChange = async (hours: string) => {
+    setExpectedHours(hours)
     
-    // Calculate expected time from hours
-    let expectedTimeISO: string | null = null
-    if (expectedHours && !isNaN(Number(expectedHours)) && Number(expectedHours) > 0) {
-      const hours = Number(expectedHours)
+    // Auto-save when hours change if maintenance is enabled
+    if (enabled && hours && !isNaN(Number(hours)) && Number(hours) > 0) {
+      setIsUpdating(true)
+      const hoursNum = Number(hours)
       const now = new Date()
-      const expected = new Date(now.getTime() + hours * 60 * 60 * 1000)
-      expectedTimeISO = expected.toISOString()
+      const expected = new Date(now.getTime() + hoursNum * 60 * 60 * 1000)
+      const expectedTimeISO = expected.toISOString()
       setExpectedTime(expectedTimeISO)
-    } else {
-      expectedTimeISO = expectedTime || null
-    }
 
-    const result = await updateMaintenanceMode(
-      enabled,
-      expectedTimeISO,
-      message || null
-    )
+      const result = await updateMaintenanceMode(
+        enabled,
+        expectedTimeISO,
+        null
+      )
 
-    if (result.success) {
-      showSuccess('Maintenance mode settings saved successfully')
-    } else {
-      showError(result.error || 'Failed to update maintenance mode')
+      if (result.success) {
+        showSuccess('Expected time updated')
+      } else {
+        showError(result.error || 'Failed to update expected time')
+      }
+      setIsUpdating(false)
     }
-    setIsUpdating(false)
   }
 
   if (isLoading) {
@@ -162,7 +158,7 @@ export default function MaintenanceMode() {
               min="0"
               step="0.5"
               value={expectedHours}
-              onChange={(e) => setExpectedHours(e.target.value)}
+              onChange={(e) => handleHoursChange(e.target.value)}
               disabled={isUpdating}
               className="maintenance-mode-input"
               placeholder="Enter hours until completion (e.g., 2.5)"
@@ -170,42 +166,6 @@ export default function MaintenanceMode() {
             <p className="maintenance-mode-hint">
               Optional: Set how many hours until maintenance is expected to complete. A countdown will be displayed on the maintenance page.
             </p>
-          </div>
-
-          <div className="maintenance-mode-field">
-            <label htmlFor="message" className="maintenance-mode-label">
-              <span className="material-icons">message</span>
-              Custom Message
-            </label>
-            <textarea
-              id="message"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              disabled={isUpdating}
-              className="maintenance-mode-textarea"
-              placeholder="Optional: Add a custom message to display on the maintenance page"
-              rows={4}
-            />
-          </div>
-
-          <div className="maintenance-mode-actions">
-            <button
-              onClick={handleSave}
-              disabled={isUpdating}
-              className="maintenance-mode-save-btn"
-            >
-              {isUpdating ? (
-                <>
-                  <span className="material-icons spinning">sync</span>
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <span className="material-icons">save</span>
-                  Save Settings
-                </>
-              )}
-            </button>
           </div>
         </div>
       </div>
