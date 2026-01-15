@@ -67,6 +67,25 @@
   font-size: 1.5rem;
 }
 
+.maintenance-countdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 12px;
+  color: #d4af37;
+  font-size: 1rem;
+  font-weight: 500;
+  font-family: var(--font-poppins);
+  margin-bottom: 1.5rem;
+}
+
+.maintenance-countdown .material-icons {
+  font-size: 1.5rem;
+}
+
 .maintenance-message {
   margin: 1.5rem 0;
   padding: 1rem;

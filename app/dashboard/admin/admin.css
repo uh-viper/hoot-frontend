@@ -1052,24 +1052,9 @@
 }
 
 .maintenance-mode-status {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   font-size: 1rem;
   font-family: var(--font-poppins);
   color: rgba(255, 255, 255, 0.9);
-}
-
-.maintenance-mode-status .status-icon {
-  font-size: 1.5rem;
-}
-
-.maintenance-mode-status .status-icon.enabled {
-  color: #4caf50;
-}
-
-.maintenance-mode-status .status-icon.disabled {
-  color: rgba(255, 255, 255, 0.4);
 }
 
 .maintenance-mode-settings {
