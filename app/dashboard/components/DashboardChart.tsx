@@ -77,7 +77,7 @@ export default function DashboardChart({ dateRange, statType }: DashboardChartPr
 
     // Find max value for scaling (min is always 0)
     const maxCount = Math.max(...graphData.map(d => d.count), 1);
-    const yScale = graphHeight / maxCount;
+    const yScale = maxCount > 0 ? graphHeight / maxCount : 1;
 
     // Calculate points
     const points: Array<{ x: number; y: number }> = [];
@@ -87,10 +87,11 @@ export default function DashboardChart({ dateRange, statType }: DashboardChartPr
       const x = padding.left + (index / (graphData.length - 1 || 1)) * graphWidth;
       // Calculate Y position - in SVG, smaller Y is higher on screen
       // baselineY is at the bottom (Y=0), so points with count > 0 should be above it
-      const y = baselineY - (point.count * yScale);
-      // Clamp Y to never go above the top or below the baseline
-      const clampedY = Math.max(padding.top, Math.min(y, baselineY));
-      points.push({ x, y: clampedY });
+      let y = baselineY - (point.count * yScale);
+      // Clamp Y to never go above the top padding or below the baseline
+      // In SVG: smaller Y = higher on screen, so we want y between padding.top (top) and baselineY (bottom)
+      y = Math.max(padding.top, Math.min(y, baselineY));
+      points.push({ x, y });
     });
 
     // Generate smooth path using cubic bezier curves
