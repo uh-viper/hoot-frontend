@@ -46,6 +46,17 @@ export default async function Home() {
 
       {/* Hero Section */}
       <section className="hero">
+        <div className="hero-particles">
+          <div className="hero-particle"></div>
+          <div className="hero-particle"></div>
+          <div className="hero-particle"></div>
+          <div className="hero-particle"></div>
+          <div className="hero-particle"></div>
+          <div className="hero-particle"></div>
+          <div className="hero-particle"></div>
+          <div className="hero-particle"></div>
+          <div className="hero-particle"></div>
+        </div>
         <div className="hero-content">
           <h1 className="hero-title">
             <span className="title-line">Stop Waiting.</span>
