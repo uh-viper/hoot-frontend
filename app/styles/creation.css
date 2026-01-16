@@ -318,6 +318,23 @@
   color: #d4af37;
 }
 
+.terminal-icon-clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0.25rem;
+  border-radius: 4px;
+}
+
+.terminal-icon-clickable:hover {
+  background: rgba(212, 175, 55, 0.15);
+  transform: scale(1.1);
+  color: #f5d142;
+}
+
+.terminal-icon-clickable:active {
+  transform: scale(0.95);
+}
+
 .console-status-indicator {
   display: flex;
   align-items: center;

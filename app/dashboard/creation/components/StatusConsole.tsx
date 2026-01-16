@@ -26,7 +26,7 @@ const formatTime = (date: Date) => {
 };
 
 export default function StatusConsole() {
-  const { messages, isActive } = useConsole();
+  const { messages, isActive, clearMessages } = useConsole();
   const consoleRef = useRef<HTMLDivElement>(null);
   const shouldAutoScrollRef = useRef(true);
 
@@ -60,7 +60,13 @@ export default function StatusConsole() {
     <div className="status-console-container">
       <div className="status-console-header">
         <div className="console-title">
-          <span className="material-icons">terminal</span>
+          <span 
+            className="material-icons terminal-icon-clickable" 
+            onClick={clearMessages}
+            title="Click to clear console logs"
+          >
+            terminal
+          </span>
           <span>Deployment Status</span>
         </div>
         <div className="console-status-indicator">
