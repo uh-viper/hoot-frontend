@@ -2,8 +2,6 @@ import { Metadata } from 'next'
 import Link from "next/link";
 import Image from "next/image";
 import { getSessionUser } from '@/lib/auth/validate-session'
-import Footer from "../components/Footer";
-import "../styles/footer.css";
 import "./page.css";
 
 export const metadata: Metadata = {
@@ -52,11 +50,49 @@ export default async function LearnMore() {
       <section className="learn-hero">
         <div className="section-container">
           <h1 className="page-title">Learn More About <span className="gold-text">Hoot</span></h1>
-          <div className="main-content-text">
-            <p>
-              Getting started with Hoot is simple and straightforward. First, you'll sign up for an account and purchase credits—these credits are your currency for creating TikTok Business Centers. You can create up to 25 Business Centers at once, with a maximum of 50 per day, giving you the flexibility to scale at your own pace. Once credits are purchased, they are non-refundable, but here's what sets us apart: we guarantee 100% delivery. This means credits are only deducted from your account after the Business Center login credentials are successfully delivered to your account vault. If a creation fails for any reason, your credits are automatically refunded—no questions asked, no manual intervention needed. Once your Business Centers are created, they're securely stored in your vault, ready whenever you need them. To access a Business Center, simply navigate to your vault, select the Business Center you want to use, and click "Log In"—you'll be provided with the email and password for that account. Need a verification code? You can fetch it directly from the same interface with a single click. Verification codes can also be retrieved here for closing accounts, managing your Business Centers, or any other administrative tasks you need to perform. Hoot eliminates the guesswork, the manual labor, and the time waste—everything you need is in one place, accessible in seconds.
-            </p>
+          
+          <div className="content-grid">
+            <div className="content-card">
+              <div className="card-icon">
+                <span className="material-icons">rocket_launch</span>
+              </div>
+              <h2 className="card-title">Getting Started</h2>
+              <p className="card-text">
+                Sign up for an account and purchase credits—these credits are your currency for creating TikTok Business Centers. You can create up to 25 Business Centers at once, with a maximum of 50 per day, giving you the flexibility to scale at your own pace.
+              </p>
+            </div>
+
+            <div className="content-card">
+              <div className="card-icon">
+                <span className="material-icons">verified</span>
+              </div>
+              <h2 className="card-title">100% Delivery Guarantee</h2>
+              <p className="card-text">
+                Credits are only deducted from your account after the Business Center login credentials are successfully delivered to your account vault. If a creation fails for any reason, your credits are automatically refunded—no questions asked, no manual intervention needed.
+              </p>
+            </div>
+
+            <div className="content-card">
+              <div className="card-icon">
+                <span className="material-icons">account_balance</span>
+              </div>
+              <h2 className="card-title">Your Vault</h2>
+              <p className="card-text">
+                Once your Business Centers are created, they're securely stored in your vault, ready whenever you need them. To access a Business Center, simply navigate to your vault, select the Business Center you want to use, and click "Log In"—you'll be provided with the email and password for that account.
+              </p>
+            </div>
+
+            <div className="content-card">
+              <div className="card-icon">
+                <span className="material-icons">security</span>
+              </div>
+              <h2 className="card-title">Verification Codes</h2>
+              <p className="card-text">
+                Need a verification code? You can fetch it directly from the same interface with a single click. Verification codes can also be retrieved here for closing accounts, managing your Business Centers, or any other administrative tasks you need to perform.
+              </p>
+            </div>
           </div>
+
           <div className="cta-buttons">
             <Link href="/signup" className="cta-button primary">
               Get Started
@@ -68,8 +104,6 @@ export default async function LearnMore() {
         </div>
       </section>
 
-      {/* Footer */}
-      <Footer />
     </div>
   );
 }

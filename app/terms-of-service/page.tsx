@@ -2,7 +2,6 @@ import { Metadata } from 'next'
 import Link from "next/link";
 import Image from "next/image";
 import { getSessionUser } from '@/lib/auth/validate-session'
-import Footer from "../components/Footer";
 import "../styles/footer.css";
 import "./page.css";
 
@@ -136,7 +135,6 @@ export default async function TermsOfService() {
       </section>
 
       {/* Footer */}
-      <Footer />
     </div>
   );
 }
