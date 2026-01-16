@@ -17,10 +17,12 @@
 .dashboard-header {
   position: sticky;
   top: 0;
-  background: #0a0a0a;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(10, 10, 10, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   z-index: 1000;
-  height: 70px;
+  height: 80px;
   display: flex;
   align-items: center;
   flex-shrink: 0;
@@ -174,13 +176,14 @@
 }
 
 .gold-text {
-  background: linear-gradient(135deg, #d4af37 0%, #f4e4bc 50%, #d4af37 100%);
+  background: linear-gradient(135deg, #f5d142 0%, #d4af37 25%, #f4e4bc 50%, #d4af37 75%, #b8941f 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   background-size: 200% auto;
-  animation: shimmer 3s linear infinite;
+  animation: shimmer 6s linear infinite;
   position: relative;
+  filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.2));
 }
 
 .section-title {
