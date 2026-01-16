@@ -7,7 +7,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: visible;
   background: #000000;
 }
 
@@ -18,6 +19,8 @@
   position: relative;
   z-index: 1;
   padding: 0 2rem;
+  overflow: visible;
+  width: 100%;
 }
 
 .hero-title {
@@ -37,27 +40,30 @@
   align-items: center;
   gap: 0;
   overflow: visible;
-  padding: 0.5rem 2rem;
+  padding: 0.5rem 3rem;
   margin-top: 0;
   width: 100%;
   box-sizing: border-box;
+  position: relative;
 }
 
 .title-line {
-  display: block;
+  display: inline-block;
   overflow: visible;
-  padding: 0 2rem;
+  padding: 0 3rem;
   margin: 0;
-  width: fit-content;
+  width: auto;
   position: relative;
   white-space: nowrap;
+  text-align: center;
 }
 
 .title-line.gold-text {
-  padding: 0 2rem;
+  padding: 0 3rem;
   overflow: visible;
-  width: fit-content;
+  width: auto;
   white-space: nowrap;
+  display: inline-block;
 }
 
 .hero-subtitle {
