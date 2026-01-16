@@ -168,7 +168,7 @@ export default function DomainManagement() {
     setDeleteModal(null)
   }
 
-  // Status Dropdown Menu Component with fixed positioning
+  // Status Dropdown Menu Component
   const StatusDropdownMenu = ({ 
     domainId, 
     currentStatus, 
@@ -180,27 +180,8 @@ export default function DomainManagement() {
     onStatusChange: (status: 'pending' | 'active') => void
     isUpdating: boolean
   }) => {
-    const [position, setPosition] = useState({ top: 0, left: 0 })
-
-    useEffect(() => {
-      const button = document.querySelector(`[data-domain-id="${domainId}"]`) as HTMLElement
-      if (button) {
-        const rect = button.getBoundingClientRect()
-        setPosition({
-          top: rect.bottom + window.scrollY + 4,
-          left: rect.left + window.scrollX
-        })
-      }
-    }, [domainId])
-
     return (
-      <div 
-        className="status-dropdown-menu"
-        style={{
-          top: `${position.top}px`,
-          left: `${position.left}px`
-        }}
-      >
+      <div className="status-dropdown-menu">
         {currentStatus !== 'pending' && (
           <button
             className="status-dropdown-item"
