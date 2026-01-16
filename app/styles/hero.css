@@ -200,9 +200,9 @@
 @media (max-width: 768px) {
   .hero {
     padding: 4rem 0 3rem;
-    min-height: auto;
-    align-items: flex-start;
-    padding-top: 2rem;
+    min-height: calc(100vh - 70px);
+    align-items: center;
+    justify-content: center;
   }
 
   .hero-content {
