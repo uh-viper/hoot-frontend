@@ -173,9 +173,16 @@ export default function Sidebar({ userEmail, credits: initialCredits = 0, isAdmi
 
       <aside className={`dashboard-sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-header">
-        <h2 className="sidebar-logo">Hoot Services</h2>
-        <p className="sidebar-tagline">Automation Starts Here</p>
-      </div>
+          <button 
+            className="sidebar-close-button"
+            onClick={closeMobileMenu}
+            aria-label="Close menu"
+          >
+            <span className="material-icons">close</span>
+          </button>
+          <h2 className="sidebar-logo">Hoot Services</h2>
+          <p className="sidebar-tagline">Automation Starts Here</p>
+        </div>
 
       <nav className="sidebar-nav">
         {menuItems.map((item) => {

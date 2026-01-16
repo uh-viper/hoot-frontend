@@ -49,6 +49,31 @@
 .sidebar-header {
   padding: 2rem 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+}
+
+.sidebar-close-button {
+  display: none;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: all 0.3s;
+  z-index: 10;
+}
+
+.sidebar-close-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.sidebar-close-button .material-icons {
+  font-size: 1.5rem;
 }
 
 .sidebar-logo {
@@ -405,6 +430,13 @@
 
   .sidebar-header {
     padding: 1.5rem 1rem;
+    padding-top: 3rem;
+  }
+
+  .sidebar-close-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .sidebar-nav {
