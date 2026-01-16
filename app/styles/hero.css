@@ -1,31 +1,14 @@
 /* Hero Section */
 .hero {
-  padding: 12rem 0 10rem;
+  padding: 8rem 0 6rem;
   text-align: center;
   position: relative;
-  min-height: 100vh;
+  min-height: calc(100vh - 70px);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   background: #000000;
-}
-
-/* Animated grid pattern */
-.hero::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: 
-    linear-gradient(rgba(212, 175, 55, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(212, 175, 55, 0.03) 1px, transparent 1px);
-  background-size: 50px 50px;
-  animation: gridMove 20s linear infinite;
-  z-index: 0;
-  opacity: 0.3;
 }
 
 /* Subtle glow orbs */
@@ -67,15 +50,6 @@
   animation: orbFloat3 12s ease-in-out infinite;
   z-index: 0;
   filter: blur(35px);
-}
-
-@keyframes gridMove {
-  0% {
-    transform: translate(0, 0);
-  }
-  100% {
-    transform: translate(50px, 50px);
-  }
 }
 
 @keyframes orbFloat1 {
@@ -141,10 +115,18 @@
   gap: 0.25rem;
   overflow: visible;
   padding: 0.5rem 0;
+  margin-top: 0;
 }
 
 .title-line {
   display: block;
+  overflow: visible;
+  padding: 0 0.5rem;
+}
+
+.title-line.gold-text {
+  padding: 0 0.5rem;
+  overflow: visible;
 }
 
 .hero-subtitle {
