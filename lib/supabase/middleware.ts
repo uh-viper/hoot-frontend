@@ -55,8 +55,12 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/maintenance')
   ) || request.nextUrl.pathname === '/auth/confirm' || request.nextUrl.pathname === '/auth/check-email' || request.nextUrl.pathname === '/auth/callback'
 
-  // Check maintenance mode (before other checks, but allow admins and maintenance page)
-  if (request.nextUrl.pathname !== '/maintenance') {
+  // API routes that use API key authentication (not session-based auth)
+  const apiKeyAuthRoutes = ['/api/domains/active']
+  const isApiKeyAuthRoute = apiKeyAuthRoutes.some(route => request.nextUrl.pathname === route)
+
+  // Check maintenance mode (before other checks, but allow admins, maintenance page, and API key auth routes)
+  if (request.nextUrl.pathname !== '/maintenance' && !isApiKeyAuthRoute) {
     const { data: maintenance } = await supabase
       .from('maintenance_mode')
       .select('enabled')
@@ -117,7 +121,8 @@ export async function updateSession(request: NextRequest) {
   if (
     !user &&
     !isPublicRoute &&
-    !isAdminRoute
+    !isAdminRoute &&
+    !isApiKeyAuthRoute
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone()
