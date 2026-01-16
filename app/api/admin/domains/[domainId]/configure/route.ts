@@ -661,6 +661,37 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
       }
     }
 
+    // Step 4: Complete Email Routing setup (finish wizard)
+    // POST /zones/{zone_id}/email/routing/dns - This completes the Email Routing setup
+    // and should skip/complete the wizard step that requires manual "finish" click
+    try {
+      const finishResponse = await fetch(
+        `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing/dns`,
+        {
+          method: 'POST',
+          headers: authHeaders,
+          body: JSON.stringify({
+            name: domain,
+          }),
+        }
+      )
+
+      const finishData = await finishResponse.json()
+      
+      if (finishData.success) {
+        console.log('Email Routing wizard completed successfully:', {
+          enabled: finishData.result?.enabled,
+          status: finishData.result?.status,
+          skip_wizard: finishData.result?.skip_wizard,
+        })
+      } else {
+        // Don't fail if this doesn't work - the catchall is already configured
+        console.warn('Could not complete Email Routing wizard (non-critical):', finishData.errors?.[0]?.message)
+      }
+    } catch (finishErr) {
+      // Don't fail if finishing wizard fails - catchall is already working
+      console.warn('Error completing Email Routing wizard (non-critical):', finishErr)
+    }
 
     return {
       success: true,
