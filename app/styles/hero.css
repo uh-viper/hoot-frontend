@@ -19,14 +19,16 @@
   position: relative;
   z-index: 1;
   padding: 0 2rem;
-  overflow: visible;
+  overflow: visible !important;
   width: 100%;
+  height: auto;
+  min-height: auto;
 }
 
 .hero-title {
   font-size: clamp(3.5rem, 7vw, 6.5rem);
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1.2;
   margin-bottom: 2.5rem;
   color: #ffffff;
   letter-spacing: -0.02em;
@@ -38,32 +40,47 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0;
+  gap: -0.2rem;
   overflow: visible;
-  padding: 0.5rem 3rem;
+  padding: 1rem 4rem;
   margin-top: 0;
   width: 100%;
   box-sizing: border-box;
   position: relative;
+  height: auto;
+  min-height: auto;
 }
 
 .title-line {
   display: inline-block;
-  overflow: visible;
-  padding: 0 3rem;
+  overflow: visible !important;
+  padding: 0.5rem 4rem;
   margin: 0;
   width: auto;
   position: relative;
   white-space: nowrap;
   text-align: center;
+  line-height: 1.2;
+  height: auto;
+  min-height: auto;
+  clip-path: none !important;
+  text-overflow: clip !important;
 }
 
 .title-line.gold-text {
-  padding: 0 3rem;
-  overflow: visible;
+  padding: 0.5rem 4rem;
+  overflow: visible !important;
   width: auto;
   white-space: nowrap;
   display: inline-block;
+  line-height: 1.2;
+  height: auto;
+  min-height: auto;
+  clip-path: none !important;
+  text-overflow: clip !important;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .hero-subtitle {
