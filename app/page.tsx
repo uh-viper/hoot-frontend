@@ -46,8 +46,6 @@ export default async function Home() {
 
       {/* Hero Section */}
       <section className="hero">
-        <div className="orb-2"></div>
-        <div className="orb-3"></div>
         <div className="hero-particles">
           <div className="hero-particle"></div>
           <div className="hero-particle"></div>
