@@ -613,12 +613,38 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
         errors: dnsData.errors,
       })
 
+      // Step 2.5: Skip the wizard by sending skip_wizard: true
+      // This is the exact API call made when clicking "Finish" in the Cloudflare dashboard
+      console.log('[EMAIL ROUTING] Step 2.5: Skipping wizard by sending skip_wizard: true...')
+      try {
+        const skipWizardResponse = await fetch(
+          `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing`,
+          {
+            method: 'POST',
+            headers: authHeaders,
+            body: JSON.stringify({ skip_wizard: true }),
+          }
+        )
+
+        const skipWizardData = await skipWizardResponse.json()
+        console.log('[EMAIL ROUTING] Step 2.5 Response (skip_wizard):', {
+          success: skipWizardData.success,
+          enabled: skipWizardData.result?.enabled,
+          status: skipWizardData.result?.status,
+          skip_wizard: skipWizardData.result?.skip_wizard,
+          name: skipWizardData.result?.name,
+          errors: skipWizardData.errors,
+        })
+      } catch (skipWizardErr: any) {
+        console.warn('[EMAIL ROUTING] Step 2.5 failed (non-critical, continuing):', skipWizardErr.message)
+      }
+
       // Wait a moment for DNS to sync
       console.log('[EMAIL ROUTING] Waiting 3 seconds for DNS to sync...')
       await new Promise(resolve => setTimeout(resolve, 3000))
 
       // Check status after delay
-      console.log('[EMAIL ROUTING] Step 2.5: Checking Email Routing status after delay...')
+      console.log('[EMAIL ROUTING] Step 2.6: Checking Email Routing status after delay...')
       const statusCheckResponse = await fetch(
         `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing`,
         {
