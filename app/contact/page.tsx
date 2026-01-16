@@ -131,8 +131,6 @@ export default async function Contact() {
         </div>
       </section>
 
-      {/* Footer */}
-      <Footer />
     </div>
   );
 }
