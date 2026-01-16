@@ -46,6 +46,8 @@ export default async function Home() {
 
       {/* Hero Section */}
       <section className="hero">
+        <div className="orb-2"></div>
+        <div className="orb-3"></div>
         <div className="hero-particles">
           <div className="hero-particle"></div>
           <div className="hero-particle"></div>
@@ -63,8 +65,7 @@ export default async function Home() {
             <span className="title-line gold-text">Start Scaling.</span>
           </h1>
           <p className="hero-subtitle">
-            Generate as many TikTok Business Centers as you need. Any region, any currency. 
-            No manual setup, no delays. Built for advertisers who can't afford to be slowed down.
+            Any region, any currency. As many business centers as you need. Built for those who can't afford to be slowed down.
           </p>
           <div className="hero-cta-group">
             <Link href="/signup" className="hero-cta primary" prefetch={false}>
