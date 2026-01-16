@@ -626,17 +626,39 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
           }
         )
 
-        const skipWizardData = await skipWizardResponse.json()
-        console.log('[EMAIL ROUTING] Step 2.5 Response (skip_wizard):', {
-          success: skipWizardData.success,
-          enabled: skipWizardData.result?.enabled,
-          status: skipWizardData.result?.status,
-          skip_wizard: skipWizardData.result?.skip_wizard,
-          name: skipWizardData.result?.name,
-          errors: skipWizardData.errors,
+        console.log('[EMAIL ROUTING] Step 2.5 Response Status:', {
+          status: skipWizardResponse.status,
+          statusText: skipWizardResponse.statusText,
+          contentType: skipWizardResponse.headers.get('content-type'),
+          contentLength: skipWizardResponse.headers.get('content-length'),
         })
+
+        // Check if response has content before parsing
+        const responseText = await skipWizardResponse.text()
+        console.log('[EMAIL ROUTING] Step 2.5 Raw Response:', {
+          hasContent: responseText.length > 0,
+          contentLength: responseText.length,
+          firstChars: responseText.substring(0, 100),
+        })
+
+        if (responseText.length > 0) {
+          const skipWizardData = JSON.parse(responseText)
+          console.log('[EMAIL ROUTING] Step 2.5 Response (skip_wizard):', {
+            success: skipWizardData.success,
+            enabled: skipWizardData.result?.enabled,
+            status: skipWizardData.result?.status,
+            skip_wizard: skipWizardData.result?.skip_wizard,
+            name: skipWizardData.result?.name,
+            errors: skipWizardData.errors,
+          })
+        } else {
+          console.log('[EMAIL ROUTING] Step 2.5: Empty response (may still be successful if status is 200)')
+        }
       } catch (skipWizardErr: any) {
-        console.warn('[EMAIL ROUTING] Step 2.5 failed (non-critical, continuing):', skipWizardErr.message)
+        console.warn('[EMAIL ROUTING] Step 2.5 failed (non-critical, continuing):', {
+          message: skipWizardErr.message,
+          stack: skipWizardErr.stack,
+        })
       }
 
       // Wait a moment for DNS to sync
