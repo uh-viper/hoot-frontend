@@ -615,9 +615,11 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
 
       // Step 2.5: Skip the wizard by sending skip_wizard: true
       // This is the exact API call made when clicking "Finish" in the Cloudflare dashboard
+      // Try both POST and PUT methods since API might require PUT for updates
       console.log('[EMAIL ROUTING] Step 2.5: Skipping wizard by sending skip_wizard: true...')
       try {
-        const skipWizardResponse = await fetch(
+        // Try POST first (as seen in network logs)
+        let skipWizardResponse = await fetch(
           `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing`,
           {
             method: 'POST',
@@ -625,6 +627,19 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
             body: JSON.stringify({ skip_wizard: true }),
           }
         )
+
+        // If POST fails, try PUT
+        if (!skipWizardResponse.ok && skipWizardResponse.status !== 200) {
+          console.log('[EMAIL ROUTING] Step 2.5: POST failed, trying PUT method...')
+          skipWizardResponse = await fetch(
+            `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing`,
+            {
+              method: 'PUT',
+              headers: authHeaders,
+              body: JSON.stringify({ skip_wizard: true }),
+            }
+          )
+        }
 
         console.log('[EMAIL ROUTING] Step 2.5 Response Status:', {
           status: skipWizardResponse.status,
@@ -654,6 +669,24 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
         } else {
           console.log('[EMAIL ROUTING] Step 2.5: Empty response (may still be successful if status is 200)')
         }
+
+        // Verify skip_wizard was set by checking status again
+        console.log('[EMAIL ROUTING] Step 2.5.5: Verifying skip_wizard was set...')
+        const verifyResponse = await fetch(
+          `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing`,
+          {
+            method: 'GET',
+            headers: authHeaders,
+          }
+        )
+        const verifyData = await verifyResponse.json()
+        console.log('[EMAIL ROUTING] Verification after skip_wizard:', {
+          success: verifyData.success,
+          enabled: verifyData.result?.enabled,
+          status: verifyData.result?.status,
+          skip_wizard: verifyData.result?.skip_wizard,
+          name: verifyData.result?.name,
+        })
       } catch (skipWizardErr: any) {
         console.warn('[EMAIL ROUTING] Step 2.5 failed (non-critical, continuing):', {
           message: skipWizardErr.message,
