@@ -558,6 +558,7 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
   try {
     // Step 1: Enable Email Routing for the zone
     // Note: This may fail if nameservers haven't propagated yet (takes 2-3 minutes)
+    console.log('[EMAIL ROUTING] Step 1: Enabling Email Routing via /enable endpoint...')
     const enableResponse = await fetch(
       `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing/enable`,
       {
@@ -567,10 +568,18 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
     )
 
     const enableData = await enableResponse.json()
+    console.log('[EMAIL ROUTING] Step 1 Response:', {
+      success: enableData.success,
+      enabled: enableData.result?.enabled,
+      status: enableData.result?.status,
+      skip_wizard: enableData.result?.skip_wizard,
+      errors: enableData.errors,
+    })
+    
     const emailRoutingEnabled = enableData.success || enableData.errors?.[0]?.code === 1004
     
     if (!emailRoutingEnabled) {
-      console.warn('Email routing not ready yet (nameservers may still be propagating):', enableData.errors?.[0]?.message)
+      console.warn('[EMAIL ROUTING] Email routing not ready yet (nameservers may still be propagating):', enableData.errors?.[0]?.message)
       // Return early - catchall can't be configured until email routing is enabled
       return {
         success: true,
@@ -580,11 +589,63 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
       }
     }
 
-    // Step 2: Email Routing automatically creates MX and DKIM records
+    // Step 2: Complete Email Routing setup via /dns endpoint BEFORE catchall
+    // POST /zones/{zone_id}/email/routing/dns - This should skip the wizard
+    // Calling this BEFORE catchall configuration as per API docs suggestion
+    console.log('[EMAIL ROUTING] Step 2: Completing Email Routing setup via /dns endpoint (before catchall)...')
+    try {
+      const dnsResponse = await fetch(
+        `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing/dns`,
+        {
+          method: 'POST',
+          headers: authHeaders,
+          body: JSON.stringify({}),
+        }
+      )
+
+      const dnsData = await dnsResponse.json()
+      console.log('[EMAIL ROUTING] Step 2 Response (/dns endpoint):', {
+        success: dnsData.success,
+        enabled: dnsData.result?.enabled,
+        status: dnsData.result?.status,
+        skip_wizard: dnsData.result?.skip_wizard,
+        name: dnsData.result?.name,
+        errors: dnsData.errors,
+      })
+
+      // Wait a moment for DNS to sync
+      console.log('[EMAIL ROUTING] Waiting 3 seconds for DNS to sync...')
+      await new Promise(resolve => setTimeout(resolve, 3000))
+
+      // Check status after delay
+      console.log('[EMAIL ROUTING] Step 2.5: Checking Email Routing status after delay...')
+      const statusCheckResponse = await fetch(
+        `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing`,
+        {
+          method: 'GET',
+          headers: authHeaders,
+        }
+      )
+
+      const statusCheckData = await statusCheckResponse.json()
+      console.log('[EMAIL ROUTING] Status Check Response:', {
+        success: statusCheckData.success,
+        enabled: statusCheckData.result?.enabled,
+        status: statusCheckData.result?.status,
+        skip_wizard: statusCheckData.result?.skip_wizard,
+        name: statusCheckData.result?.name,
+        created: statusCheckData.result?.created,
+        modified: statusCheckData.result?.modified,
+      })
+    } catch (dnsErr: any) {
+      console.warn('[EMAIL ROUTING] Step 2 failed (non-critical, continuing):', dnsErr.message)
+    }
+
+    // Step 3: Email Routing automatically creates MX and DKIM records
     // These will appear as "Read only" in Cloudflare dashboard because Cloudflare manages them
     // We don't need to fetch or create them - they're auto-generated when Email Routing is enabled
 
-    // Step 3: Configure catchall to send to worker
+    // Step 4: Configure catchall to send to worker
     // Extract worker name from URL (e.g., "https://bc-generator.xxx.workers.dev" -> "bc-generator")
     const workerName = workerUrl 
       ? workerUrl.replace(/^https?:\/\//, '').split('.')[0] 
@@ -601,6 +662,7 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
 
     // First, check current catchall status
     // Based on API docs: GET /zones/{zone_id}/email/routing/rules/catch_all
+    console.log('[EMAIL ROUTING] Step 4: Checking current catchall status...')
     const getCatchallResponse = await fetch(
       `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing/rules/catch_all`,
       {
@@ -609,6 +671,12 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
       }
     )
     const getCatchallData = await getCatchallResponse.json()
+    console.log('[EMAIL ROUTING] Current Catchall Status:', {
+      success: getCatchallData.success,
+      id: getCatchallData.result?.id,
+      enabled: getCatchallData.result?.enabled,
+      actions: getCatchallData.result?.actions,
+    })
 
     // Based on Cloudflare API docs:
     // PUT /zones/{zone_id}/email/routing/rules/catch_all
@@ -635,6 +703,10 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
     }
 
     // Based on API docs: PUT /zones/{zone_id}/email/routing/rules/catch_all
+    console.log('[EMAIL ROUTING] Step 4.5: Configuring catchall rule...', {
+      workerName,
+      payload: catchallPayload,
+    })
     const catchallResponse = await fetch(
       `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing/rules/catch_all`,
       {
@@ -645,10 +717,18 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
     )
 
     const catchallData = await catchallResponse.json()
+    console.log('[EMAIL ROUTING] Catchall Configuration Response:', {
+      success: catchallData.success,
+      id: catchallData.result?.id,
+      enabled: catchallData.result?.enabled,
+      actions: catchallData.result?.actions,
+      matchers: catchallData.result?.matchers,
+      errors: catchallData.errors,
+    })
 
     if (!catchallData.success) {
       const lastError = catchallData.errors?.[0] || catchallData
-      console.error('CATCHALL CONFIGURATION FAILED:', {
+      console.error('[EMAIL ROUTING] CATCHALL CONFIGURATION FAILED:', {
         error: lastError,
         workerName,
         zoneId: zoneId.slice(0, 8) + '...',
@@ -661,35 +741,27 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
       }
     }
 
-    // Step 4: Complete Email Routing setup (finish wizard)
-    // POST /zones/{zone_id}/email/routing/dns - This completes the Email Routing setup
-    // and should skip/complete the wizard step that requires manual "finish" click
-    // Note: zone_id already identifies the zone, so we don't need to pass the name parameter
+    // Step 5: Final status check after catchall configuration
+    console.log('[EMAIL ROUTING] Step 5: Final status check after catchall configuration...')
     try {
-      const finishResponse = await fetch(
-        `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing/dns`,
+      const finalStatusResponse = await fetch(
+        `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing`,
         {
-          method: 'POST',
+          method: 'GET',
           headers: authHeaders,
-          body: JSON.stringify({}),
         }
       )
 
-      const finishData = await finishResponse.json()
-      
-      if (finishData.success) {
-        console.log('Email Routing wizard completed successfully:', {
-          enabled: finishData.result?.enabled,
-          status: finishData.result?.status,
-          skip_wizard: finishData.result?.skip_wizard,
-        })
-      } else {
-        // Don't fail if this doesn't work - the catchall is already configured
-        console.warn('Could not complete Email Routing wizard (non-critical):', finishData.errors?.[0]?.message)
-      }
-    } catch (finishErr) {
-      // Don't fail if finishing wizard fails - catchall is already working
-      console.warn('Error completing Email Routing wizard (non-critical):', finishErr)
+      const finalStatusData = await finalStatusResponse.json()
+      console.log('[EMAIL ROUTING] Final Status Check:', {
+        success: finalStatusData.success,
+        enabled: finalStatusData.result?.enabled,
+        status: finalStatusData.result?.status,
+        skip_wizard: finalStatusData.result?.skip_wizard,
+        name: finalStatusData.result?.name,
+      })
+    } catch (finalStatusErr) {
+      console.warn('[EMAIL ROUTING] Final status check failed (non-critical):', finalStatusErr)
     }
 
     return {
