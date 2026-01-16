@@ -44,31 +44,6 @@ function LoginPageContent() {
 
   return (
     <div className="auth-page">
-      {/* Header */}
-      <header className="header">
-        <div className="header-container">
-          <Link href="/" className="logo-link">
-            <Image
-              src="/hootlogo.png"
-              alt="Hoot Logo"
-              width={180}
-              height={60}
-              priority
-              className="logo"
-            />
-          </Link>
-          
-          <nav className="header-nav">
-            <Link href="/login" className="nav-link">
-              Sign In
-            </Link>
-            <Link href="/signup" className="nav-button">
-              Sign Up
-            </Link>
-          </nav>
-        </div>
-      </header>
-
       {/* Auth Section */}
       <section className="auth-section">
         <div className="auth-container">
