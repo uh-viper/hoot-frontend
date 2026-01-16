@@ -664,15 +664,14 @@ async function configureCloudflareEmailRouting(zoneId: string, domain: string) {
     // Step 4: Complete Email Routing setup (finish wizard)
     // POST /zones/{zone_id}/email/routing/dns - This completes the Email Routing setup
     // and should skip/complete the wizard step that requires manual "finish" click
+    // Note: zone_id already identifies the zone, so we don't need to pass the name parameter
     try {
       const finishResponse = await fetch(
         `https://api.cloudflare.com/client/v4/zones/${zoneId}/email/routing/dns`,
         {
           method: 'POST',
           headers: authHeaders,
-          body: JSON.stringify({
-            name: domain,
-          }),
+          body: JSON.stringify({}),
         }
       )
 
