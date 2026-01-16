@@ -2,7 +2,6 @@ import { Metadata } from 'next'
 import Link from "next/link";
 import Image from "next/image";
 import { getSessionUser } from '@/lib/auth/validate-session'
-import "../styles/footer.css";
 import "./page.css";
 
 export const metadata: Metadata = {
