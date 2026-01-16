@@ -348,6 +348,10 @@
   transition: all 0.3s;
 }
 
+.sidebar-mobile-toggle.hidden {
+  display: none;
+}
+
 .sidebar-mobile-toggle:hover {
   background: rgba(10, 10, 10, 1);
   border-color: rgba(212, 175, 55, 0.3);

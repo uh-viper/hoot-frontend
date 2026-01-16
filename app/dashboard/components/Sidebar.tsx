@@ -160,11 +160,11 @@ export default function Sidebar({ userEmail, credits: initialCredits = 0, isAdmi
   return (
     <>
       <button 
-        className="sidebar-mobile-toggle"
+        className={`sidebar-mobile-toggle ${isMobileMenuOpen ? 'hidden' : ''}`}
         onClick={toggleMobileMenu}
         aria-label="Toggle menu"
       >
-        <span className="material-icons">{isMobileMenuOpen ? 'close' : 'menu'}</span>
+        <span className="material-icons">menu</span>
       </button>
       
       {isMobileMenuOpen && (
