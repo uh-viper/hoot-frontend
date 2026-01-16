@@ -58,7 +58,7 @@ export default async function LearnMore() {
               </div>
               <h2 className="card-title">Getting Started</h2>
               <p className="card-text">
-                Sign up for an account and purchase credits—these credits are your currency for creating TikTok Business Centers. You can create up to 25 Business Centers at once, with a maximum of 50 per day, giving you the flexibility to scale at your own pace.
+                Sign up for an account and purchase credits—these credits are your currency for creating TikTok Business Centers. You can create up to 100 Business Centers at once, with a maximum of 100 business center requests per hour, giving you the flexibility to scale at your own pace.
               </p>
             </div>
 
@@ -78,7 +78,7 @@ export default async function LearnMore() {
               </div>
               <h2 className="card-title">Your Vault</h2>
               <p className="card-text">
-                Once your Business Centers are created, they're securely stored in your vault, ready whenever you need them. To access a Business Center, simply navigate to your vault, select the Business Center you want to use, and click "Log In"—you'll be provided with the email and password for that account.
+                Once your Business Centers are created, they're securely stored in your vault, ready whenever you need them. Simply navigate to your vault to access all your Business Centers and their credentials.
               </p>
             </div>
 
