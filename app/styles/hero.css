@@ -43,19 +43,19 @@
 
 .hero-particle {
   position: absolute;
-  width: 2px;
-  height: 2px;
+  width: 3px;
+  height: 3px;
   background: #d4af37;
   border-radius: 50%;
   opacity: 0;
-  filter: blur(1px);
+  filter: blur(0.5px);
   animation: float-particle 20s infinite linear;
 }
 
 @keyframes float-particle {
   0% { transform: translateY(100vh) translateX(0); opacity: 0; }
-  10% { opacity: 0.4; }
-  90% { opacity: 0.4; }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.6; }
   100% { transform: translateY(-10vh) translateX(20px); opacity: 0; }
 }
 
@@ -84,13 +84,13 @@
 .hero-title {
   font-size: clamp(3.5rem, 8vw, 7.5rem);
   font-weight: 800;
-  line-height: 0.9;
+  line-height: 1.1;
   margin-bottom: 2rem;
   color: #ffffff;
   letter-spacing: -0.04em;
   font-family: var(--font-outfit);
   text-shadow: 
-    0 0 60px rgba(212, 175, 55, 0.2),
+    0 0 40px rgba(212, 175, 55, 0.15),
     0 10px 30px rgba(0, 0, 0, 0.5);
   animation: fadeInUp 0.8s ease-out;
   display: flex;
@@ -110,13 +110,13 @@
 .title-line {
   display: inline-block;
   overflow: visible !important;
-  padding: 0 4rem;
-  margin: -0.2rem 0;
+  padding: 0.2rem 4rem;
+  margin: 0;
   width: auto;
   position: relative;
   white-space: nowrap;
   text-align: center;
-  line-height: 1;
+  line-height: 1.1;
   height: auto;
   min-height: auto;
   clip-path: none !important;
@@ -124,12 +124,12 @@
 }
 
 .title-line.gold-text {
-  padding: 0 4rem;
+  padding: 0.2rem 4rem;
   overflow: visible !important;
   width: auto;
   white-space: nowrap;
   display: inline-block;
-  line-height: 1;
+  line-height: 1.1;
   height: auto;
   min-height: auto;
   clip-path: none !important;
@@ -138,7 +138,7 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  filter: drop-shadow(0 0 30px rgba(212, 175, 55, 0.3));
+  filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.2));
 }
 
 .hero-subtitle {
