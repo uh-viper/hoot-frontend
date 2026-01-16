@@ -123,7 +123,7 @@
 }
 
 .title-line.gold-text {
-  padding: 0.6rem 4rem;
+  padding: 0.2rem 4rem;
   overflow: visible !important;
   width: auto;
   white-space: nowrap;
@@ -138,26 +138,6 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
   filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.15));
-  position: relative;
-}
-
-.title-line.gold-text::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 10%;
-  width: 80%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #d4af37, #f5d142, #d4af37, transparent);
-  background-size: 200% 100%;
-  animation: slither 3s linear infinite;
-  border-radius: 2px;
-  filter: blur(0.5px);
-}
-
-@keyframes slither {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
 }
 
 .hero-subtitle {
