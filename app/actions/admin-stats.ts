@@ -56,24 +56,16 @@ export async function getFilteredStats(startDate: Date, endDate: Date) {
     return sum
   }, 0) ?? 0
 
-  // Fetch user accounts created in date range (successful)
-  const { data: filteredAccounts } = await supabase
-    .from('user_accounts')
-    .select('created_at')
-    .gte('created_at', start)
-    .lte('created_at', end)
-
-  const filteredSuccessful = filteredAccounts?.length ?? 0
-
-  // Fetch user_jobs to get requested and failures in date range
+  // Fetch user_jobs to get requested, successful, and failures in date range
   const { data: jobsInRange } = await supabase
     .from('user_jobs')
-    .select('requested_count, failed_count')
+    .select('requested_count, successful_count, failed_count')
     .gte('created_at', start)
     .lte('created_at', end)
 
   // Sum up the stats from jobs
   const filteredRequested = jobsInRange?.reduce((sum, job) => sum + (job.requested_count || 0), 0) ?? 0
+  const filteredSuccessful = jobsInRange?.reduce((sum, job) => sum + (job.successful_count || 0), 0) ?? 0
   const filteredFailures = jobsInRange?.reduce((sum, job) => sum + (job.failed_count || 0), 0) ?? 0
 
   return {
