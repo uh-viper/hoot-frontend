@@ -1059,6 +1059,96 @@
   transform: none;
 }
 
+/* Delete Action Button */
+.admin-action-btn-delete {
+  background: rgba(244, 67, 54, 0.1);
+  border-color: rgba(244, 67, 54, 0.3);
+  color: #f44336;
+}
+
+.admin-action-btn-delete:hover {
+  background: rgba(244, 67, 54, 0.2);
+  border-color: #f44336;
+}
+
+.admin-action-btn-delete .material-icons {
+  color: #f44336;
+}
+
+/* Delete Modal */
+.admin-modal-delete {
+  border-color: rgba(244, 67, 54, 0.3);
+}
+
+.admin-modal-header-delete {
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-start;
+}
+
+.admin-modal-header-delete h2 {
+  flex: 1;
+  color: #f44336;
+}
+
+.admin-modal-header-delete .admin-modal-close {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+}
+
+.admin-modal-warning {
+  margin: 0 0 1rem 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.admin-modal-warning strong {
+  color: #f44336;
+}
+
+.admin-modal-warning-detail {
+  margin: 0 0 0.75rem 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+}
+
+.admin-modal-delete-list {
+  margin: 0 0 1rem 0;
+  padding-left: 1.5rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  line-height: 1.8;
+}
+
+.admin-modal-delete-list li {
+  margin-bottom: 0.25rem;
+}
+
+.admin-modal-warning-emphasis {
+  margin: 1rem 0 0 0;
+  padding: 1rem;
+  background: rgba(244, 67, 54, 0.1);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  border-radius: 8px;
+  color: #f44336;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.admin-modal-submit-delete {
+  background: rgba(244, 67, 54, 0.2);
+  border: 1px solid rgba(244, 67, 54, 0.4);
+  color: #f44336;
+}
+
+.admin-modal-submit-delete:hover:not(:disabled) {
+  background: #f44336;
+  border-color: #f44336;
+  color: #fff;
+}
+
 /* Management Tab Styles */
 .management-content {
   display: flex;

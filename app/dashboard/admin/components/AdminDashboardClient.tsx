@@ -90,6 +90,8 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
   const [creditAmount, setCreditAmount] = useState('')
   const [isUpdatingCredits, setIsUpdatingCredits] = useState(false)
   const [localUsers, setLocalUsers] = useState<User[]>(users)
+  const [deletingUser, setDeletingUser] = useState<{ userId: string; email: string } | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Calculate initial revenue from all purchases
   const initialRevenue = allPurchases
@@ -147,6 +149,32 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
   useEffect(() => {
     setLocalUsers(users)
   }, [users])
+
+  const handleDeleteUser = async () => {
+    if (!deletingUser) return
+
+    setIsDeleting(true)
+    try {
+      const response = await fetch(`/api/admin/users/${deletingUser.userId}`, {
+        method: 'DELETE',
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete user')
+      }
+
+      // Remove user from local state
+      setLocalUsers(prevUsers => prevUsers.filter(u => u.user_id !== deletingUser.userId))
+      setDeletingUser(null)
+      showSuccess(data.message || 'User deleted successfully')
+    } catch (err: any) {
+      showError(err.message || 'Failed to delete user')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   const handleUpdateCredits = async () => {
     if (!editingCredits || !creditAmount) return
@@ -374,16 +402,27 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
                     </td>
                     <td>{formatDate(user.created_at)}</td>
                     <td>
-                      <button
-                        className="admin-action-btn"
-                        onClick={() => {
-                          setEditingCredits({ userId: user.user_id, currentCredits: user.credits })
-                          setCreditAmount('')
-                        }}
-                        title="Adjust Credits"
-                      >
-                        <span className="material-icons">edit</span>
-                      </button>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button
+                          className="admin-action-btn"
+                          onClick={() => {
+                            setEditingCredits({ userId: user.user_id, currentCredits: user.credits })
+                            setCreditAmount('')
+                          }}
+                          title="Adjust Credits"
+                        >
+                          <span className="material-icons">edit</span>
+                        </button>
+                        {!user.is_admin && (
+                          <button
+                            className="admin-action-btn admin-action-btn-delete"
+                            onClick={() => setDeletingUser({ userId: user.user_id, email: user.email || 'Unknown' })}
+                            title="Delete User"
+                          >
+                            <span className="material-icons">delete</span>
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -739,6 +778,59 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
                 disabled={isUpdatingCredits || !creditAmount || parseFloat(creditAmount) === 0}
               >
                 {isUpdatingCredits ? 'Updating...' : 'Update Credits'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete User Confirmation Modal */}
+      {deletingUser && (
+        <div className="admin-modal-overlay" onClick={() => !isDeleting && setDeletingUser(null)}>
+          <div className="admin-modal admin-modal-delete" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal-header admin-modal-header-delete">
+              <span className="material-icons" style={{ fontSize: '2.5rem', color: '#f44336' }}>warning</span>
+              <h2>Delete User</h2>
+              <button 
+                className="admin-modal-close"
+                onClick={() => setDeletingUser(null)}
+                disabled={isDeleting}
+              >
+                <span className="material-icons">close</span>
+              </button>
+            </div>
+            <div className="admin-modal-content">
+              <p className="admin-modal-warning">
+                Are you sure you want to delete <strong>{deletingUser.email}</strong>?
+              </p>
+              <p className="admin-modal-warning-detail">
+                This action will permanently delete:
+              </p>
+              <ul className="admin-modal-delete-list">
+                <li>User account and profile</li>
+                <li>All credits and purchase history</li>
+                <li>All vault items (accounts)</li>
+                <li>All job history and stats</li>
+                <li>All notifications</li>
+              </ul>
+              <p className="admin-modal-warning-emphasis">
+                This action cannot be undone.
+              </p>
+            </div>
+            <div className="admin-modal-footer">
+              <button
+                className="admin-modal-cancel"
+                onClick={() => setDeletingUser(null)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                className="admin-modal-submit admin-modal-submit-delete"
+                onClick={handleDeleteUser}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete User'}
               </button>
             </div>
           </div>
