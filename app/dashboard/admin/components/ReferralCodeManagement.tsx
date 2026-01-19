@@ -69,7 +69,6 @@ export default function ReferralCodeManagement() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           code: newCode.trim(),
-          description: newDescription.trim() || null,
           free_credits: freeCreditsNum,
         }),
       })
