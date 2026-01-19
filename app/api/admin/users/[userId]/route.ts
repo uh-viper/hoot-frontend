@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateAdmin } from '@/lib/auth/admin'
+import { createClient } from '@supabase/supabase-js'
 
 // DELETE /api/admin/users/[userId] - Delete a user and all their data
 export async function DELETE(
@@ -87,17 +88,35 @@ export async function DELETE(
     }
 
     // 8. Delete the auth user using admin API
-    // Note: This requires service role key which we should have in the supabase client
-    const { error: authDeleteError } = await supabase.auth.admin.deleteUser(userId)
+    // This requires service role key to use auth.admin.deleteUser()
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!serviceRoleKey) {
+      console.error('SUPABASE_SERVICE_ROLE_KEY not configured')
+      return NextResponse.json({ 
+        error: 'Server configuration error: Service role key not available',
+        message: 'User data deleted successfully, but auth record could not be deleted. Please configure SUPABASE_SERVICE_ROLE_KEY.'
+      }, { status: 500 })
+    }
+
+    // Create service role client for admin operations
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
+
+    const { error: authDeleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
 
     if (authDeleteError) {
       console.error('Error deleting auth user:', authDeleteError)
-      // User data is already deleted, log the auth error but return success
-      // The orphaned auth record will prevent re-signup with same email which is acceptable
       return NextResponse.json({ 
-        message: 'User data deleted successfully. Auth record may require manual cleanup.',
+        error: 'Failed to delete auth user',
+        message: 'User data deleted successfully, but auth record deletion failed.',
         warning: authDeleteError.message
-      })
+      }, { status: 500 })
     }
 
     return NextResponse.json({ message: 'User deleted successfully' })
