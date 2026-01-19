@@ -400,28 +400,7 @@ export default function ReferralCodeManagement() {
                           </button>
                         </div>
                       ) : (
-                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                          <span style={{ fontWeight: 500 }}>{code.free_credits || 0}</span>
-                          <button
-                            onClick={() => handleEditCredits(code.id, code.free_credits || 0)}
-                            disabled={isToggling === code.id || isDeleting === code.id || isEditingCredits !== null}
-                            style={{
-                              padding: '0.25rem 0.5rem',
-                              borderRadius: '4px',
-                              border: 'none',
-                              background: 'rgba(212, 175, 55, 0.2)',
-                              color: '#d4af37',
-                              cursor: isToggling === code.id || isDeleting === code.id || isEditingCredits !== null ? 'not-allowed' : 'pointer',
-                              fontSize: '0.75rem',
-                              opacity: isToggling === code.id || isDeleting === code.id || isEditingCredits !== null ? 0.5 : 1,
-                            }}
-                            title="Edit free credits"
-                          >
-                            <span className="material-icons" style={{ fontSize: '0.875rem', verticalAlign: 'middle' }}>
-                              edit
-                            </span>
-                          </button>
-                        </div>
+                        <span style={{ fontWeight: 500 }}>{code.free_credits || 0}</span>
                       )}
                     </td>
                     <td>
@@ -447,7 +426,7 @@ export default function ReferralCodeManagement() {
                       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                         <button
                           onClick={() => handleToggleActive(code.id, code.is_active)}
-                          disabled={isToggling === code.id || isDeleting === code.id}
+                          disabled={isToggling === code.id || isDeleting === code.id || isEditingCredits !== null}
                           style={{
                             padding: '0.5rem 1rem',
                             borderRadius: '6px',
@@ -457,7 +436,7 @@ export default function ReferralCodeManagement() {
                               : 'rgba(76, 175, 80, 0.2)',
                             color: code.is_active ? '#9e9e9e' : '#4caf50',
                             fontWeight: 500,
-                            cursor: isToggling === code.id || isDeleting === code.id ? 'not-allowed' : 'pointer',
+                            cursor: isToggling === code.id || isDeleting === code.id || isEditingCredits !== null ? 'not-allowed' : 'pointer',
                             fontSize: '0.875rem',
                           }}
                         >
@@ -470,8 +449,27 @@ export default function ReferralCodeManagement() {
                           )}
                         </button>
                         <button
+                          onClick={() => handleEditCredits(code.id, code.free_credits || 0)}
+                          disabled={isToggling === code.id || isDeleting === code.id || isEditingCredits !== null}
+                          style={{
+                            padding: '0.5rem 1rem',
+                            borderRadius: '6px',
+                            border: 'none',
+                            background: isEditingCredits === code.id ? 'rgba(212, 175, 55, 0.5)' : 'rgba(212, 175, 55, 0.2)',
+                            color: '#d4af37',
+                            fontWeight: 500,
+                            cursor: isToggling === code.id || isDeleting === code.id || isEditingCredits !== null ? 'not-allowed' : 'pointer',
+                            fontSize: '0.875rem',
+                          }}
+                          title="Edit free credits"
+                        >
+                          <span className="material-icons" style={{ fontSize: '1rem', verticalAlign: 'middle' }}>
+                            edit
+                          </span>
+                        </button>
+                        <button
                           onClick={() => handleDeleteClick(code.id, code.code)}
-                          disabled={isToggling === code.id || isDeleting === code.id}
+                          disabled={isToggling === code.id || isDeleting === code.id || isEditingCredits !== null}
                           style={{
                             padding: '0.5rem 1rem',
                             borderRadius: '6px',
@@ -479,7 +477,7 @@ export default function ReferralCodeManagement() {
                             background: isDeleting === code.id ? 'rgba(244, 67, 54, 0.5)' : 'rgba(244, 67, 54, 0.2)',
                             color: '#f44336',
                             fontWeight: 500,
-                            cursor: isToggling === code.id || isDeleting === code.id ? 'not-allowed' : 'pointer',
+                            cursor: isToggling === code.id || isDeleting === code.id || isEditingCredits !== null ? 'not-allowed' : 'pointer',
                             fontSize: '0.875rem',
                           }}
                         >
