@@ -233,6 +233,21 @@ export default function NotificationManagement() {
   }
 
   const welcomeNotification = notifications.find(n => n.is_welcome_notification)
+  const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false)
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      if (!target.closest('.notification-type-dropdown')) {
+        setIsTypeDropdownOpen(false)
+      }
+    }
+    if (isTypeDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isTypeDropdownOpen])
 
   return (
     <div className="notification-management">
@@ -246,36 +261,25 @@ export default function NotificationManagement() {
         </div>
       </div>
 
-      {/* Welcome Notification Banner */}
-      <div className={`notification-welcome-banner ${welcomeNotification ? 'active' : 'inactive'}`}>
-        <div className="notification-welcome-content">
-          <span className="material-icons notification-welcome-icon">
-            {welcomeNotification ? 'check_circle' : 'info'}
-          </span>
-          <div className="notification-welcome-text">
-            <strong>Welcome Notification</strong>
-            <p>
-              {welcomeNotification 
-                ? `"${welcomeNotification.title}" is set as the welcome notification and will be automatically sent to all new users on signup.`
-                : 'No welcome notification is currently set. Create a notification and mark it as welcome to automatically send it to new users.'}
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Create Notification Form */}
       <div className="notification-form-card">
         <div className="notification-form-header">
-          <span className="material-icons">add_circle</span>
-          <h4>Create New Notification</h4>
+          <div className="notification-form-header-left">
+            <span className="material-icons">add_circle</span>
+            <h4>Create New Notification</h4>
+          </div>
+          <div className={`notification-welcome-indicator ${welcomeNotification ? 'active' : 'inactive'}`}>
+            <span className="material-icons">{welcomeNotification ? 'check_circle' : 'cancel'}</span>
+            <span>Welcome Message</span>
+          </div>
         </div>
         <form onSubmit={handleCreate} className="notification-form">
-          <div className="notification-form-grid">
-            <div className="notification-form-group notification-form-group-full">
+          <div className="notification-form-row">
+            <div className="notification-form-group">
               <label htmlFor="notification-title">
-              <span className="material-icons">title</span>
-              Title
-            </label>
+                <span className="material-icons">title</span>
+                Title
+              </label>
               <input
                 id="notification-title"
                 type="text"
@@ -288,22 +292,64 @@ export default function NotificationManagement() {
             </div>
 
             <div className="notification-form-group">
-              <label htmlFor="notification-type">
+              <label>
                 <span className="material-icons">category</span>
                 Type
               </label>
-              <select
-                id="notification-type"
-                value={newType}
-                onChange={(e) => setNewType(e.target.value as any)}
-                disabled={isCreating}
-                className="notification-select"
-              >
-                <option value="announcement">Announcement</option>
-                <option value="welcome">Welcome</option>
-                <option value="system">System</option>
-                <option value="promotion">Promotion</option>
-              </select>
+              <div className={`notification-type-dropdown ${isTypeDropdownOpen ? 'open' : ''}`}>
+                <button
+                  type="button"
+                  onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
+                  disabled={isCreating}
+                  className="notification-type-dropdown-button"
+                >
+                  <div className="notification-type-selected">
+                    <span 
+                      className="notification-type-icon-small"
+                      style={{ 
+                        backgroundColor: getTypeConfig(newType).bgColor,
+                        color: getTypeConfig(newType).color
+                      }}
+                    >
+                      <span className="material-icons">{getTypeConfig(newType).icon}</span>
+                    </span>
+                    <span>{getTypeConfig(newType).label}</span>
+                  </div>
+                  <span className="material-icons">arrow_drop_down</span>
+                </button>
+                {isTypeDropdownOpen && (
+                  <div className="notification-type-dropdown-menu">
+                    {(['announcement', 'welcome', 'system', 'promotion'] as const).map((type) => {
+                      const config = getTypeConfig(type)
+                      return (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => {
+                            setNewType(type)
+                            setIsTypeDropdownOpen(false)
+                          }}
+                          className={`notification-type-option ${newType === type ? 'active' : ''}`}
+                        >
+                          <span 
+                            className="notification-type-icon-small"
+                            style={{ 
+                              backgroundColor: config.bgColor,
+                              color: config.color
+                            }}
+                          >
+                            <span className="material-icons">{config.icon}</span>
+                          </span>
+                          <span>{config.label}</span>
+                          {newType === type && (
+                            <span className="material-icons">check</span>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
             
@@ -318,13 +364,13 @@ export default function NotificationManagement() {
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="Enter notification message..."
               disabled={isCreating}
-              rows={4}
+              rows={3}
               className="notification-textarea"
             />
           </div>
 
-          <div className="notification-form-options">
-            <label className="notification-checkbox-label">
+          <div className="notification-form-options-row">
+            <label className="notification-checkbox-label-simple">
               <input
                 type="checkbox"
                 checked={sendToAll}
@@ -333,12 +379,9 @@ export default function NotificationManagement() {
                 className="notification-checkbox"
               />
               <span className="notification-checkbox-custom"></span>
-              <div className="notification-checkbox-content">
-                <span className="notification-checkbox-title">Send to all existing users</span>
-                <span className="notification-checkbox-desc">Immediately send this notification to all current users</span>
-              </div>
+              <span>Send to all</span>
             </label>
-            <label className="notification-checkbox-label">
+            <label className="notification-checkbox-label-simple">
               <input
                 type="checkbox"
                 checked={setAsWelcome}
@@ -347,10 +390,7 @@ export default function NotificationManagement() {
                 className="notification-checkbox"
               />
               <span className="notification-checkbox-custom"></span>
-              <div className="notification-checkbox-content">
-                <span className="notification-checkbox-title">Set as welcome notification</span>
-                <span className="notification-checkbox-desc">Automatically send to new users on signup</span>
-              </div>
+              <span>Set as welcome</span>
             </label>
           </div>
 

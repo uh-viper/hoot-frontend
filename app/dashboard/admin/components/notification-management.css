@@ -42,53 +42,30 @@
   margin: 0.25rem 0 0 0;
 }
 
-/* Welcome Banner */
-.notification-welcome-banner {
-  margin-bottom: 2rem;
-  padding: 1.5rem;
-  border-radius: 16px;
-  border: 2px solid;
-  transition: all 0.3s ease;
-}
-
-.notification-welcome-banner.active {
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(76, 175, 80, 0.05));
-  border-color: rgba(76, 175, 80, 0.4);
-}
-
-.notification-welcome-banner.inactive {
-  background: rgba(255, 255, 255, 0.02);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.notification-welcome-content {
+/* Welcome Indicator */
+.notification-welcome-indicator {
   display: flex;
-  align-items: flex-start;
-  gap: 1rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.8);
 }
 
-.notification-welcome-icon {
-  font-size: 2rem;
+.notification-welcome-indicator.active {
+  background: rgba(76, 175, 80, 0.1);
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+.notification-welcome-indicator.active .material-icons {
   color: #4caf50;
-  flex-shrink: 0;
 }
 
-.notification-welcome-text {
-  flex: 1;
-}
-
-.notification-welcome-text strong {
-  display: block;
-  font-size: 1.1rem;
-  color: #fff;
-  margin-bottom: 0.5rem;
-}
-
-.notification-welcome-text p {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.7);
-  line-height: 1.6;
-  font-size: 0.95rem;
+.notification-welcome-indicator.inactive .material-icons {
+  color: rgba(255, 255, 255, 0.4);
 }
 
 /* Form Card */
@@ -96,7 +73,7 @@
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
-  padding: 2rem;
+  padding: 1.5rem;
   margin-bottom: 2.5rem;
   backdrop-filter: blur(10px);
 }
@@ -104,10 +81,16 @@
 .notification-form-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.notification-form-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .notification-form-header .material-icons {
@@ -125,10 +108,10 @@
 .notification-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
-.notification-form-grid {
+.notification-form-row {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 1rem;
@@ -188,18 +171,14 @@
 
 .notification-textarea {
   resize: vertical;
-  min-height: 100px;
+  min-height: 80px;
   line-height: 1.6;
 }
 
-.notification-form-options {
+.notification-form-options-row {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  gap: 1.5rem;
+  padding: 0.75rem 0;
 }
 
 .notification-checkbox-label {
@@ -211,6 +190,20 @@
 }
 
 .notification-checkbox-label:hover {
+  opacity: 0.9;
+}
+
+.notification-checkbox-label-simple {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.notification-checkbox-label-simple:hover {
   opacity: 0.9;
 }
 
@@ -262,6 +255,120 @@
 .notification-checkbox-desc {
   font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.5);
+}
+
+/* Custom Type Dropdown */
+.notification-type-dropdown {
+  position: relative;
+}
+
+.notification-type-dropdown-button {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 1rem;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.3s ease;
+}
+
+.notification-type-dropdown-button:hover:not(:disabled) {
+  border-color: #d4af37;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.notification-type-dropdown-button:focus {
+  outline: none;
+  border-color: #d4af37;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+}
+
+.notification-type-dropdown-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.notification-type-dropdown-button .material-icons:last-child {
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.5);
+  transition: transform 0.3s ease;
+}
+
+.notification-type-dropdown.open .notification-type-dropdown-button .material-icons:last-child {
+  transform: rotate(180deg);
+}
+
+.notification-type-selected {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.notification-type-icon-small {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.notification-type-icon-small .material-icons {
+  font-size: 1rem;
+}
+
+.notification-type-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  background: rgba(20, 20, 20, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 0.5rem;
+  z-index: 100;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+}
+
+.notification-type-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.notification-type-option:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.notification-type-option.active {
+  background: rgba(212, 175, 55, 0.1);
+  color: #d4af37;
+}
+
+.notification-type-option .material-icons:last-child {
+  margin-left: auto;
+  font-size: 1.25rem;
+  color: #d4af37;
 }
 
 .notification-submit-btn {
