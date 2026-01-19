@@ -17,20 +17,21 @@ export async function signUp(formData: FormData) {
     origin = 'http://localhost:3000'
   }
 
-  // Get and normalize referral code if provided
+  // Get and normalize referral code if provided (case-insensitive)
   const rawReferralCode = formData.get('referral') as string | null
   let referralCode: string | null = null
   
   if (rawReferralCode && rawReferralCode.trim()) {
-    // Normalize: uppercase, alphanumeric only
-    referralCode = rawReferralCode.trim().toUpperCase().replace(/[^A-Z0-9]/g, '')
+    // Normalize: uppercase, alphanumeric only (case-insensitive input)
+    const normalizedInput = rawReferralCode.trim().toUpperCase().replace(/[^A-Z0-9]/g, '')
     
     // Validate referral code exists and is active
-    if (referralCode) {
+    // Codes are stored in uppercase in DB, so we can query directly
+    if (normalizedInput) {
       const { data: validCode } = await supabase
         .from('referral_codes')
         .select('id, code')
-        .eq('code', referralCode)
+        .eq('code', normalizedInput) // Direct query since codes are stored uppercase
         .eq('is_active', true)
         .single()
       

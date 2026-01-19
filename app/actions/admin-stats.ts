@@ -27,13 +27,17 @@ export async function getFilteredStats(
   const start = startDate ? dayjs(startDate).utc().toISOString() : null
   const end = endDate ? dayjs(endDate).utc().toISOString() : null
 
-  // If filtering by referral code, get the user IDs with that referral code
+  // If filtering by referral code, get the user IDs with that referral code (case-insensitive)
   let referralUserIds: string[] | null = null
   if (referralCode) {
+    // Normalize referral code (case-insensitive input)
+    const normalizedReferralCode = referralCode.trim().toUpperCase().replace(/[^A-Z0-9]/g, '')
+    
+    // Query directly since codes are stored uppercase in DB
     const { data: referralUsers } = await supabase
       .from('user_profiles')
       .select('user_id')
-      .eq('referral_code', referralCode)
+      .eq('referral_code', normalizedReferralCode)
 
     referralUserIds = referralUsers?.map(u => u.user_id) || []
     
@@ -52,16 +56,23 @@ export async function getFilteredStats(
     }
   }
 
-  // Get total users count (filtered by referral code if specified)
-  let totalUsersQuery = supabase
-    .from('user_profiles')
-    .select('*', { count: 'exact', head: true })
-  
+  // Get total users count (filtered by referral code if specified, case-insensitive)
+  let totalUsers = 0
   if (referralCode) {
-    totalUsersQuery = totalUsersQuery.eq('referral_code', referralCode)
+    // Normalize referral code (case-insensitive input)
+    const normalizedReferralCode = referralCode.trim().toUpperCase().replace(/[^A-Z0-9]/g, '')
+    // Query directly since codes are stored uppercase in DB
+    const { count } = await supabase
+      .from('user_profiles')
+      .select('*', { count: 'exact', head: true })
+      .eq('referral_code', normalizedReferralCode)
+    totalUsers = count || 0
+  } else {
+    const { count } = await supabase
+      .from('user_profiles')
+      .select('*', { count: 'exact', head: true })
+    totalUsers = count || 0
   }
-  
-  const { count: totalUsers } = await totalUsersQuery
 
   // Build accounts query
   let accountsQuery = supabase

@@ -13,14 +13,15 @@ export async function GET(request: NextRequest) {
   const supabase = await createClient()
 
   try {
-    // Normalize code
-    const normalizedCode = code.trim().toUpperCase().replace(/[^A-Z0-9]/g, '')
+    // Normalize code (case-insensitive input)
+    const normalizedInput = code.trim().toUpperCase().replace(/[^A-Z0-9]/g, '')
 
     // Check if code exists and is active
+    // Codes are stored in uppercase in DB, so we can query directly
     const { data: referralCode, error } = await supabase
       .from('referral_codes')
       .select('id, code, is_active')
-      .eq('code', normalizedCode)
+      .eq('code', normalizedInput) // Direct query since codes are stored uppercase
       .eq('is_active', true)
       .single()
 
