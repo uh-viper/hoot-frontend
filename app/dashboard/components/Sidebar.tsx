@@ -18,6 +18,7 @@ export default function Sidebar({ userEmail, credits: initialCredits = 0, isAdmi
   const router = useRouter();
   const [isNavigating, setIsNavigating] = useState(false);
   const [credits, setCredits] = useState(initialCredits);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   useEffect(() => {
     setIsNavigating(false);
@@ -108,6 +109,34 @@ export default function Sidebar({ userEmail, credits: initialCredits = 0, isAdmi
     fetchCredits();
   }, [pathname]);
 
+  // Fetch unread notifications count
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await fetch('/api/notifications/unread-count');
+        if (response.ok) {
+          const data = await response.json();
+          setUnreadNotifications(data.unread_count || 0);
+        }
+      } catch (err) {
+        console.error('Error fetching unread notifications count:', err);
+      }
+    };
+
+    fetchUnreadCount();
+
+    // Listen for notifications update events
+    const handleNotificationsUpdated = () => {
+      fetchUnreadCount();
+    };
+
+    window.addEventListener('notifications-updated', handleNotificationsUpdated);
+
+    return () => {
+      window.removeEventListener('notifications-updated', handleNotificationsUpdated);
+    };
+  }, [pathname]);
+
   const menuItems = [
     {
       icon: "dashboard",
@@ -128,6 +157,12 @@ export default function Sidebar({ userEmail, credits: initialCredits = 0, isAdmi
       icon: "payment",
       label: "Credits",
       path: "/dashboard/credits",
+    },
+    {
+      icon: "notifications",
+      label: "Notifications",
+      path: "/dashboard/notifications",
+      badge: unreadNotifications > 0 ? unreadNotifications : undefined,
     },
     // Add admin link before settings if user is admin
     ...(isAdmin ? [{
@@ -187,6 +222,7 @@ export default function Sidebar({ userEmail, credits: initialCredits = 0, isAdmi
       <nav className="sidebar-nav">
         {menuItems.map((item) => {
           const isActive = pathname === item.path;
+          const badge = 'badge' in item ? item.badge : undefined;
           return (
             <Link
               key={item.path}
@@ -197,6 +233,9 @@ export default function Sidebar({ userEmail, credits: initialCredits = 0, isAdmi
             >
               <span className="material-icons">{item.icon}</span>
               <span>{item.label}</span>
+              {badge !== undefined && badge > 0 && (
+                <span className="sidebar-badge">{badge > 99 ? '99+' : badge}</span>
+              )}
             </Link>
           );
         })}

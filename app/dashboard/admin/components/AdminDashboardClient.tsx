@@ -14,6 +14,7 @@ import {
 import DomainManagement from './DomainManagement'
 import MaintenanceMode from './MaintenanceMode'
 import ReferralCodeManagement from './ReferralCodeManagement'
+import NotificationManagement from './NotificationManagement'
 import './admin-client.css'
 
 interface User {
@@ -658,6 +659,9 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
             </div>
             <div className="management-section">
               <ReferralCodeManagement />
+            </div>
+            <div className="management-section">
+              <NotificationManagement />
             </div>
             <div className="management-section">
               <h3 className="management-section-title">

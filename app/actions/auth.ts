@@ -108,6 +108,29 @@ export async function signUp(formData: FormData) {
         console.log(`[REFERRAL] Granted ${freeCreditsToGrant} free credits to user ${authData.user.id} from referral code ${referralCode}`)
       }
     }
+
+    // Send welcome notification if one exists
+    try {
+      const { data: welcomeNotification } = await supabase
+        .from('notifications')
+        .select('id')
+        .eq('is_welcome_notification', true)
+        .eq('is_active', true)
+        .single()
+
+      if (welcomeNotification) {
+        await supabase
+          .from('user_notifications')
+          .insert({
+            user_id: authData.user.id,
+            notification_id: welcomeNotification.id,
+          })
+        console.log(`[NOTIFICATION] Sent welcome notification to user ${authData.user.id}`)
+      }
+    } catch (notificationError) {
+      // Don't fail signup if notification fails, just log it
+      console.error('Error sending welcome notification:', notificationError)
+    }
   }
 
   // Return success instead of redirecting
