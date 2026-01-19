@@ -73,7 +73,7 @@ export async function PATCH(
     }
 
     // Build update object
-    const updateData: { is_active?: boolean; description?: string } = {}
+    const updateData: { is_active?: boolean; description?: string | null } = {}
     if (typeof is_active === 'boolean') {
       updateData.is_active = is_active
     }
