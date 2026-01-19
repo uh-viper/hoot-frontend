@@ -8,6 +8,7 @@ interface ReferralCode {
   code: string
   description: string | null
   is_active: boolean
+  free_credits: number
   usage_count: number
   created_at: string
   updated_at: string
@@ -20,8 +21,11 @@ export default function ReferralCodeManagement() {
   const [isAdding, setIsAdding] = useState(false)
   const [newCode, setNewCode] = useState('')
   const [newDescription, setNewDescription] = useState('')
+  const [newFreeCredits, setNewFreeCredits] = useState('0')
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
   const [isToggling, setIsToggling] = useState<string | null>(null)
+  const [isEditingCredits, setIsEditingCredits] = useState<string | null>(null)
+  const [editingCreditsValue, setEditingCreditsValue] = useState('')
   const [deleteModal, setDeleteModal] = useState<{ codeId: string; code: string } | null>(null)
 
   // Fetch referral codes on mount
@@ -54,12 +58,20 @@ export default function ReferralCodeManagement() {
     showInfo('Adding referral code...')
 
     try {
+      const freeCreditsNum = parseInt(newFreeCredits) || 0
+      if (freeCreditsNum < 0 || freeCreditsNum > 1000000) {
+        showError('Free credits must be between 0 and 1,000,000')
+        setIsAdding(false)
+        return
+      }
+
       const response = await fetch('/api/admin/referral-codes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           code: newCode.trim(),
           description: newDescription.trim() || null,
+          free_credits: freeCreditsNum,
         }),
       })
 
@@ -72,6 +84,7 @@ export default function ReferralCodeManagement() {
       showSuccess('Referral code added successfully')
       setNewCode('')
       setNewDescription('')
+      setNewFreeCredits('0')
       fetchReferralCodes()
     } catch (err: any) {
       showError(err.message || 'Failed to add referral code')
@@ -102,6 +115,45 @@ export default function ReferralCodeManagement() {
     } finally {
       setIsToggling(null)
     }
+  }
+
+  const handleEditCredits = (codeId: string, currentCredits: number) => {
+    setIsEditingCredits(codeId)
+    setEditingCreditsValue(currentCredits.toString())
+  }
+
+  const handleSaveCredits = async (codeId: string) => {
+    const creditsNum = parseInt(editingCreditsValue) || 0
+    if (creditsNum < 0 || creditsNum > 1000000) {
+      showError('Free credits must be between 0 and 1,000,000')
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/admin/referral-codes/${codeId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ free_credits: creditsNum }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update free credits')
+      }
+
+      showSuccess('Free credits updated successfully')
+      setIsEditingCredits(null)
+      setEditingCreditsValue('')
+      fetchReferralCodes()
+    } catch (err: any) {
+      showError(err.message || 'Failed to update free credits')
+    }
+  }
+
+  const handleCancelEditCredits = () => {
+    setIsEditingCredits(null)
+    setEditingCreditsValue('')
   }
 
   const handleDeleteClick = (codeId: string, code: string) => {
@@ -214,6 +266,30 @@ export default function ReferralCodeManagement() {
                 }}
               />
             </div>
+            <div style={{ flex: '1', minWidth: '120px' }}>
+              <label htmlFor="referral-credits-input" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+                Free Credits
+              </label>
+              <input
+                id="referral-credits-input"
+                type="number"
+                value={newFreeCredits}
+                onChange={(e) => setNewFreeCredits(e.target.value)}
+                placeholder="0"
+                disabled={isAdding}
+                min="0"
+                max="1000000"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  color: '#fff',
+                  fontSize: '1rem',
+                }}
+              />
+            </div>
             <button
               type="submit"
               disabled={isAdding || !newCode.trim()}
@@ -251,6 +327,7 @@ export default function ReferralCodeManagement() {
                 <tr>
                   <th>Code</th>
                   <th>Description</th>
+                  <th>Free Credits</th>
                   <th>Status</th>
                   <th>Usage</th>
                   <th>Created</th>
@@ -265,6 +342,87 @@ export default function ReferralCodeManagement() {
                     </td>
                     <td style={{ opacity: code.description ? 1 : 0.5 }}>
                       {code.description || 'No description'}
+                    </td>
+                    <td>
+                      {isEditingCredits === code.id ? (
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          <input
+                            type="number"
+                            value={editingCreditsValue}
+                            onChange={(e) => setEditingCreditsValue(e.target.value)}
+                            min="0"
+                            max="1000000"
+                            style={{
+                              width: '80px',
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: '4px',
+                              border: '1px solid rgba(255, 255, 255, 0.2)',
+                              background: 'rgba(255, 255, 255, 0.1)',
+                              color: '#fff',
+                              fontSize: '0.875rem',
+                            }}
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleSaveCredits(code.id)
+                              } else if (e.key === 'Escape') {
+                                handleCancelEditCredits()
+                              }
+                            }}
+                          />
+                          <button
+                            onClick={() => handleSaveCredits(code.id)}
+                            style={{
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: '4px',
+                              border: 'none',
+                              background: '#4caf50',
+                              color: '#fff',
+                              cursor: 'pointer',
+                              fontSize: '0.75rem',
+                            }}
+                          >
+                            ✓
+                          </button>
+                          <button
+                            onClick={handleCancelEditCredits}
+                            style={{
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: '4px',
+                              border: 'none',
+                              background: 'rgba(158, 158, 158, 0.3)',
+                              color: '#fff',
+                              cursor: 'pointer',
+                              fontSize: '0.75rem',
+                            }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          <span style={{ fontWeight: 500 }}>{code.free_credits || 0}</span>
+                          <button
+                            onClick={() => handleEditCredits(code.id, code.free_credits || 0)}
+                            disabled={isToggling === code.id || isDeleting === code.id || isEditingCredits !== null}
+                            style={{
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: '4px',
+                              border: 'none',
+                              background: 'rgba(212, 175, 55, 0.2)',
+                              color: '#d4af37',
+                              cursor: isToggling === code.id || isDeleting === code.id || isEditingCredits !== null ? 'not-allowed' : 'pointer',
+                              fontSize: '0.75rem',
+                              opacity: isToggling === code.id || isDeleting === code.id || isEditingCredits !== null ? 0.5 : 1,
+                            }}
+                            title="Edit free credits"
+                          >
+                            <span className="material-icons" style={{ fontSize: '0.875rem', verticalAlign: 'middle' }}>
+                              edit
+                            </span>
+                          </button>
+                        </div>
+                      )}
                     </td>
                     <td>
                       <span

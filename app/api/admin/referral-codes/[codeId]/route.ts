@@ -59,7 +59,7 @@ export async function PATCH(
 
   try {
     const body = await request.json()
-    const { is_active, description } = body
+    const { is_active, description, free_credits } = body
 
     // Check if code exists
     const { data: existing } = await supabase
@@ -72,13 +72,23 @@ export async function PATCH(
       return NextResponse.json({ error: 'Referral code not found' }, { status: 404 })
     }
 
+    // Validate free_credits if provided
+    if (free_credits !== undefined) {
+      if (typeof free_credits !== 'number' || free_credits < 0 || free_credits > 1000000) {
+        return NextResponse.json({ error: 'Free credits must be a number between 0 and 1,000,000' }, { status: 400 })
+      }
+    }
+
     // Build update object
-    const updateData: { is_active?: boolean; description?: string | null } = {}
+    const updateData: { is_active?: boolean; description?: string | null; free_credits?: number } = {}
     if (typeof is_active === 'boolean') {
       updateData.is_active = is_active
     }
     if (typeof description === 'string') {
       updateData.description = description.trim() || null
+    }
+    if (typeof free_credits === 'number') {
+      updateData.free_credits = Math.floor(free_credits) // Ensure integer
     }
 
     if (Object.keys(updateData).length === 0) {

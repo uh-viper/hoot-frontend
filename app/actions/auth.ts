@@ -20,17 +20,18 @@ export async function signUp(formData: FormData) {
   // Get and normalize referral code if provided (case-insensitive)
   const rawReferralCode = formData.get('referral') as string | null
   let referralCode: string | null = null
+  let freeCreditsToGrant = 0
   
   if (rawReferralCode && rawReferralCode.trim()) {
     // Normalize: uppercase, alphanumeric only (case-insensitive input)
     const normalizedInput = rawReferralCode.trim().toUpperCase().replace(/[^A-Z0-9]/g, '')
     
-    // Validate referral code exists and is active
+    // Validate referral code exists and is active, get free_credits value
     // Codes are stored in uppercase in DB, so we can query directly
     if (normalizedInput) {
       const { data: validCode } = await supabase
         .from('referral_codes')
-        .select('id, code')
+        .select('id, code, free_credits')
         .eq('code', normalizedInput) // Direct query since codes are stored uppercase
         .eq('is_active', true)
         .single()
@@ -40,6 +41,8 @@ export async function signUp(formData: FormData) {
       }
       // Use the exact code from database
       referralCode = validCode.code
+      // Get free credits amount (validate it's a valid number and within limits)
+      freeCreditsToGrant = Math.max(0, Math.min(1000000, Math.floor(validCode.free_credits || 0)))
     }
   }
 
@@ -77,6 +80,33 @@ export async function signUp(formData: FormData) {
         .from('user_profiles')
         .update({ referral_code: referralCode })
         .eq('user_id', authData.user.id)
+    }
+    
+    // Grant free credits if referral code has free_credits > 0
+    // Security: Only grant during signup, validate amount is within limits (0-1,000,000)
+    if (freeCreditsToGrant > 0) {
+      // Get current credits
+      const { data: currentCredits } = await supabase
+        .from('user_credits')
+        .select('credits')
+        .eq('user_id', authData.user.id)
+        .single()
+      
+      const currentBalance = currentCredits?.credits || 0
+      const newBalance = currentBalance + freeCreditsToGrant
+      
+      // Update credits (secure: only during signup, validated amount)
+      const { error: creditsError } = await supabase
+        .from('user_credits')
+        .update({ credits: newBalance })
+        .eq('user_id', authData.user.id)
+      
+      if (creditsError) {
+        console.error('Error granting free credits from referral code:', creditsError)
+        // Don't fail signup if credits grant fails, just log it
+      } else {
+        console.log(`[REFERRAL] Granted ${freeCreditsToGrant} free credits to user ${authData.user.id} from referral code ${referralCode}`)
+      }
     }
   }
 

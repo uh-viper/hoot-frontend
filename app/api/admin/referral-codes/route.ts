@@ -54,10 +54,17 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { code, description } = body
+    const { code, description, free_credits } = body
 
     if (!code || typeof code !== 'string') {
       return NextResponse.json({ error: 'Referral code is required' }, { status: 400 })
+    }
+
+    // Validate free_credits if provided
+    if (free_credits !== undefined) {
+      if (typeof free_credits !== 'number' || free_credits < 0 || free_credits > 1000000) {
+        return NextResponse.json({ error: 'Free credits must be a number between 0 and 1,000,000' }, { status: 400 })
+      }
     }
 
     // Normalize code (uppercase, alphanumeric only)
@@ -88,6 +95,7 @@ export async function POST(request: NextRequest) {
       .insert({
         code: normalizedCode,
         description: description?.trim() || null,
+        free_credits: free_credits !== undefined ? Math.floor(free_credits) : 0,
         is_active: true,
         created_by: user.id,
       })
