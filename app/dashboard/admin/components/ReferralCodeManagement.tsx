@@ -20,7 +20,6 @@ export default function ReferralCodeManagement() {
   const [isLoading, setIsLoading] = useState(true)
   const [isAdding, setIsAdding] = useState(false)
   const [newCode, setNewCode] = useState('')
-  const [newDescription, setNewDescription] = useState('')
   const [newFreeCredits, setNewFreeCredits] = useState('0')
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
   const [isToggling, setIsToggling] = useState<string | null>(null)
@@ -244,28 +243,6 @@ export default function ReferralCodeManagement() {
                 }}
               />
             </div>
-            <div style={{ flex: '2', minWidth: '200px' }}>
-              <label htmlFor="referral-description-input" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
-                Description (optional)
-              </label>
-              <input
-                id="referral-description-input"
-                type="text"
-                value={newDescription}
-                onChange={(e) => setNewDescription(e.target.value)}
-                placeholder="Description..."
-                disabled={isAdding}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: '8px',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  color: '#fff',
-                  fontSize: '1rem',
-                }}
-              />
-            </div>
             <div style={{ flex: '1', minWidth: '120px' }}>
               <label htmlFor="referral-credits-input" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
                 Free Credits
@@ -326,7 +303,6 @@ export default function ReferralCodeManagement() {
               <thead>
                 <tr>
                   <th>Code</th>
-                  <th>Description</th>
                   <th>Free Credits</th>
                   <th>Status</th>
                   <th>Usage</th>
@@ -339,9 +315,6 @@ export default function ReferralCodeManagement() {
                   <tr key={code.id}>
                     <td>
                       <strong style={{ fontFamily: 'monospace', fontSize: '1rem' }}>{code.code}</strong>
-                    </td>
-                    <td style={{ opacity: code.description ? 1 : 0.5 }}>
-                      {code.description || 'No description'}
                     </td>
                     <td>
                       {isEditingCredits === code.id ? (

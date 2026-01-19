@@ -508,11 +508,6 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
                     >
                       <span className="material-icons">card_giftcard</span>
                       {code.code}
-                      {code.description && (
-                        <span style={{ opacity: 0.6, marginLeft: '0.5rem', fontSize: '0.75rem' }}>
-                          ({code.description})
-                        </span>
-                      )}
                     </button>
                   ))}
                   {referralCodes.length === 0 && (
