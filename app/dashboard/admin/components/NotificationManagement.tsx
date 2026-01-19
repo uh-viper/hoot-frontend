@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useToast } from '@/app/contexts/ToastContext'
+import './notification-management.css'
 
 interface Notification {
   id: string
@@ -177,23 +178,55 @@ export default function NotificationManagement() {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     })
   }
 
-  const getTypeColor = (type: string) => {
+  const getTypeConfig = (type: string) => {
     switch (type) {
-      case 'announcement': return '#2196f3'
-      case 'welcome': return '#4caf50'
-      case 'system': return '#ff9800'
-      case 'promotion': return '#e91e63'
-      default: return '#9e9e9e'
+      case 'announcement':
+        return {
+          icon: 'campaign',
+          color: '#2196f3',
+          bgColor: 'rgba(33, 150, 243, 0.1)',
+          label: 'Announcement'
+        }
+      case 'welcome':
+        return {
+          icon: 'waving_hand',
+          color: '#4caf50',
+          bgColor: 'rgba(76, 175, 80, 0.1)',
+          label: 'Welcome'
+        }
+      case 'system':
+        return {
+          icon: 'settings',
+          color: '#ff9800',
+          bgColor: 'rgba(255, 152, 0, 0.1)',
+          label: 'System'
+        }
+      case 'promotion':
+        return {
+          icon: 'local_offer',
+          color: '#e91e63',
+          bgColor: 'rgba(233, 30, 99, 0.1)',
+          label: 'Promotion'
+        }
+      default:
+        return {
+          icon: 'notifications',
+          color: '#9e9e9e',
+          bgColor: 'rgba(158, 158, 158, 0.1)',
+          label: 'Notification'
+        }
     }
   }
 
   if (isLoading) {
     return (
-      <div style={{ textAlign: 'center', padding: '2rem' }}>
-        <div className="spinner" style={{ margin: '0 auto 1rem', width: '40px', height: '40px' }}></div>
+      <div className="notification-loading">
+        <div className="notification-spinner"></div>
         <p>Loading notifications...</p>
       </div>
     )
@@ -203,372 +236,290 @@ export default function NotificationManagement() {
 
   return (
     <div className="notification-management">
-      <h3 className="management-section-title">
-        <span className="material-icons">notifications</span>
-        Notifications ({notifications.length})
-      </h3>
-
-      {/* Welcome Notification Status */}
-      <div style={{ 
-        marginBottom: '1.5rem', 
-        padding: '1rem', 
-        background: 'rgba(76, 175, 80, 0.1)', 
-        borderRadius: '8px',
-        border: '1px solid rgba(76, 175, 80, 0.3)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-          <span className="material-icons" style={{ color: '#4caf50' }}>waving_hand</span>
-          <strong>Welcome Notification</strong>
+      <div className="notification-header">
+        <div className="notification-header-content">
+          <span className="material-icons notification-header-icon">notifications</span>
+          <div>
+            <h3 className="notification-title">Notifications</h3>
+            <p className="notification-subtitle">{notifications.length} total notification{notifications.length !== 1 ? 's' : ''}</p>
+          </div>
         </div>
-        <p style={{ opacity: 0.8, fontSize: '0.875rem', margin: 0 }}>
-          {welcomeNotification 
-            ? `"${welcomeNotification.title}" will be sent to new users on signup.`
-            : 'No welcome notification set. Create one and mark it as welcome notification.'}
-        </p>
       </div>
 
-      {/* Create Form */}
-      <div className="domain-add-form">
-        <form onSubmit={handleCreate}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-              <div style={{ flex: '2', minWidth: '200px' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
-                  Title
-                </label>
-                <input
-                  type="text"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder="Notification title"
-                  disabled={isCreating}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    borderRadius: '8px',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    color: '#fff',
-                    fontSize: '1rem',
-                  }}
-                />
-              </div>
-              <div style={{ flex: '1', minWidth: '150px' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
-                  Type
-                </label>
-                <select
-                  value={newType}
-                  onChange={(e) => setNewType(e.target.value as any)}
-                  disabled={isCreating}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    borderRadius: '8px',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    color: '#fff',
-                    fontSize: '1rem',
-                  }}
-                >
-                  <option value="announcement">Announcement</option>
-                  <option value="welcome">Welcome</option>
-                  <option value="system">System</option>
-                  <option value="promotion">Promotion</option>
-                </select>
-              </div>
-            </div>
-            
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
-                Message
-              </label>
-              <textarea
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Notification message..."
+      {/* Welcome Notification Banner */}
+      <div className={`notification-welcome-banner ${welcomeNotification ? 'active' : 'inactive'}`}>
+        <div className="notification-welcome-content">
+          <span className="material-icons notification-welcome-icon">
+            {welcomeNotification ? 'check_circle' : 'info'}
+          </span>
+          <div className="notification-welcome-text">
+            <strong>Welcome Notification</strong>
+            <p>
+              {welcomeNotification 
+                ? `"${welcomeNotification.title}" is set as the welcome notification and will be automatically sent to all new users on signup.`
+                : 'No welcome notification is currently set. Create a notification and mark it as welcome to automatically send it to new users.'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Create Notification Form */}
+      <div className="notification-form-card">
+        <div className="notification-form-header">
+          <span className="material-icons">add_circle</span>
+          <h4>Create New Notification</h4>
+        </div>
+        <form onSubmit={handleCreate} className="notification-form">
+          <div className="notification-form-grid">
+            <div className="notification-form-group notification-form-group-full">
+              <label htmlFor="notification-title">
+              <span className="material-icons">title</span>
+              Title
+            </label>
+              <input
+                id="notification-title"
+                type="text"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                placeholder="Enter notification title..."
                 disabled={isCreating}
-                rows={3}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: '8px',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  color: '#fff',
-                  fontSize: '1rem',
-                  resize: 'vertical',
-                }}
+                className="notification-input"
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={sendToAll}
-                  onChange={(e) => setSendToAll(e.target.checked)}
-                  disabled={isCreating}
-                />
-                <span>Send to all existing users</span>
+            <div className="notification-form-group">
+              <label htmlFor="notification-type">
+                <span className="material-icons">category</span>
+                Type
               </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={setAsWelcome}
-                  onChange={(e) => setSetAsWelcome(e.target.checked)}
-                  disabled={isCreating}
-                />
-                <span>Set as welcome notification (sent to new signups)</span>
-              </label>
-            </div>
-
-            <div>
-              <button
-                type="submit"
-                disabled={isCreating || !newTitle.trim() || !newMessage.trim()}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  borderRadius: '8px',
-                  border: 'none',
-                  background: isCreating ? 'rgba(212, 175, 55, 0.5)' : '#d4af37',
-                  color: '#000',
-                  fontWeight: 600,
-                  cursor: isCreating ? 'not-allowed' : 'pointer',
-                  fontSize: '1rem',
-                }}
+              <select
+                id="notification-type"
+                value={newType}
+                onChange={(e) => setNewType(e.target.value as any)}
+                disabled={isCreating}
+                className="notification-select"
               >
-                {isCreating ? 'Creating...' : 'Create Notification'}
-              </button>
+                <option value="announcement">Announcement</option>
+                <option value="welcome">Welcome</option>
+                <option value="system">System</option>
+                <option value="promotion">Promotion</option>
+              </select>
             </div>
           </div>
+            
+          <div className="notification-form-group">
+            <label htmlFor="notification-message">
+              <span className="material-icons">message</span>
+              Message
+            </label>
+            <textarea
+              id="notification-message"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Enter notification message..."
+              disabled={isCreating}
+              rows={4}
+              className="notification-textarea"
+            />
+          </div>
+
+          <div className="notification-form-options">
+            <label className="notification-checkbox-label">
+              <input
+                type="checkbox"
+                checked={sendToAll}
+                onChange={(e) => setSendToAll(e.target.checked)}
+                disabled={isCreating}
+                className="notification-checkbox"
+              />
+              <span className="notification-checkbox-custom"></span>
+              <div className="notification-checkbox-content">
+                <span className="notification-checkbox-title">Send to all existing users</span>
+                <span className="notification-checkbox-desc">Immediately send this notification to all current users</span>
+              </div>
+            </label>
+            <label className="notification-checkbox-label">
+              <input
+                type="checkbox"
+                checked={setAsWelcome}
+                onChange={(e) => setSetAsWelcome(e.target.checked)}
+                disabled={isCreating}
+                className="notification-checkbox"
+              />
+              <span className="notification-checkbox-custom"></span>
+              <div className="notification-checkbox-content">
+                <span className="notification-checkbox-title">Set as welcome notification</span>
+                <span className="notification-checkbox-desc">Automatically send to new users on signup</span>
+              </div>
+            </label>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isCreating || !newTitle.trim() || !newMessage.trim()}
+            className="notification-submit-btn"
+          >
+            <span className="material-icons">{isCreating ? 'hourglass_empty' : 'send'}</span>
+            {isCreating ? 'Creating...' : 'Create Notification'}
+          </button>
         </form>
       </div>
 
       {/* Notifications List */}
-      <div className="domain-list" style={{ marginTop: '2rem' }}>
+      <div className="notification-list-section">
+        <div className="notification-list-header">
+          <h4>All Notifications</h4>
+          <span className="notification-count-badge">{notifications.length}</span>
+        </div>
+
         {notifications.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '3rem', opacity: 0.6 }}>
-            <span className="material-icons" style={{ fontSize: '3rem', marginBottom: '1rem' }}>
-              notifications_off
-            </span>
-            <p>No notifications created yet</p>
+          <div className="notification-empty">
+            <span className="material-icons">notifications_off</span>
+            <h4>No notifications yet</h4>
+            <p>Create your first notification to start communicating with users</p>
           </div>
         ) : (
-          <div className="admin-table-container domain-list-scrollable">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Title</th>
-                  <th>Type</th>
-                  <th>Sent</th>
-                  <th>Read</th>
-                  <th>Created</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {notifications.map((notification) => (
-                  <tr key={notification.id}>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <strong>{notification.title}</strong>
-                        {notification.is_welcome_notification && (
-                          <span 
-                            title="Welcome notification (sent to new users)"
-                            style={{ 
-                              background: 'rgba(76, 175, 80, 0.2)', 
-                              color: '#4caf50',
-                              padding: '0.15rem 0.5rem',
-                              borderRadius: '4px',
-                              fontSize: '0.7rem',
-                              fontWeight: 600,
-                            }}
-                          >
-                            WELCOME
-                          </span>
-                        )}
-                      </div>
-                      <div style={{ fontSize: '0.8rem', opacity: 0.7, marginTop: '0.25rem' }}>
-                        {notification.message.length > 60 
-                          ? notification.message.substring(0, 60) + '...' 
-                          : notification.message}
-                      </div>
-                    </td>
-                    <td>
-                      <span
-                        style={{
-                          padding: '0.25rem 0.75rem',
-                          borderRadius: '12px',
-                          fontSize: '0.75rem',
-                          fontWeight: 500,
-                          backgroundColor: `${getTypeColor(notification.type)}20`,
-                          color: getTypeColor(notification.type),
-                          textTransform: 'capitalize',
+          <div className="notification-cards">
+            {notifications.map((notification) => {
+              const typeConfig = getTypeConfig(notification.type)
+              const readPercentage = notification.sent_count > 0 
+                ? Math.round((notification.read_count / notification.sent_count) * 100)
+                : 0
+
+              return (
+                <div key={notification.id} className="notification-card">
+                  <div className="notification-card-header">
+                    <div className="notification-card-type">
+                      <div 
+                        className="notification-type-icon"
+                        style={{ 
+                          backgroundColor: typeConfig.bgColor,
+                          color: typeConfig.color
                         }}
                       >
-                        {notification.type}
-                      </span>
-                    </td>
-                    <td>
-                      <span style={{ fontWeight: 500 }}>{notification.sent_count}</span>
-                    </td>
-                    <td>
-                      <span style={{ fontWeight: 500 }}>{notification.read_count}</span>
-                    </td>
-                    <td>{formatDate(notification.created_at)}</td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                        <button
-                          onClick={() => handleSendToAll(notification.id)}
-                          disabled={isSending === notification.id || isDeleting === notification.id}
-                          title="Send to all users"
-                          style={{
-                            padding: '0.5rem 0.75rem',
-                            borderRadius: '6px',
-                            border: 'none',
-                            background: isSending === notification.id ? 'rgba(33, 150, 243, 0.5)' : 'rgba(33, 150, 243, 0.2)',
-                            color: '#2196f3',
-                            fontWeight: 500,
-                            cursor: isSending === notification.id || isDeleting === notification.id ? 'not-allowed' : 'pointer',
-                            fontSize: '0.75rem',
-                          }}
-                        >
-                          {isSending === notification.id ? '...' : 'Send'}
-                        </button>
-                        <button
-                          onClick={() => handleToggleWelcome(notification.id, notification.is_welcome_notification)}
-                          disabled={isTogglingWelcome === notification.id || isDeleting === notification.id}
-                          title={notification.is_welcome_notification ? 'Remove as welcome notification' : 'Set as welcome notification'}
-                          style={{
-                            padding: '0.5rem 0.75rem',
-                            borderRadius: '6px',
-                            border: 'none',
-                            background: notification.is_welcome_notification 
-                              ? 'rgba(76, 175, 80, 0.3)' 
-                              : 'rgba(76, 175, 80, 0.1)',
-                            color: '#4caf50',
-                            fontWeight: 500,
-                            cursor: isTogglingWelcome === notification.id || isDeleting === notification.id ? 'not-allowed' : 'pointer',
-                            fontSize: '0.75rem',
-                          }}
-                        >
-                          <span className="material-icons" style={{ fontSize: '1rem', verticalAlign: 'middle' }}>
-                            {notification.is_welcome_notification ? 'star' : 'star_border'}
-                          </span>
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(notification.id, notification.title)}
-                          disabled={isSending === notification.id || isDeleting === notification.id}
-                          style={{
-                            padding: '0.5rem 0.75rem',
-                            borderRadius: '6px',
-                            border: 'none',
-                            background: isDeleting === notification.id ? 'rgba(244, 67, 54, 0.5)' : 'rgba(244, 67, 54, 0.2)',
-                            color: '#f44336',
-                            fontWeight: 500,
-                            cursor: isSending === notification.id || isDeleting === notification.id ? 'not-allowed' : 'pointer',
-                            fontSize: '0.75rem',
-                          }}
-                        >
-                          <span className="material-icons" style={{ fontSize: '1rem', verticalAlign: 'middle' }}>
-                            delete
-                          </span>
-                        </button>
+                        <span className="material-icons">{typeConfig.icon}</span>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <div className="notification-card-title-group">
+                        <h5 className="notification-card-title">{notification.title}</h5>
+                        <div className="notification-card-badges">
+                          <span 
+                            className="notification-type-badge"
+                            style={{ 
+                              backgroundColor: typeConfig.bgColor,
+                              color: typeConfig.color
+                            }}
+                          >
+                            {typeConfig.label}
+                          </span>
+                          {notification.is_welcome_notification && (
+                            <span className="notification-welcome-badge">
+                              <span className="material-icons">star</span>
+                              Welcome
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="notification-card-date">
+                      {formatDate(notification.created_at)}
+                    </div>
+                  </div>
+
+                  <p className="notification-card-message">{notification.message}</p>
+
+                  <div className="notification-card-stats">
+                    <div className="notification-stat">
+                      <span className="material-icons">send</span>
+                      <div>
+                        <span className="notification-stat-value">{notification.sent_count}</span>
+                        <span className="notification-stat-label">Sent</span>
+                      </div>
+                    </div>
+                    <div className="notification-stat">
+                      <span className="material-icons">visibility</span>
+                      <div>
+                        <span className="notification-stat-value">{notification.read_count}</span>
+                        <span className="notification-stat-label">Read</span>
+                      </div>
+                    </div>
+                    <div className="notification-stat">
+                      <span className="material-icons">trending_up</span>
+                      <div>
+                        <span className="notification-stat-value">{readPercentage}%</span>
+                        <span className="notification-stat-label">Read Rate</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {notification.sent_count > 0 && (
+                    <div className="notification-progress">
+                      <div 
+                        className="notification-progress-bar"
+                        style={{ width: `${readPercentage}%` }}
+                      />
+                    </div>
+                  )}
+
+                  <div className="notification-card-actions">
+                    <button
+                      onClick={() => handleSendToAll(notification.id)}
+                      disabled={isSending === notification.id || isDeleting === notification.id}
+                      className="notification-action-btn notification-action-send"
+                      title="Send to all users"
+                    >
+                      <span className="material-icons">send</span>
+                      {isSending === notification.id ? 'Sending...' : 'Send to All'}
+                    </button>
+                    <button
+                      onClick={() => handleToggleWelcome(notification.id, notification.is_welcome_notification)}
+                      disabled={isTogglingWelcome === notification.id || isDeleting === notification.id}
+                      className={`notification-action-btn notification-action-welcome ${notification.is_welcome_notification ? 'active' : ''}`}
+                      title={notification.is_welcome_notification ? 'Remove as welcome notification' : 'Set as welcome notification'}
+                    >
+                      <span className="material-icons">
+                        {notification.is_welcome_notification ? 'star' : 'star_border'}
+                      </span>
+                      {notification.is_welcome_notification ? 'Welcome' : 'Set Welcome'}
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClick(notification.id, notification.title)}
+                      disabled={isSending === notification.id || isDeleting === notification.id}
+                      className="notification-action-btn notification-action-delete"
+                      title="Delete notification"
+                    >
+                      <span className="material-icons">delete</span>
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         )}
       </div>
 
       {/* Delete Confirmation Modal */}
       {deleteModal && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-          }}
-          onClick={() => setDeleteModal(null)}
-        >
-          <div
-            style={{
-              background: 'rgba(20, 20, 20, 0.95)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '16px',
-              padding: '2rem',
-              maxWidth: '500px',
-              width: '90%',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ marginBottom: '1.5rem' }}>
-              <span
-                className="material-icons"
-                style={{
-                  fontSize: '3rem',
-                  color: '#f44336',
-                  display: 'block',
-                  marginBottom: '1rem',
-                }}
-              >
-                warning
-              </span>
-              <h3
-                style={{
-                  fontSize: '1.5rem',
-                  fontWeight: 600,
-                  marginBottom: '0.5rem',
-                  color: '#fff',
-                }}
-              >
-                Delete Notification?
-              </h3>
-              <p style={{ color: 'rgba(255, 255, 255, 0.7)', lineHeight: '1.6' }}>
-                Are you sure you want to delete &quot;{deleteModal.title}&quot;?
-                This will also remove it from all users&apos; notification lists.
-              </p>
+        <div className="notification-modal-overlay" onClick={() => setDeleteModal(null)}>
+          <div className="notification-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="notification-modal-icon">
+              <span className="material-icons">warning</span>
             </div>
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+            <h3 className="notification-modal-title">Delete Notification?</h3>
+            <p className="notification-modal-message">
+              Are you sure you want to delete &quot;{deleteModal.title}&quot;?
+              This will also remove it from all users&apos; notification lists.
+            </p>
+            <div className="notification-modal-actions">
               <button
                 onClick={() => setDeleteModal(null)}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  borderRadius: '8px',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  background: 'transparent',
-                  color: 'rgba(255, 255, 255, 0.8)',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  fontSize: '1rem',
-                }}
+                className="notification-modal-btn notification-modal-btn-cancel"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteConfirm}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  borderRadius: '8px',
-                  border: 'none',
-                  background: '#f44336',
-                  color: '#fff',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  fontSize: '1rem',
-                }}
+                className="notification-modal-btn notification-modal-btn-delete"
               >
                 Delete
               </button>
