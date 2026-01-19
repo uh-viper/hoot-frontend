@@ -156,7 +156,29 @@ export default function NotificationsClient({ initialNotifications }: Notificati
   return (
     <div className="notifications-container" style={{ marginTop: '2rem' }}>
       {/* Notifications List */}
-      {notifications.length === 0 ? (
+      {isLoading ? (
+        <div style={{ 
+          textAlign: 'center', 
+          padding: '4rem 2rem', 
+          background: 'rgba(255, 255, 255, 0.02)',
+          borderRadius: '16px',
+          border: '1px solid rgba(255, 255, 255, 0.05)',
+        }}>
+          <span 
+            className="material-icons" 
+            style={{ 
+              fontSize: '3rem', 
+              opacity: 0.5, 
+              marginBottom: '1rem', 
+              display: 'block',
+              animation: 'spin 1s linear infinite'
+            }}
+          >
+            refresh
+          </span>
+          <p style={{ opacity: 0.7 }}>Loading notifications...</p>
+        </div>
+      ) : notifications.length === 0 ? (
         <div style={{ 
           textAlign: 'center', 
           padding: '4rem 2rem', 

@@ -396,7 +396,9 @@ export default function NotificationManagement() {
               disabled={isCreating || !newTitle.trim() || !newMessage.trim()}
               className="notification-submit-btn"
             >
-              <span className="material-icons">{isCreating ? 'hourglass_empty' : 'send'}</span>
+              <span className="material-icons" style={isCreating ? { animation: 'spin 1s linear infinite' } : {}}>
+                {isCreating ? 'refresh' : 'send'}
+              </span>
               {isCreating ? 'Creating...' : 'Create Notification'}
             </button>
           </div>

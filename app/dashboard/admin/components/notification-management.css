@@ -523,6 +523,16 @@
   box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
 }
 
+/* Spinner Animation */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.notification-submit-btn .material-icons[style*="animation"] {
+  animation: spin 1s linear infinite;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .notification-form-row {
