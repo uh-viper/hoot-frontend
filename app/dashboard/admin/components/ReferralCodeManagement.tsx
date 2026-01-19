@@ -81,7 +81,6 @@ export default function ReferralCodeManagement() {
 
       showSuccess('Referral code added successfully')
       setNewCode('')
-      setNewDescription('')
       setNewFreeCredits('0')
       fetchReferralCodes()
     } catch (err: any) {
