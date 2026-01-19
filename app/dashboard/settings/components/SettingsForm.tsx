@@ -319,20 +319,47 @@ export default function SettingsForm({ initialName, initialEmail, initialDiscord
         </form>
       </div>
 
-      {/* API Key Settings */}
+      {/* Additional Links */}
       <div className="settings-section-box">
         <div className="settings-section-header">
           <div className="settings-section-icon">
-            <span className="material-icons">key</span>
+            <span className="material-icons">info</span>
           </div>
-          <h2 className="settings-section-title">API Access</h2>
+          <h2 className="settings-section-title">More Information</h2>
         </div>
 
-        <div className="settings-api-content">
-          <div className="settings-api-badge">
-            <span className="material-icons">schedule</span>
-            <span>Coming Soon</span>
-          </div>
+        <div className="settings-policies-grid">
+          <Link href="/learn-more" className="settings-policy-link">
+            <span className="material-icons">article</span>
+            <div className="settings-policy-link-content">
+              <span className="settings-policy-link-title">Learn More</span>
+              <span className="settings-policy-link-subtitle">Discover more about Hoot</span>
+            </div>
+            <span className="material-icons settings-policy-link-arrow">chevron_right</span>
+          </Link>
+
+          <Link href="/contact" className="settings-policy-link">
+            <span className="material-icons">mail</span>
+            <div className="settings-policy-link-content">
+              <span className="settings-policy-link-title">Contact</span>
+              <span className="settings-policy-link-subtitle">Get in touch with our team</span>
+            </div>
+            <span className="material-icons settings-policy-link-arrow">chevron_right</span>
+          </Link>
+
+          <a
+            href="https://discord.gg/b8RSYKNNbR"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="settings-policy-link"
+          >
+            <span className="material-icons">forum</span>
+            <div className="settings-policy-link-content">
+              <span className="settings-policy-link-title">Discord</span>
+              <span className="settings-policy-link-subtitle">Join our community server</span>
+            </div>
+            <span className="material-icons settings-policy-link-arrow">chevron_right</span>
+          </a>
         </div>
       </div>
 
@@ -375,47 +402,20 @@ export default function SettingsForm({ initialName, initialEmail, initialDiscord
         </div>
       </div>
 
-      {/* Additional Links */}
+      {/* API Key Settings */}
       <div className="settings-section-box">
         <div className="settings-section-header">
           <div className="settings-section-icon">
-            <span className="material-icons">info</span>
+            <span className="material-icons">key</span>
           </div>
-          <h2 className="settings-section-title">More Information</h2>
+          <h2 className="settings-section-title">API Access</h2>
         </div>
 
-        <div className="settings-policies-grid">
-          <Link href="/learn-more" className="settings-policy-link">
-            <span className="material-icons">article</span>
-            <div className="settings-policy-link-content">
-              <span className="settings-policy-link-title">Learn More</span>
-              <span className="settings-policy-link-subtitle">Discover more about Hoot</span>
-            </div>
-            <span className="material-icons settings-policy-link-arrow">chevron_right</span>
-          </Link>
-
-          <Link href="/contact" className="settings-policy-link">
-            <span className="material-icons">mail</span>
-            <div className="settings-policy-link-content">
-              <span className="settings-policy-link-title">Contact</span>
-              <span className="settings-policy-link-subtitle">Get in touch with our team</span>
-            </div>
-            <span className="material-icons settings-policy-link-arrow">chevron_right</span>
-          </Link>
-
-          <a
-            href="https://discord.gg/b8RSYKNNbR"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="settings-policy-link"
-          >
-            <span className="material-icons">forum</span>
-            <div className="settings-policy-link-content">
-              <span className="settings-policy-link-title">Discord</span>
-              <span className="settings-policy-link-subtitle">Join our community server</span>
-            </div>
-            <span className="material-icons settings-policy-link-arrow">chevron_right</span>
-          </a>
+        <div className="settings-api-content">
+          <div className="settings-api-badge">
+            <span className="material-icons">schedule</span>
+            <span>Coming Soon</span>
+          </div>
         </div>
       </div>
     </div>
