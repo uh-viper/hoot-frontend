@@ -25,9 +25,6 @@ export default function NotificationsClient({ initialNotifications }: Notificati
   const { showSuccess, showError } = useToast()
   const [notifications, setNotifications] = useState(initialNotifications)
   const [isMarkingRead, setIsMarkingRead] = useState(false)
-  const [isMarkingAllRead, setIsMarkingAllRead] = useState(false)
-
-  const unreadCount = notifications.filter(n => !n.is_read).length
 
   const handleMarkAsRead = async (notificationId: string) => {
     setIsMarkingRead(true)
@@ -58,38 +55,6 @@ export default function NotificationsClient({ initialNotifications }: Notificati
       showError('Failed to mark notification as read')
     } finally {
       setIsMarkingRead(false)
-    }
-  }
-
-  const handleMarkAllAsRead = async () => {
-    if (unreadCount === 0) return
-
-    setIsMarkingAllRead(true)
-    try {
-      const response = await fetch('/api/notifications', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mark_all: true }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to mark all as read')
-      }
-
-      // Update local state
-      setNotifications(prev => 
-        prev.map(n => ({ ...n, is_read: true, read_at: new Date().toISOString() }))
-      )
-
-      showSuccess('All notifications marked as read')
-
-      // Dispatch event to update sidebar badge
-      window.dispatchEvent(new CustomEvent('notifications-updated'))
-    } catch (err) {
-      console.error('Error marking all as read:', err)
-      showError('Failed to mark all notifications as read')
-    } finally {
-      setIsMarkingAllRead(false)
     }
   }
 
@@ -135,32 +100,6 @@ export default function NotificationsClient({ initialNotifications }: Notificati
 
   return (
     <div className="notifications-container" style={{ marginTop: '2rem' }}>
-      {/* Header with Mark All as Read */}
-      {notifications.length > 0 && unreadCount > 0 && (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
-          <button
-            onClick={handleMarkAllAsRead}
-            disabled={isMarkingAllRead}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: '8px',
-              border: 'none',
-              background: 'rgba(212, 175, 55, 0.2)',
-              color: '#d4af37',
-              fontWeight: 500,
-              cursor: isMarkingAllRead ? 'not-allowed' : 'pointer',
-              fontSize: '0.875rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-            }}
-          >
-            <span className="material-icons" style={{ fontSize: '1.1rem' }}>done_all</span>
-            {isMarkingAllRead ? 'Marking...' : 'Mark all as read'}
-          </button>
-        </div>
-      )}
-
       {/* Notifications List */}
       {notifications.length === 0 ? (
         <div style={{ 
