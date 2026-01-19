@@ -27,6 +27,8 @@ export default function NotificationsClient({ initialNotifications }: Notificati
   const pathname = usePathname()
   const [notifications, setNotifications] = useState(initialNotifications)
   const [isMarkingRead, setIsMarkingRead] = useState(false)
+  const [isMarkingUnread, setIsMarkingUnread] = useState(false)
+  const [markingId, setMarkingId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   // Refetch notifications when component mounts or pathname changes
@@ -70,6 +72,7 @@ export default function NotificationsClient({ initialNotifications }: Notificati
   }, [])
 
   const handleMarkAsRead = async (notificationId: string) => {
+    setMarkingId(notificationId)
     setIsMarkingRead(true)
     try {
       const response = await fetch('/api/notifications', {
@@ -82,14 +85,12 @@ export default function NotificationsClient({ initialNotifications }: Notificati
         throw new Error('Failed to mark as read')
       }
 
-      // Update local state
-      setNotifications(prev => 
-        prev.map(n => 
-          n.id === notificationId 
-            ? { ...n, is_read: true, read_at: new Date().toISOString() }
-            : n
-        )
-      )
+      // Refetch to get fresh data
+      const refreshResponse = await fetch('/api/notifications')
+      if (refreshResponse.ok) {
+        const data = await refreshResponse.json()
+        setNotifications(data.notifications || [])
+      }
 
       // Dispatch event to update sidebar badge
       window.dispatchEvent(new CustomEvent('notifications-updated'))
@@ -98,6 +99,39 @@ export default function NotificationsClient({ initialNotifications }: Notificati
       showError('Failed to mark notification as read')
     } finally {
       setIsMarkingRead(false)
+      setMarkingId(null)
+    }
+  }
+
+  const handleMarkAsUnread = async (notificationId: string) => {
+    setMarkingId(notificationId)
+    setIsMarkingUnread(true)
+    try {
+      const response = await fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notification_ids: [notificationId], mark_as_unread: true }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to mark as unread')
+      }
+
+      // Refetch to get fresh data
+      const refreshResponse = await fetch('/api/notifications')
+      if (refreshResponse.ok) {
+        const data = await refreshResponse.json()
+        setNotifications(data.notifications || [])
+      }
+
+      // Dispatch event to update sidebar badge
+      window.dispatchEvent(new CustomEvent('notifications-updated'))
+    } catch (err) {
+      console.error('Error marking notification as unread:', err)
+      showError('Failed to mark notification as unread')
+    } finally {
+      setIsMarkingUnread(false)
+      setMarkingId(null)
     }
   }
 
@@ -167,6 +201,7 @@ export default function NotificationsClient({ initialNotifications }: Notificati
             return (
               <div
                 key={item.id}
+                onClick={!item.is_read ? () => handleMarkAsRead(item.id) : undefined}
                 style={{
                   padding: '1.25rem',
                   background: item.is_read 
@@ -178,6 +213,7 @@ export default function NotificationsClient({ initialNotifications }: Notificati
                     : '1px solid rgba(212, 175, 55, 0.2)',
                   position: 'relative',
                   transition: 'all 0.2s ease',
+                  cursor: !item.is_read ? 'pointer' : 'default',
                 }}
               >
                 {/* Unread indicator */}
@@ -241,23 +277,34 @@ export default function NotificationsClient({ initialNotifications }: Notificati
                       <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>
                         {formatDate(item.created_at)}
                       </span>
-                      {!item.is_read && (
+                      {item.is_read ? (
                         <button
-                          onClick={() => handleMarkAsRead(item.id)}
-                          disabled={isMarkingRead}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleMarkAsUnread(item.id)
+                          }}
+                          disabled={isMarkingUnread && markingId === item.id}
                           style={{
-                            padding: '0.35rem 0.75rem',
+                            padding: '0.35rem',
                             borderRadius: '6px',
                             border: 'none',
-                            background: 'rgba(255, 255, 255, 0.1)',
-                            color: 'rgba(255, 255, 255, 0.8)',
-                            fontWeight: 500,
-                            cursor: isMarkingRead ? 'not-allowed' : 'pointer',
-                            fontSize: '0.75rem',
+                            background: 'transparent',
+                            color: '#4caf50',
+                            cursor: (isMarkingUnread && markingId === item.id) ? 'not-allowed' : 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            opacity: (isMarkingUnread && markingId === item.id) ? 0.5 : 1,
+                            transition: 'opacity 0.2s ease',
                           }}
+                          title="Mark as unread"
                         >
-                          Mark as read
+                          <span className="material-icons" style={{ fontSize: '1.2rem' }}>
+                            check_circle
+                          </span>
                         </button>
+                      ) : (
+                        <div style={{ width: '32px', height: '32px' }} />
                       )}
                     </div>
                   </div>

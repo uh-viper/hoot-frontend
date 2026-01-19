@@ -49,7 +49,7 @@ export async function GET() {
   }
 }
 
-// PATCH /api/notifications - Mark notifications as read
+// PATCH /api/notifications - Mark notifications as read or unread
 export async function PATCH(request: NextRequest) {
   const user = await getSessionUser()
   if (!user) {
@@ -60,7 +60,7 @@ export async function PATCH(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { notification_ids, mark_all } = body
+    const { notification_ids, mark_all, mark_as_unread } = body
 
     if (mark_all === true) {
       // Mark all notifications as read
@@ -83,6 +83,25 @@ export async function PATCH(request: NextRequest) {
 
     if (!notification_ids || !Array.isArray(notification_ids) || notification_ids.length === 0) {
       return NextResponse.json({ error: 'notification_ids array is required' }, { status: 400 })
+    }
+
+    if (mark_as_unread === true) {
+      // Mark specific notifications as unread
+      const { error } = await supabase
+        .from('user_notifications')
+        .update({ 
+          is_read: false, 
+          read_at: null 
+        })
+        .eq('user_id', user.id)
+        .in('id', notification_ids)
+
+      if (error) {
+        console.error('Error marking notifications as unread:', error)
+        return NextResponse.json({ error: 'Failed to mark notifications as unread' }, { status: 500 })
+      }
+
+      return NextResponse.json({ message: 'Notifications marked as unread' })
     }
 
     // Mark specific notifications as read
