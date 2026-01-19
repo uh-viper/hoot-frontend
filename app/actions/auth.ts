@@ -84,22 +84,13 @@ export async function signUp(formData: FormData) {
     
     // Grant free credits if referral code has free_credits > 0
     // Security: Only grant during signup, validate amount is within limits (0-1,000,000)
+    // Uses SECURITY DEFINER function to bypass RLS (users can't UPDATE user_credits directly)
     if (freeCreditsToGrant > 0) {
-      // Get current credits
-      const { data: currentCredits } = await supabase
-        .from('user_credits')
-        .select('credits')
-        .eq('user_id', authData.user.id)
-        .single()
-      
-      const currentBalance = currentCredits?.credits || 0
-      const newBalance = currentBalance + freeCreditsToGrant
-      
-      // Update credits (secure: only during signup, validated amount)
-      const { error: creditsError } = await supabase
-        .from('user_credits')
-        .update({ credits: newBalance })
-        .eq('user_id', authData.user.id)
+      const { error: creditsError } = await supabase.rpc('grant_referral_credits', {
+        p_user_id: authData.user.id,
+        p_credits: freeCreditsToGrant,
+        p_referral_code: referralCode,
+      })
       
       if (creditsError) {
         console.error('Error granting free credits from referral code:', creditsError)
