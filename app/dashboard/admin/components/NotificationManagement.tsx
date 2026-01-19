@@ -268,10 +268,18 @@ export default function NotificationManagement() {
             <span className="material-icons">add_circle</span>
             <h4>Create New Notification</h4>
           </div>
-          <div className={`notification-welcome-indicator ${welcomeNotification ? 'active' : 'inactive'}`}>
-            <span className="material-icons">{welcomeNotification ? 'check_circle' : 'cancel'}</span>
-            <span>Welcome Message</span>
-          </div>
+          {welcomeNotification && (
+            <div className="notification-welcome-indicator active">
+              <span className="material-icons">check_circle</span>
+              <span>Welcome Message</span>
+            </div>
+          )}
+          {!welcomeNotification && (
+            <div className="notification-welcome-indicator inactive">
+              <span className="material-icons">cancel</span>
+              <span>Welcome Message</span>
+            </div>
+          )}
         </div>
         <form onSubmit={handleCreate} className="notification-form">
           <div className="notification-form-row">
