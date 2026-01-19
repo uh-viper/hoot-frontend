@@ -345,60 +345,31 @@ export default function ReferralCodeManagement() {
                     </td>
                     <td>
                       {isEditingCredits === code.id ? (
-                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                          <input
-                            type="number"
-                            value={editingCreditsValue}
-                            onChange={(e) => setEditingCreditsValue(e.target.value)}
-                            min="0"
-                            max="1000000"
-                            style={{
-                              width: '80px',
-                              padding: '0.25rem 0.5rem',
-                              borderRadius: '4px',
-                              border: '1px solid rgba(255, 255, 255, 0.2)',
-                              background: 'rgba(255, 255, 255, 0.1)',
-                              color: '#fff',
-                              fontSize: '0.875rem',
-                            }}
-                            autoFocus
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                handleSaveCredits(code.id)
-                              } else if (e.key === 'Escape') {
-                                handleCancelEditCredits()
-                              }
-                            }}
-                          />
-                          <button
-                            onClick={() => handleSaveCredits(code.id)}
-                            style={{
-                              padding: '0.25rem 0.5rem',
-                              borderRadius: '4px',
-                              border: 'none',
-                              background: '#4caf50',
-                              color: '#fff',
-                              cursor: 'pointer',
-                              fontSize: '0.75rem',
-                            }}
-                          >
-                            ✓
-                          </button>
-                          <button
-                            onClick={handleCancelEditCredits}
-                            style={{
-                              padding: '0.25rem 0.5rem',
-                              borderRadius: '4px',
-                              border: 'none',
-                              background: 'rgba(158, 158, 158, 0.3)',
-                              color: '#fff',
-                              cursor: 'pointer',
-                              fontSize: '0.75rem',
-                            }}
-                          >
-                            ✕
-                          </button>
-                        </div>
+                        <input
+                          type="number"
+                          value={editingCreditsValue}
+                          onChange={(e) => setEditingCreditsValue(e.target.value)}
+                          onBlur={() => handleSaveCredits(code.id)}
+                          min="0"
+                          max="1000000"
+                          style={{
+                            width: '80px',
+                            padding: '0.25rem 0.5rem',
+                            borderRadius: '4px',
+                            border: '1px solid rgba(255, 255, 255, 0.2)',
+                            background: 'rgba(255, 255, 255, 0.1)',
+                            color: '#fff',
+                            fontSize: '0.875rem',
+                          }}
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleSaveCredits(code.id)
+                            } else if (e.key === 'Escape') {
+                              handleCancelEditCredits()
+                            }
+                          }}
+                        />
                       ) : (
                         <span style={{ fontWeight: 500 }}>{code.free_credits || 0}</span>
                       )}
