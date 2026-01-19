@@ -42,18 +42,20 @@ export default async function NotificationsPage() {
   }
 
   // Format notifications for client component
+  type NotificationDetails = {
+    id: string
+    title: string
+    message: string
+    type: string
+    created_at: string
+  }
+  
   const formattedNotifications = (notifications || []).map(n => ({
     id: n.id,
     is_read: n.is_read,
     read_at: n.read_at,
     created_at: n.created_at,
-    notification: n.notification as {
-      id: string
-      title: string
-      message: string
-      type: string
-      created_at: string
-    } | null,
+    notification: n.notification as unknown as NotificationDetails | null,
   })).filter(n => n.notification !== null)
 
   const unreadCount = formattedNotifications.filter(n => !n.is_read).length
