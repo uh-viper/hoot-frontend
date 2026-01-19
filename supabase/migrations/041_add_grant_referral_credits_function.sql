@@ -28,15 +28,8 @@ BEGIN
     RAISE EXCEPTION 'Invalid referral code format';
   END IF;
 
-  -- Validate credits amount (must be between 0 and 1,000,000)
-  v_valid_credits := GREATEST(0, LEAST(1000000, p_credits));
-  
-  -- Skip if no credits to grant
-  IF v_valid_credits <= 0 THEN
-    RETURN;
-  END IF;
-
-  -- SECURITY CHECK 1: Verify referral code exists, is active, and has matching free_credits
+  -- SECURITY CHECK 1: Verify referral code exists, is active, and get free_credits from database
+  -- CRITICAL: We use the database value, NOT the passed parameter, to prevent manipulation
   SELECT id, code, free_credits, is_active
   INTO v_referral_code_record
   FROM public.referral_codes
@@ -47,10 +40,20 @@ BEGIN
     RAISE EXCEPTION 'Referral code not found or inactive: %', v_normalized_code;
   END IF;
 
-  -- SECURITY CHECK 2: Verify the credits amount matches what's in the database
-  IF v_referral_code_record.free_credits != v_valid_credits THEN
-    RAISE EXCEPTION 'Credits mismatch. Referral code % has % credits, but % was requested', 
-      v_normalized_code, v_referral_code_record.free_credits, v_valid_credits;
+  -- SECURITY: Use the credits value from the database, NOT the parameter
+  -- This ensures users can't manipulate the amount - we always use what's stored in DB
+  v_valid_credits := GREATEST(0, LEAST(1000000, v_referral_code_record.free_credits));
+  
+  -- Skip if no credits to grant
+  IF v_valid_credits <= 0 THEN
+    RETURN;
+  END IF;
+
+  -- SECURITY CHECK 2: Verify the passed parameter matches database (for logging/audit)
+  -- This is just a sanity check - we use the DB value regardless
+  IF p_credits IS NOT NULL AND p_credits != v_valid_credits THEN
+    RAISE EXCEPTION 'Credits mismatch. Referral code % has % credits in database, but % was passed', 
+      v_normalized_code, v_valid_credits, p_credits;
   END IF;
 
   -- SECURITY CHECK 3: Verify user profile exists and hasn't already received referral credits
