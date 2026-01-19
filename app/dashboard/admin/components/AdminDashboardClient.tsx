@@ -13,6 +13,7 @@ import {
 } from '@/lib/utils/date-timezone'
 import DomainManagement from './DomainManagement'
 import MaintenanceMode from './MaintenanceMode'
+import ReferralCodeManagement from './ReferralCodeManagement'
 import './admin-client.css'
 
 interface User {
@@ -41,6 +42,13 @@ interface Purchase {
   created_at: string
 }
 
+interface ReferralCode {
+  id: string
+  code: string
+  description: string | null
+  is_active: boolean
+}
+
 interface AdminDashboardClientProps {
   users: User[]
   recentPurchases: Purchase[]
@@ -50,9 +58,10 @@ interface AdminDashboardClientProps {
     totalSuccessful: number
     totalFailures: number
   }
+  referralCodes: ReferralCode[]
 }
 
-export default function AdminDashboardClient({ users, recentPurchases, allPurchases, initialStats }: AdminDashboardClientProps) {
+export default function AdminDashboardClient({ users, recentPurchases, allPurchases, initialStats, referralCodes }: AdminDashboardClientProps) {
   const { showError, showSuccess } = useToast()
   const [selectedTab, setSelectedTab] = useState<'users' | 'purchases' | 'analytics' | 'management'>('users')
   const [searchTerm, setSearchTerm] = useState('')
@@ -64,10 +73,13 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
     totalSuccessful: initialStats.totalSuccessful,
     totalFailures: initialStats.totalFailures,
     revenue: 0, // Will be calculated from allPurchases initially
+    totalUsers: users.length,
   })
   const [isLoadingStats, setIsLoadingStats] = useState(false)
   const [quickDateRange, setQuickDateRange] = useState<'all' | 'today' | 'week' | 'month'>('all')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [isReferralDropdownOpen, setIsReferralDropdownOpen] = useState(false)
+  const [selectedReferralCode, setSelectedReferralCode] = useState<string | null>(null)
   const [purchasesPage, setPurchasesPage] = useState(1)
   const purchasesPerPage = 5
   const [purchaseSearchTerm, setPurchaseSearchTerm] = useState('')
@@ -83,13 +95,17 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
     .filter(p => p.status === 'completed')
     .reduce((sum, p) => sum + (p.amount_paid_cents || 0) / 100, 0)
 
-  // Update stats when date range changes
+  // Update stats when date range or referral code filter changes
   useEffect(() => {
-    if (dateRange) {
+    if (dateRange || selectedReferralCode) {
       setIsLoadingStats(true)
       // Convert local time dates to UTC for the server
-      const { start, end } = localDateRangeToUTC(dateRange.start, dateRange.end)
-      getFilteredStats(start, end)
+      const utcDates = dateRange ? localDateRangeToUTC(dateRange.start, dateRange.end) : null
+      getFilteredStats(
+        utcDates?.start || null, 
+        utcDates?.end || null,
+        selectedReferralCode || undefined
+      )
         .then(stats => {
           if (!stats.error && 'requested' in stats) {
             setFilteredStats({
@@ -97,6 +113,7 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
               totalSuccessful: stats.successful ?? 0,
               totalFailures: stats.failures ?? 0,
               revenue: stats.revenue ?? 0,
+              totalUsers: stats.totalUsers ?? users.length,
             })
           }
           setIsLoadingStats(false)
@@ -108,9 +125,10 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
         totalSuccessful: initialStats.totalSuccessful,
         totalFailures: initialStats.totalFailures,
         revenue: initialRevenue,
+        totalUsers: users.length,
       })
     }
-  }, [dateRange, initialStats, allPurchases, initialRevenue])
+  }, [dateRange, selectedReferralCode, initialStats, allPurchases, initialRevenue, users.length])
 
   // Handle quick date range selection
   const handleQuickDateRange = (range: 'all' | 'today' | 'week' | 'month') => {
@@ -232,20 +250,23 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
     return 'All Time'
   }
 
-  // Close dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement
       if (isDropdownOpen && !target.closest('.admin-date-dropdown')) {
         setIsDropdownOpen(false)
       }
+      if (isReferralDropdownOpen && !target.closest('.admin-referral-dropdown')) {
+        setIsReferralDropdownOpen(false)
+      }
     }
 
-    if (isDropdownOpen) {
+    if (isDropdownOpen || isReferralDropdownOpen) {
       document.addEventListener('mousedown', handleClickOutside)
       return () => document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [isDropdownOpen])
+  }, [isDropdownOpen, isReferralDropdownOpen])
 
   return (
     <div className="admin-dashboard-content">
@@ -452,8 +473,58 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
       {/* Analytics Tab */}
       {selectedTab === 'analytics' && (
         <div className="admin-section">
-          {/* Date Range Dropdown - Top Right */}
-          <div className="admin-date-dropdown-wrapper">
+          {/* Filter Dropdowns - Top Right */}
+          <div className="admin-date-dropdown-wrapper" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            {/* Referral Code Dropdown */}
+            <div className="admin-referral-dropdown admin-date-dropdown">
+              <button
+                className="admin-date-dropdown-toggle"
+                onClick={() => setIsReferralDropdownOpen(!isReferralDropdownOpen)}
+              >
+                <span className="material-icons">card_giftcard</span>
+                <span>{selectedReferralCode || 'All Users'}</span>
+                <span className="material-icons">{isReferralDropdownOpen ? 'expand_less' : 'expand_more'}</span>
+              </button>
+              {isReferralDropdownOpen && (
+                <div className="admin-date-dropdown-menu">
+                  <button
+                    className={`admin-date-dropdown-item ${!selectedReferralCode ? 'active' : ''}`}
+                    onClick={() => {
+                      setSelectedReferralCode(null)
+                      setIsReferralDropdownOpen(false)
+                    }}
+                  >
+                    <span className="material-icons">group</span>
+                    All Users
+                  </button>
+                  {referralCodes.map((code) => (
+                    <button
+                      key={code.id}
+                      className={`admin-date-dropdown-item ${selectedReferralCode === code.code ? 'active' : ''}`}
+                      onClick={() => {
+                        setSelectedReferralCode(code.code)
+                        setIsReferralDropdownOpen(false)
+                      }}
+                    >
+                      <span className="material-icons">card_giftcard</span>
+                      {code.code}
+                      {code.description && (
+                        <span style={{ opacity: 0.6, marginLeft: '0.5rem', fontSize: '0.75rem' }}>
+                          ({code.description})
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                  {referralCodes.length === 0 && (
+                    <div style={{ padding: '0.75rem 1rem', opacity: 0.5, fontSize: '0.875rem' }}>
+                      No referral codes created yet
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Date Range Dropdown */}
             <div className="admin-date-dropdown">
               <button
                 className="admin-date-dropdown-toggle"
@@ -511,9 +582,10 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
               <h3 className="analytics-title">
                 <span className="material-icons">people</span>
                 Total Users
+                {isLoadingStats && <span className="stat-loading">...</span>}
               </h3>
               <div className="analytics-content">
-                <p className="analytics-value">{users.length.toLocaleString()}</p>
+                <p className="analytics-value">{filteredStats.totalUsers.toLocaleString()}</p>
               </div>
             </div>
 
@@ -588,6 +660,9 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
           <div className="management-content">
             <div className="management-section">
               <DomainManagement />
+            </div>
+            <div className="management-section">
+              <ReferralCodeManagement />
             </div>
             <div className="management-section">
               <h3 className="management-section-title">

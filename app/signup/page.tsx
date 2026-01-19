@@ -122,6 +122,17 @@ function SignUpPageContent() {
                 </div>
               </div>
 
+              <div className="form-group">
+                <label htmlFor="referral">Referral Code (optional)</label>
+                <input 
+                  type="text" 
+                  id="referral" 
+                  name="referral" 
+                  placeholder="Enter referral code if you have one"
+                  style={{ textTransform: 'uppercase' }}
+                />
+              </div>
+
               <button type="submit" className="auth-button" disabled={isPending}>
                 <span className="material-icons">person_add</span>
                 {isPending ? "Creating..." : "Create Account"}

@@ -10,7 +10,11 @@ import { validateAdmin } from '@/lib/auth/admin'
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
-export async function getFilteredStats(startDate: Date, endDate: Date) {
+export async function getFilteredStats(
+  startDate: Date | null, 
+  endDate: Date | null,
+  referralCode?: string
+) {
   // Check if user is admin
   const adminCheck = await validateAdmin()
   if (adminCheck.error || !adminCheck.supabase) {
@@ -19,26 +23,73 @@ export async function getFilteredStats(startDate: Date, endDate: Date) {
 
   const supabase = adminCheck.supabase
 
-  // Dates are already converted to UTC on the client side
-  // They represent the start/end of the selected day in the user's local timezone, converted to UTC
-  // Example: Jan 13 00:00 EST = Jan 13 05:00 UTC
-  // The dates are already in UTC, we just need to format them as ISO strings
-  const start = dayjs(startDate).utc().toISOString()
-  const end = dayjs(endDate).utc().toISOString()
+  // Convert dates to ISO strings if provided
+  const start = startDate ? dayjs(startDate).utc().toISOString() : null
+  const end = endDate ? dayjs(endDate).utc().toISOString() : null
 
-  // Fetch accounts created in date range
-  const { count: filteredBCs } = await supabase
+  // If filtering by referral code, get the user IDs with that referral code
+  let referralUserIds: string[] | null = null
+  if (referralCode) {
+    const { data: referralUsers } = await supabase
+      .from('user_profiles')
+      .select('user_id')
+      .eq('referral_code', referralCode)
+
+    referralUserIds = referralUsers?.map(u => u.user_id) || []
+    
+    // If no users found with this referral code, return zeros
+    if (referralUserIds.length === 0) {
+      return {
+        requested: 0,
+        successful: 0,
+        failures: 0,
+        businessCenters: 0,
+        creditsIssued: 0,
+        revenue: 0,
+        purchases: 0,
+        totalUsers: 0,
+      }
+    }
+  }
+
+  // Get total users count (filtered by referral code if specified)
+  let totalUsersQuery = supabase
+    .from('user_profiles')
+    .select('*', { count: 'exact', head: true })
+  
+  if (referralCode) {
+    totalUsersQuery = totalUsersQuery.eq('referral_code', referralCode)
+  }
+  
+  const { count: totalUsers } = await totalUsersQuery
+
+  // Build accounts query
+  let accountsQuery = supabase
     .from('user_accounts')
     .select('*', { count: 'exact', head: true })
-    .gte('created_at', start)
-    .lte('created_at', end)
+  
+  if (start && end) {
+    accountsQuery = accountsQuery.gte('created_at', start).lte('created_at', end)
+  }
+  if (referralUserIds) {
+    accountsQuery = accountsQuery.in('user_id', referralUserIds)
+  }
+  
+  const { count: filteredBCs } = await accountsQuery
 
-  // Fetch purchases in date range
-  const { data: filteredPurchases } = await supabase
+  // Build purchases query
+  let purchasesQuery = supabase
     .from('purchases')
     .select('credits, amount_paid_cents, status')
-    .gte('created_at', start)
-    .lte('created_at', end)
+  
+  if (start && end) {
+    purchasesQuery = purchasesQuery.gte('created_at', start).lte('created_at', end)
+  }
+  if (referralUserIds) {
+    purchasesQuery = purchasesQuery.in('user_id', referralUserIds)
+  }
+  
+  const { data: filteredPurchases } = await purchasesQuery
 
   // Calculate filtered credits issued
   const filteredCreditsIssued = filteredPurchases?.reduce((sum, p) => {
@@ -56,12 +107,19 @@ export async function getFilteredStats(startDate: Date, endDate: Date) {
     return sum
   }, 0) ?? 0
 
-  // Fetch user_jobs to get requested, successful, and failures in date range
-  const { data: jobsInRange } = await supabase
+  // Build user_jobs query
+  let jobsQuery = supabase
     .from('user_jobs')
     .select('requested_count, successful_count, failed_count')
-    .gte('created_at', start)
-    .lte('created_at', end)
+  
+  if (start && end) {
+    jobsQuery = jobsQuery.gte('created_at', start).lte('created_at', end)
+  }
+  if (referralUserIds) {
+    jobsQuery = jobsQuery.in('user_id', referralUserIds)
+  }
+  
+  const { data: jobsInRange } = await jobsQuery
 
   // Sum up the stats from jobs
   const filteredRequested = jobsInRange?.reduce((sum, job) => sum + (job.requested_count || 0), 0) ?? 0
@@ -76,5 +134,6 @@ export async function getFilteredStats(startDate: Date, endDate: Date) {
     creditsIssued: filteredCreditsIssued,
     revenue: filteredRevenue,
     purchases: filteredPurchases?.length ?? 0,
+    totalUsers: totalUsers ?? 0,
   }
 }

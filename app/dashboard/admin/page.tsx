@@ -119,6 +119,12 @@ export default async function AdminDashboardPage() {
     .select('id, user_id, credits, amount_paid_cents, status, created_at')
     .order('created_at', { ascending: false })
 
+  // Get all referral codes for the analytics filter
+  const { data: referralCodes } = await supabase
+    .from('referral_codes')
+    .select('id, code, description, is_active')
+    .order('created_at', { ascending: false })
+
   return (
     <div className="dashboard-content">
       <div className="dashboard-header">
@@ -136,6 +142,7 @@ export default async function AdminDashboardPage() {
           totalSuccessful,
           totalFailures,
         }}
+        referralCodes={referralCodes || []}
       />
     </div>
   )

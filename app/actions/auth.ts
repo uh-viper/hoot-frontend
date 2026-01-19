@@ -17,6 +17,31 @@ export async function signUp(formData: FormData) {
     origin = 'http://localhost:3000'
   }
 
+  // Get and normalize referral code if provided
+  const rawReferralCode = formData.get('referral') as string | null
+  let referralCode: string | null = null
+  
+  if (rawReferralCode && rawReferralCode.trim()) {
+    // Normalize: uppercase, alphanumeric only
+    referralCode = rawReferralCode.trim().toUpperCase().replace(/[^A-Z0-9]/g, '')
+    
+    // Validate referral code exists and is active
+    if (referralCode) {
+      const { data: validCode } = await supabase
+        .from('referral_codes')
+        .select('id, code')
+        .eq('code', referralCode)
+        .eq('is_active', true)
+        .single()
+      
+      if (!validCode) {
+        return { error: 'Invalid referral code. Please check and try again.' }
+      }
+      // Use the exact code from database
+      referralCode = validCode.code
+    }
+  }
+
   const data = {
     email: formData.get('email') as string,
     password: formData.get('password') as string,
@@ -24,6 +49,7 @@ export async function signUp(formData: FormData) {
       data: {
         full_name: formData.get('name') as string,
         discord_username: formData.get('discord') as string,
+        referral_code: referralCode,
       },
       emailRedirectTo: `${origin}/auth/callback`,
     },
@@ -43,6 +69,14 @@ export async function signUp(formData: FormData) {
     
     // Ensure user data is initialized (will create if trigger didn't work)
     await initializeUserData(authData.user.id)
+    
+    // Update user profile with referral code if provided
+    if (referralCode) {
+      await supabase
+        .from('user_profiles')
+        .update({ referral_code: referralCode })
+        .eq('user_id', authData.user.id)
+    }
   }
 
   // Return success instead of redirecting
