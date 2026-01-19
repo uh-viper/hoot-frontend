@@ -74,18 +74,10 @@ export async function signUp(formData: FormData) {
     // Ensure user data is initialized (will create if trigger didn't work)
     await initializeUserData(authData.user.id)
     
-    // Update user profile with referral code if provided
+    // Grant free credits and save referral code if provided
+    // The RPC function handles both: saving referral_code to user_profiles AND granting credits
+    // Uses SECURITY DEFINER function to bypass RLS
     if (referralCode) {
-      await supabase
-        .from('user_profiles')
-        .update({ referral_code: referralCode })
-        .eq('user_id', authData.user.id)
-    }
-    
-    // Grant free credits if referral code has free_credits > 0
-    // Security: Only grant during signup, validate amount is within limits (0-1,000,000)
-    // Uses SECURITY DEFINER function to bypass RLS (users can't UPDATE user_credits directly)
-    if (freeCreditsToGrant > 0) {
       const { error: creditsError } = await supabase.rpc('grant_referral_credits', {
         p_user_id: authData.user.id,
         p_credits: freeCreditsToGrant,
@@ -93,10 +85,14 @@ export async function signUp(formData: FormData) {
       })
       
       if (creditsError) {
-        console.error('Error granting free credits from referral code:', creditsError)
-        // Don't fail signup if credits grant fails, just log it
+        console.error('Error granting referral credits:', creditsError)
+        // Fallback: try to at least save the referral code to user_profiles
+        await supabase
+          .from('user_profiles')
+          .update({ referral_code: referralCode.toUpperCase() })
+          .eq('user_id', authData.user.id)
       } else {
-        console.log(`[REFERRAL] Granted ${freeCreditsToGrant} free credits to user ${authData.user.id} from referral code ${referralCode}`)
+        console.log(`[REFERRAL] Processed referral code ${referralCode} for user ${authData.user.id}, credits: ${freeCreditsToGrant}`)
       }
     }
 
