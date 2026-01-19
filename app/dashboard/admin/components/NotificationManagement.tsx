@@ -31,12 +31,28 @@ export default function NotificationManagement() {
   const [newType, setNewType] = useState<'announcement' | 'welcome' | 'system' | 'promotion'>('announcement')
   const [sendToAll, setSendToAll] = useState(false)
   const [setAsWelcome, setSetAsWelcome] = useState(false)
+  const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false)
   
   const [deleteModal, setDeleteModal] = useState<{ id: string; title: string } | null>(null)
 
   useEffect(() => {
     fetchNotifications()
   }, [])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    if (!isTypeDropdownOpen) return
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      if (!target.closest('.notification-type-dropdown')) {
+        setIsTypeDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [isTypeDropdownOpen])
 
   const fetchNotifications = async () => {
     try {
@@ -233,21 +249,6 @@ export default function NotificationManagement() {
   }
 
   const welcomeNotification = notifications.find(n => n.is_welcome_notification)
-  const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false)
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement
-      if (!target.closest('.notification-type-dropdown')) {
-        setIsTypeDropdownOpen(false)
-      }
-    }
-    if (isTypeDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [isTypeDropdownOpen])
 
   return (
     <div className="notification-management">
