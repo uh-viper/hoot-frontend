@@ -128,7 +128,7 @@ function SignUpPageContent() {
                   type="text" 
                   id="referral" 
                   name="referral" 
-                  placeholder="Enter referral code if you have one"
+                  placeholder="CODE10"
                   style={{ textTransform: 'uppercase' }}
                 />
               </div>

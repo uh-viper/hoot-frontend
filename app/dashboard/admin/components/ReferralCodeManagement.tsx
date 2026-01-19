@@ -177,7 +177,7 @@ export default function ReferralCodeManagement() {
                 type="text"
                 value={newCode}
                 onChange={(e) => setNewCode(e.target.value.toUpperCase())}
-                placeholder="e.g., TWITTER10"
+                placeholder="CODE10"
                 disabled={isAdding}
                 maxLength={20}
                 style={{
@@ -201,7 +201,7 @@ export default function ReferralCodeManagement() {
                 type="text"
                 value={newDescription}
                 onChange={(e) => setNewDescription(e.target.value)}
-                placeholder="e.g., Twitter campaign Jan 2026"
+                placeholder="Description..."
                 disabled={isAdding}
                 style={{
                   width: '100%',
