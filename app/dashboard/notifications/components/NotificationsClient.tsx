@@ -25,27 +25,41 @@ interface NotificationsClientProps {
 export default function NotificationsClient({ initialNotifications }: NotificationsClientProps) {
   const { showSuccess, showError } = useToast()
   const pathname = usePathname()
-  const [notifications, setNotifications] = useState(initialNotifications)
+  // Start with empty array to avoid showing stale data, will fetch immediately
+  const [notifications, setNotifications] = useState<NotificationItem[]>([])
   const [isMarkingRead, setIsMarkingRead] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Refetch notifications when component mounts or pathname changes
+  // Always refetch fresh data on mount and when pathname changes
+  // This ensures we never show stale data when navigating back to the page
   useEffect(() => {
     const fetchNotifications = async () => {
       setIsLoading(true)
       try {
-        const response = await fetch('/api/notifications')
+        // Use cache: 'no-store' to ensure we always get fresh data
+        const response = await fetch('/api/notifications', { 
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache',
+          }
+        })
         if (response.ok) {
           const data = await response.json()
           setNotifications(data.notifications || [])
+        } else {
+          // Fallback to initialNotifications if fetch fails
+          setNotifications(initialNotifications)
         }
       } catch (err) {
         console.error('Error fetching notifications:', err)
+        // Fallback to initialNotifications on error
+        setNotifications(initialNotifications)
       } finally {
         setIsLoading(false)
       }
     }
 
+    // Always fetch fresh data, don't trust initialNotifications
     fetchNotifications()
   }, [pathname])
 
@@ -53,7 +67,7 @@ export default function NotificationsClient({ initialNotifications }: Notificati
   useEffect(() => {
     const handleNotificationsUpdated = async () => {
       try {
-        const response = await fetch('/api/notifications')
+        const response = await fetch('/api/notifications', { cache: 'no-store' })
         if (response.ok) {
           const data = await response.json()
           setNotifications(data.notifications || [])
@@ -83,7 +97,7 @@ export default function NotificationsClient({ initialNotifications }: Notificati
       }
 
       // Refetch to get fresh data from server
-      const refreshResponse = await fetch('/api/notifications')
+      const refreshResponse = await fetch('/api/notifications', { cache: 'no-store' })
       if (refreshResponse.ok) {
         const data = await refreshResponse.json()
         setNotifications(data.notifications || [])
