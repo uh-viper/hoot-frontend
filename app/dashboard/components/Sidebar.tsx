@@ -144,6 +144,12 @@ export default function Sidebar({ userEmail, credits: initialCredits = 0, isAdmi
       path: "/dashboard",
     },
     {
+      icon: "notifications",
+      label: "Notifications",
+      path: "/dashboard/notifications",
+      badge: unreadNotifications > 0 ? unreadNotifications : undefined,
+    },
+    {
       icon: "build",
       label: "Creation",
       path: "/dashboard/creation",
@@ -157,12 +163,6 @@ export default function Sidebar({ userEmail, credits: initialCredits = 0, isAdmi
       icon: "payment",
       label: "Credits",
       path: "/dashboard/credits",
-    },
-    {
-      icon: "notifications",
-      label: "Notifications",
-      path: "/dashboard/notifications",
-      badge: unreadNotifications > 0 ? unreadNotifications : undefined,
     },
     // Add admin link before settings if user is admin
     ...(isAdmin ? [{
