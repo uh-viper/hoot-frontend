@@ -11,6 +11,7 @@ DECLARE
   v_valid_credits INTEGER;
   v_referral_code_record RECORD;
   v_normalized_code TEXT;
+  v_rows_affected INTEGER;
 BEGIN
   -- Validate inputs
   IF p_user_id IS NULL OR p_referral_code IS NULL OR p_referral_code = '' THEN
@@ -42,12 +43,35 @@ BEGIN
   -- Skip if no credits to grant
   IF v_valid_credits <= 0 THEN
     -- Still save the referral code even if no credits
-    INSERT INTO public.user_profiles (user_id, referral_code, created_at, updated_at)
-    VALUES (p_user_id, v_normalized_code, TIMEZONE('utc', NOW()), TIMEZONE('utc', NOW()))
-    ON CONFLICT (user_id) 
-    DO UPDATE SET 
-      referral_code = v_normalized_code,
-      updated_at = TIMEZONE('utc', NOW());
+    UPDATE public.user_profiles
+    SET referral_code = v_normalized_code,
+        updated_at = TIMEZONE('utc', NOW())
+    WHERE user_id = p_user_id;
+
+    GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+
+    -- If UPDATE didn't affect any rows, create the row with user metadata
+    IF v_rows_affected = 0 THEN
+      INSERT INTO public.user_profiles (
+        user_id, 
+        referral_code, 
+        full_name, 
+        email, 
+        discord_username,
+        created_at, 
+        updated_at
+      )
+      SELECT 
+        p_user_id,
+        v_normalized_code,
+        raw_user_meta_data->>'full_name',
+        email,
+        raw_user_meta_data->>'discord_username',
+        TIMEZONE('utc', NOW()),
+        TIMEZONE('utc', NOW())
+      FROM auth.users
+      WHERE id = p_user_id;
+    END IF;
     RETURN;
   END IF;
 
@@ -62,14 +86,38 @@ BEGIN
       updated_at = TIMEZONE('utc', NOW())
   WHERE user_id = p_user_id;
 
-  -- Ensure user_profiles exists and update with referral code
-  -- Use INSERT ... ON CONFLICT to handle both cases: row exists or doesn't exist
-  INSERT INTO public.user_profiles (user_id, referral_code, created_at, updated_at)
-  VALUES (p_user_id, v_normalized_code, TIMEZONE('utc', NOW()), TIMEZONE('utc', NOW()))
-  ON CONFLICT (user_id) 
-  DO UPDATE SET 
-    referral_code = v_normalized_code,
-    updated_at = TIMEZONE('utc', NOW());
+  -- Update user_profiles with referral code
+  -- First try UPDATE (most common case - row should exist from trigger or initializeUserData)
+  UPDATE public.user_profiles
+  SET referral_code = v_normalized_code,
+      updated_at = TIMEZONE('utc', NOW())
+  WHERE user_id = p_user_id;
+
+  GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
+
+  -- If UPDATE didn't affect any rows, the profile doesn't exist yet
+  -- In this case, fetch user metadata from auth.users and create the row
+  IF v_rows_affected = 0 THEN
+    INSERT INTO public.user_profiles (
+      user_id, 
+      referral_code, 
+      full_name, 
+      email, 
+      discord_username,
+      created_at, 
+      updated_at
+    )
+    SELECT 
+      p_user_id,
+      v_normalized_code,
+      raw_user_meta_data->>'full_name',
+      email,
+      raw_user_meta_data->>'discord_username',
+      TIMEZONE('utc', NOW()),
+      TIMEZONE('utc', NOW())
+    FROM auth.users
+    WHERE id = p_user_id;
+  END IF;
 
   RAISE NOTICE 'Granted % referral credits to user % from code %', v_valid_credits, p_user_id, v_normalized_code;
 END;
