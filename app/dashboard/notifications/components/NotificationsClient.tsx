@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useToast } from '@/app/contexts/ToastContext'
+import { usePathname } from 'next/navigation'
 
 interface NotificationItem {
   id: string
@@ -23,8 +24,50 @@ interface NotificationsClientProps {
 
 export default function NotificationsClient({ initialNotifications }: NotificationsClientProps) {
   const { showSuccess, showError } = useToast()
+  const pathname = usePathname()
   const [notifications, setNotifications] = useState(initialNotifications)
   const [isMarkingRead, setIsMarkingRead] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+
+  // Refetch notifications when component mounts or pathname changes
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      setIsLoading(true)
+      try {
+        const response = await fetch('/api/notifications')
+        if (response.ok) {
+          const data = await response.json()
+          setNotifications(data.notifications || [])
+        }
+      } catch (err) {
+        console.error('Error fetching notifications:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchNotifications()
+  }, [pathname])
+
+  // Also listen for notifications-updated events to refetch
+  useEffect(() => {
+    const handleNotificationsUpdated = async () => {
+      try {
+        const response = await fetch('/api/notifications')
+        if (response.ok) {
+          const data = await response.json()
+          setNotifications(data.notifications || [])
+        }
+      } catch (err) {
+        console.error('Error fetching notifications:', err)
+      }
+    }
+
+    window.addEventListener('notifications-updated', handleNotificationsUpdated)
+    return () => {
+      window.removeEventListener('notifications-updated', handleNotificationsUpdated)
+    }
+  }, [])
 
   const handleMarkAsRead = async (notificationId: string) => {
     setIsMarkingRead(true)
