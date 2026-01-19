@@ -306,13 +306,12 @@ export default function NotificationManagement() {
                 >
                   <div className="notification-type-selected">
                     <span 
-                      className="notification-type-icon-small"
+                      className="material-icons"
                       style={{ 
-                        backgroundColor: getTypeConfig(newType).bgColor,
                         color: getTypeConfig(newType).color
                       }}
                     >
-                      <span className="material-icons">{getTypeConfig(newType).icon}</span>
+                      {getTypeConfig(newType).icon}
                     </span>
                     <span>{getTypeConfig(newType).label}</span>
                   </div>
@@ -333,13 +332,12 @@ export default function NotificationManagement() {
                           className={`notification-type-option ${newType === type ? 'active' : ''}`}
                         >
                           <span 
-                            className="notification-type-icon-small"
+                            className="material-icons"
                             style={{ 
-                              backgroundColor: config.bgColor,
                               color: config.color
                             }}
                           >
-                            <span className="material-icons">{config.icon}</span>
+                            {config.icon}
                           </span>
                           <span>{config.label}</span>
                           {newType === type && (
@@ -393,16 +391,15 @@ export default function NotificationManagement() {
               <span className="notification-checkbox-custom"></span>
               <span>Set as welcome</span>
             </label>
+            <button
+              type="submit"
+              disabled={isCreating || !newTitle.trim() || !newMessage.trim()}
+              className="notification-submit-btn"
+            >
+              <span className="material-icons">{isCreating ? 'hourglass_empty' : 'send'}</span>
+              {isCreating ? 'Creating...' : 'Create Notification'}
+            </button>
           </div>
-
-          <button
-            type="submit"
-            disabled={isCreating || !newTitle.trim() || !newMessage.trim()}
-            className="notification-submit-btn"
-          >
-            <span className="material-icons">{isCreating ? 'hourglass_empty' : 'send'}</span>
-            {isCreating ? 'Creating...' : 'Create Notification'}
-          </button>
         </form>
       </div>
 

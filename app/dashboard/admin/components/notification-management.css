@@ -177,8 +177,10 @@
 
 .notification-form-options-row {
   display: flex;
+  align-items: center;
   gap: 1.5rem;
   padding: 0.75rem 0;
+  flex-wrap: wrap;
 }
 
 .notification-checkbox-label {
@@ -311,6 +313,10 @@
   gap: 0.75rem;
 }
 
+.notification-type-selected .material-icons:first-child {
+  font-size: 1.25rem;
+}
+
 .notification-type-icon-small {
   width: 24px;
   height: 24px;
@@ -356,6 +362,10 @@
   text-align: left;
 }
 
+.notification-type-option .material-icons:first-child {
+  font-size: 1.25rem;
+}
+
 .notification-type-option:hover {
   background: rgba(255, 255, 255, 0.05);
 }
@@ -376,16 +386,17 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 1rem 2rem;
+  padding: 0.75rem 1.5rem;
   border-radius: 12px;
   border: none;
   background: linear-gradient(135deg, #d4af37, #c9a030);
   color: #000;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+  margin-left: auto;
 }
 
 .notification-submit-btn:hover:not(:disabled) {
