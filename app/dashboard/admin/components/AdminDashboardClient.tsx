@@ -226,11 +226,11 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
     return matchesSearch && matchesAdminFilter
   })
 
-  // Helper function to get user display name
+  // Helper function to get user Discord username
   const getUserDisplayName = (userId: string): string => {
     const user = localUsers.find(u => u.user_id === userId)
     if (!user) return 'N/A'
-    return user.full_name || user.discord_username || user.email || 'N/A'
+    return user.discord_username || user.email || 'N/A'
   }
 
   // Filter purchases based on search term
