@@ -226,14 +226,23 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
     return matchesSearch && matchesAdminFilter
   })
 
+  // Helper function to get user display name
+  const getUserDisplayName = (userId: string): string => {
+    const user = localUsers.find(u => u.user_id === userId)
+    if (!user) return 'N/A'
+    return user.full_name || user.discord_username || user.email || 'N/A'
+  }
+
   // Filter purchases based on search term
   const filteredPurchases = allPurchases.filter(purchase => {
     if (!purchaseSearchTerm) return true
     
     const searchLower = purchaseSearchTerm.toLowerCase()
+    const userDisplayName = getUserDisplayName(purchase.user_id).toLowerCase()
     return (
       purchase.id.toLowerCase().includes(searchLower) ||
       purchase.user_id.toLowerCase().includes(searchLower) ||
+      userDisplayName.includes(searchLower) ||
       purchase.credits.toString().includes(searchLower) ||
       purchase.status.toLowerCase().includes(searchLower) ||
       (purchase.amount_paid_cents && (purchase.amount_paid_cents / 100).toFixed(2).includes(searchLower))
@@ -454,7 +463,7 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
           <div className="admin-filters">
             <input
               type="text"
-              placeholder="Search purchases by ID, user ID, credits, amount, or status..."
+              placeholder="Search purchases by ID, user, credits, amount, or status..."
               value={purchaseSearchTerm}
               onChange={(e) => setPurchaseSearchTerm(e.target.value)}
               className="admin-search-input"
@@ -466,7 +475,7 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
               <thead>
                 <tr>
                   <th>Purchase ID</th>
-                  <th>User ID</th>
+                  <th>User</th>
                   <th>Credits</th>
                   <th>Amount</th>
                   <th>Status</th>
@@ -477,7 +486,7 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
                 {filteredPurchases.slice(0, purchasesToShow).map((purchase) => (
                   <tr key={purchase.id}>
                     <td className="admin-id-cell">{purchase.id.slice(0, 8)}...</td>
-                    <td className="admin-id-cell">{purchase.user_id.slice(0, 8)}...</td>
+                    <td>{getUserDisplayName(purchase.user_id)}</td>
                     <td>{purchase.credits}</td>
                     <td>${purchase.amount_paid_cents ? (purchase.amount_paid_cents / 100).toFixed(2) : '0.00'}</td>
                     <td>
