@@ -205,42 +205,6 @@ export default function AccountCard({ id, email, password, region, currency, onD
             >
               <span className="material-icons">delete</span>
             </button>
-            <button
-              type="button"
-              className="action-btn coming-soon"
-              disabled
-              aria-label="Coming Soon"
-              title="Coming Soon"
-            >
-              <span className="material-icons">schedule</span>
-            </button>
-            <button
-              type="button"
-              className="action-btn coming-soon"
-              disabled
-              aria-label="Coming Soon"
-              title="Coming Soon"
-            >
-              <span className="material-icons">schedule</span>
-            </button>
-            <button
-              type="button"
-              className="action-btn coming-soon"
-              disabled
-              aria-label="Coming Soon"
-              title="Coming Soon"
-            >
-              <span className="material-icons">schedule</span>
-            </button>
-            <button
-              type="button"
-              className="action-btn coming-soon"
-              disabled
-              aria-label="Coming Soon"
-              title="Coming Soon"
-            >
-              <span className="material-icons">schedule</span>
-            </button>
           </div>
         </div>
       </div>
