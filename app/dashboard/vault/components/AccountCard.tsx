@@ -9,11 +9,14 @@ interface AccountCardProps {
   password: string;
   region?: string | null;
   currency?: string | null;
+  onDelete?: () => void;
 }
 
-export default function AccountCard({ id, email, password, region, currency }: AccountCardProps) {
+export default function AccountCard({ id, email, password, region, currency, onDelete }: AccountCardProps) {
   const { showSuccess, showError, showInfo, removeToast } = useToast();
   const [isFetchingCode, setIsFetchingCode] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const copyToClipboard = async (text: string, type: 'email' | 'password' | 'code'): Promise<boolean> => {
     // Try fallback method first (works better in async contexts)
@@ -118,6 +121,37 @@ export default function AccountCard({ id, email, password, region, currency }: A
     }
   };
 
+  const handleDelete = async () => {
+    if (isDeleting) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/accounts/${id}`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        showSuccess('Account deleted successfully');
+        setShowDeleteConfirm(false);
+        // Notify parent component to refresh accounts list
+        if (onDelete) {
+          onDelete();
+        }
+        // Also dispatch custom event for real-time updates
+        window.dispatchEvent(new CustomEvent('accounts-updated'));
+      } else {
+        showError(data.error || 'Failed to delete account');
+      }
+    } catch (err) {
+      console.error('Error deleting account:', err);
+      showError('Failed to delete account. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="account-card">
       <div className="account-card-header">
@@ -147,6 +181,16 @@ export default function AccountCard({ id, email, password, region, currency }: A
               title={isFetchingCode ? "Fetching code..." : "Fetch Code"}
             >
               <span className="material-icons">mail</span>
+            </button>
+            <button
+              type="button"
+              className="action-btn action-btn-delete"
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={isDeleting}
+              aria-label="Delete Account"
+              title="Delete Account"
+            >
+              <span className="material-icons">delete</span>
             </button>
             <button
               type="button"
@@ -241,6 +285,52 @@ export default function AccountCard({ id, email, password, region, currency }: A
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="account-delete-modal-overlay" onClick={() => !isDeleting && setShowDeleteConfirm(false)}>
+          <div className="account-delete-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="account-delete-modal-header">
+              <span className="material-icons account-delete-warning-icon">warning</span>
+              <h3>Delete Account</h3>
+              <button
+                type="button"
+                className="account-delete-modal-close"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+                aria-label="Close"
+              >
+                <span className="material-icons">close</span>
+              </button>
+            </div>
+            <div className="account-delete-modal-content">
+              <p>Are you sure you want to delete this account?</p>
+              <p className="account-delete-email">{email}</p>
+              <p className="account-delete-warning">
+                This action cannot be undone. The account will be permanently deleted.
+              </p>
+            </div>
+            <div className="account-delete-modal-footer">
+              <button
+                type="button"
+                className="account-delete-cancel"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="account-delete-confirm"
+                onClick={handleDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete Account'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

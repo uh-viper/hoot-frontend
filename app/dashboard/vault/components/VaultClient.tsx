@@ -144,6 +144,7 @@ export default function VaultClient({ initialAccounts }: VaultClientProps) {
                   password={account.password}
                   region={account.region}
                   currency={account.currency}
+                  onDelete={fetchAccounts}
                 />
               ))}
             </div>
