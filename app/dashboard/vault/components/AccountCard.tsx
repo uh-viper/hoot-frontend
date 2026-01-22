@@ -302,7 +302,9 @@ export default function AccountCard({ id, email, password, region, currency, onD
                 onClick={handleDelete}
                 disabled={isDeleting}
               >
-                {isDeleting ? 'Deleting...' : 'Delete Account'}
+                <span className="account-delete-button-text">
+                  {isDeleting ? 'Deleting...' : 'Delete Account'}
+                </span>
               </button>
             </div>
           </div>

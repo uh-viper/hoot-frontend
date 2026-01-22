@@ -515,8 +515,16 @@
   font-weight: 600;
   font-family: var(--font-poppins);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
   border: 1px solid;
+  min-width: 140px;
+  position: relative;
+  overflow: visible;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
 }
 
 .account-delete-cancel {
@@ -545,8 +553,19 @@
 
 .account-delete-cancel:disabled,
 .account-delete-confirm:disabled {
-  opacity: 0.5;
+  opacity: 0.6;
   cursor: not-allowed;
+  pointer-events: none;
+  transform: none !important;
+}
+
+.account-delete-button-text {
+  display: inline-block;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  text-align: center;
+  transition: none;
 }
 
 .vault-load-more {
