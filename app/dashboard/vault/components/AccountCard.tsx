@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useToast } from '../../../contexts/ToastContext';
 
 interface AccountCardProps {
@@ -17,6 +18,18 @@ export default function AccountCard({ id, email, password, region, currency, onD
   const [isFetchingCode, setIsFetchingCode] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (showDeleteConfirm) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showDeleteConfirm]);
 
   const copyToClipboard = async (text: string, type: 'email' | 'password' | 'code'): Promise<boolean> => {
     // Try fallback method first (works better in async contexts)
@@ -286,8 +299,8 @@ export default function AccountCard({ id, email, password, region, currency, onD
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && (
+      {/* Delete Confirmation Modal - Rendered via Portal to avoid CSS transform issues */}
+      {showDeleteConfirm && typeof window !== 'undefined' && createPortal(
         <div className="account-delete-modal-overlay" onClick={() => !isDeleting && setShowDeleteConfirm(false)}>
           <div className="account-delete-modal" onClick={(e) => e.stopPropagation()}>
             <div className="account-delete-modal-header">
@@ -329,7 +342,8 @@ export default function AccountCard({ id, email, password, region, currency, onD
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

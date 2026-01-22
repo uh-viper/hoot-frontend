@@ -397,8 +397,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 9999;
   padding: 1rem;
+  isolation: isolate;
+  transform: none !important;
+  will-change: auto;
 }
 
 .account-delete-modal {
@@ -409,6 +412,9 @@
   max-width: 450px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(244, 67, 54, 0.1);
   overflow: hidden;
+  position: relative;
+  transform: none !important;
+  will-change: auto;
 }
 
 .account-delete-modal-header {
