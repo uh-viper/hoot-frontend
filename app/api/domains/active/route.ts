@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-// GET /api/domains/active - Get all active domains
-// This endpoint is used by backend services to fetch active domains for email routing
+// GET /api/domains/active - Get all active domains with aliases
+// This endpoint is used by backend services to fetch active domains and their aliases
+// Returns: [{ root_domain: "hootserv.onmicrosoft.com", aliases: ["hoot", "example1"] }]
+// Backend can create accounts as: alias+random@root_domain (e.g., hoot+ttusudw4929_xyz@hootserv.onmicrosoft.com)
 // Requires API key authentication via X-API-Key header
 export async function GET(request: NextRequest) {
   try {
@@ -37,10 +39,10 @@ export async function GET(request: NextRequest) {
       }
     )
 
-    // Fetch all domains with status 'active'
+    // Fetch all domains with status 'active' including aliases
     const { data: domains, error } = await supabase
       .from('domains')
-      .select('id, domain_name, status, registrar, cloudflare_zone_id, created_at')
+      .select('id, domain_name, aliases, status, created_at')
       .eq('status', 'active')
       .order('created_at', { ascending: false })
 
@@ -52,10 +54,21 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Return only the domain names as an array
-    const domainNames = domains?.map((domain) => domain.domain_name) || []
+    // Return root domain and aliases for backend to create accounts
+    // Format: [{ root_domain: "hootserv.onmicrosoft.com", aliases: ["hoot", "example1", "example2"] }]
+    const domainsWithAliases = (domains || []).map((domain) => {
+      // Parse aliases from JSON if stored as string
+      const aliases = domain.aliases 
+        ? (typeof domain.aliases === 'string' ? JSON.parse(domain.aliases) : domain.aliases)
+        : []
+      
+      return {
+        root_domain: domain.domain_name,
+        aliases: aliases
+      }
+    })
 
-    return NextResponse.json(domainNames)
+    return NextResponse.json(domainsWithAliases)
   } catch (err: any) {
     console.error('Unexpected error fetching active domains:', err)
     return NextResponse.json(
