@@ -66,8 +66,22 @@ export async function createJob(
     return { success: false, error: 'Not authenticated' }
   }
 
+  // Validate account configs
+  if (!accountConfigs || accountConfigs.length === 0) {
+    return { success: false, error: 'At least one account configuration is required' }
+  }
+
+  if (accountConfigs.length < 5) {
+    return { success: false, error: 'Minimum 5 accounts required' }
+  }
+
+  if (accountConfigs.length > 100) {
+    return { success: false, error: 'Maximum 100 accounts allowed' }
+  }
+
   // Check credits first
-  const creditsCheck = await checkCredits(accounts)
+  const accountsCount = accountConfigs.length
+  const creditsCheck = await checkCredits(accountsCount)
   if (!creditsCheck.hasEnough) {
     return {
       success: false,
