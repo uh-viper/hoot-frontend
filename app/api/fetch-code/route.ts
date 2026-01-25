@@ -1,52 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionUser } from '@/lib/auth/validate-session'
 import { createClient } from '@/lib/supabase/server'
-import { rateLimit } from '@/lib/api/rate-limit'
 
-// Get worker URL from environment variable (server-side only)
-const WORKER_URL = process.env.EMAIL_FETCHER
-const MAX_ATTEMPTS = 3 // Poll up to 3 times
-const POLL_DELAY_MS = 2000 // 2 seconds between attempts
+// Get backend API URL from environment variable
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'http://3.227.169.47:8081'
+const TIMEOUT_MS = 90000 // 90 seconds total timeout
+const POLL_INTERVAL_MS = 2000 // 2 seconds between attempts
 
 interface VerificationCodeResponse {
   found: boolean
-  code?: string
+  code?: string | null
   subject?: string
-  from?: string
+  type?: string
+  to?: string
+  timestamp?: number
+  receivedAt?: string
 }
 
 /**
- * Fetch verification code from Cloudflare Worker
+ * Fetch verification code from Backend API
  * 
  * SECURITY:
  * - Only allows users to fetch codes for their own accounts (verified via user_id)
- * - Worker URL stored in server-side environment variable (EMAIL_FETCHER)
- * - Rate limiting prevents abuse
+ * - Uses JWT authentication (Supabase token) for backend API
  * - UUID validation prevents injection attacks
  * - Generic error messages prevent information leakage
  * - All requests require authentication
+ * - Email is URL-encoded to prevent injection
  */
 export async function POST(request: NextRequest) {
   try {
-    // Validate environment variable is set
-    if (!WORKER_URL) {
-      console.error('EMAIL_FETCHER environment variable is not set')
-      return NextResponse.json(
-        { error: 'Service unavailable' },
-        { status: 503 }
-      )
-    }
-
-    // Rate limiting
-    const rateLimitResult = rateLimit(request)
-    if (!rateLimitResult.success) {
-      return NextResponse.json(
-        { error: rateLimitResult.message || 'Too many requests' },
-        { status: 429 }
-      )
-    }
-
-    // Validate session
+    // Validate session and get JWT token
     const user = await getSessionUser()
     if (!user) {
       return NextResponse.json(
@@ -54,6 +38,19 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       )
     }
+
+    // Get JWT token from Supabase session
+    const supabase = await createClient()
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    
+    if (sessionError || !session?.access_token) {
+      return NextResponse.json(
+        { error: 'Authentication failed' },
+        { status: 401 }
+      )
+    }
+
+    const jwtToken = session.access_token
 
     // Parse request body
     const body = await request.json()
@@ -78,7 +75,6 @@ export async function POST(request: NextRequest) {
 
     // Verify account ownership - CRITICAL SECURITY CHECK
     // Users can ONLY fetch codes for accounts they own
-    const supabase = await createClient()
     const { data: account, error: accountError } = await supabase
       .from('user_accounts')
       .select('id, email, user_id')
@@ -102,9 +98,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Fetch verification code from Cloudflare Worker
-    // Poll for up to MAX_ATTEMPTS times to get the most recent code
-    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    // Poll backend API for verification code (up to 90 seconds)
+    const startTime = Date.now()
+    let attempt = 0
+
+    while (Date.now() - startTime < TIMEOUT_MS) {
+      attempt++
+      
       try {
         // Create abort controller for timeout
         const controller = new AbortController()
@@ -114,10 +114,11 @@ export async function POST(request: NextRequest) {
           // SECURITY: Email is URL-encoded to prevent injection
           // Only emails from user's own accounts are queried (verified above)
           const response = await fetch(
-            `${WORKER_URL}/api/get-code?email=${encodeURIComponent(account.email)}`,
+            `${API_BASE_URL}/api/get-code?email=${encodeURIComponent(account.email)}`,
             {
               method: 'GET',
               headers: {
+                'Authorization': `Bearer ${jwtToken}`,
                 'Content-Type': 'application/json',
               },
               signal: controller.signal,
@@ -126,10 +127,27 @@ export async function POST(request: NextRequest) {
 
           clearTimeout(timeoutId)
 
+          // Handle 401 Unauthorized
+          if (response.status === 401) {
+            return NextResponse.json(
+              { error: 'Unauthorized - authentication failed' },
+              { status: 401 }
+            )
+          }
+
+          // Handle 400 Bad Request
+          if (response.status === 400) {
+            const errorData = await response.json().catch(() => ({}))
+            return NextResponse.json(
+              { error: errorData.error || 'Bad request' },
+              { status: 400 }
+            )
+          }
+
           if (response.ok) {
             const data: VerificationCodeResponse = await response.json()
 
-            // If code is found, return immediately (it's the most recent)
+            // If code is found, return immediately
             if (data.found && data.code) {
               return NextResponse.json({
                 success: true,
@@ -137,33 +155,33 @@ export async function POST(request: NextRequest) {
                 attempts: attempt,
               })
             }
+            // If found: false, continue polling
+          } else {
+            // Non-200 status, log but continue polling
+            console.warn(`Backend API returned status ${response.status}, continuing to poll...`)
           }
         } catch (fetchError: any) {
           clearTimeout(timeoutId)
           // AbortError is expected on timeout, continue polling
           if (fetchError.name !== 'AbortError') {
-            throw fetchError
+            console.warn(`Error fetching code (attempt ${attempt}):`, fetchError)
           }
         }
       } catch (error) {
         // Network errors are okay, continue polling
-        if (attempt === MAX_ATTEMPTS) {
-          console.error(`Error fetching code (final attempt ${attempt}/${MAX_ATTEMPTS}):`, error)
-        }
+        console.warn(`Network error (attempt ${attempt}):`, error)
       }
 
-      // Wait before next attempt (except on last attempt)
-      if (attempt < MAX_ATTEMPTS) {
-        await new Promise((resolve) => setTimeout(resolve, POLL_DELAY_MS))
-      }
+      // Wait before next attempt
+      await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS))
     }
 
-    // No code found after all attempts
+    // No code found after timeout
     return NextResponse.json(
       {
         success: false,
-        error: 'Verification code not found after multiple attempts',
-        attempts: MAX_ATTEMPTS,
+        error: 'Verification code not found after 90 seconds',
+        attempts: attempt,
       },
       { status: 404 }
     )
