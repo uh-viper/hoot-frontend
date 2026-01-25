@@ -8,7 +8,7 @@ Users can generate API keys from the Settings page to authenticate with your bac
 
 API keys are generated as:
 ```
-70 random characters (base64 encoded)
+70 random high-entropy characters
 ```
 
 Example:
