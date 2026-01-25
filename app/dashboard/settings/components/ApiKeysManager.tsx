@@ -125,6 +125,14 @@ export default function ApiKeysManager({}: ApiKeysManagerProps) {
             >
               <span className="material-icons" style={{ fontSize: '1rem' }}>content_copy</span>
             </button>
+            <span style={{ 
+              fontSize: '0.8125rem', 
+              color: 'rgba(255, 255, 255, 0.7)',
+              fontFamily: 'var(--font-poppins)',
+              whiteSpace: 'nowrap'
+            }}>
+              Copy this now. You won't see it again.
+            </span>
           </div>
         )}
 
@@ -157,15 +165,22 @@ export default function ApiKeysManager({}: ApiKeysManagerProps) {
             You do not have an API key yet.
           </div>
         )}
-      </div>
 
-      {/* Loading state */}
-      {isLoading && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'rgba(255, 255, 255, 0.6)' }}>
-          <span className="material-icons spinning">sync</span>
-          <span>Loading...</span>
-        </div>
-      )}
+        {/* Loading state - inline */}
+        {isLoading && (
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '0.5rem', 
+            color: 'rgba(255, 255, 255, 0.6)',
+            fontFamily: 'var(--font-poppins)',
+            fontSize: '0.875rem'
+          }}>
+            <span className="material-icons spinning" style={{ fontSize: '1rem' }}>sync</span>
+            <span>Loading...</span>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
