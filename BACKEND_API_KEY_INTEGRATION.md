@@ -13,12 +13,13 @@ API keys are generated as:
 
 Example:
 ```
-a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8s9T0u1V2w3X4y5Z6a7B8c9D0e1F2g3H4i5J6k7L8m9N0
+Kx9#mP2$vL8&nQ5@wR3%tY7*uI4!zA6^bC1-dE0+fG9_hJ2~kM5&pN8$qR2#sT4%uV6
 ```
 
 - **Length**: Exactly 70 characters
-- **Characters**: Alphanumeric (A-Z, a-z, 0-9) plus `+` and `/` (base64)
+- **Characters**: Alphanumeric (A-Z, a-z, 0-9) plus special characters: `-_~!@#$%^&*()+=[]{}|;:,.<>?`
 - **No prefix**: Just the 70 characters directly
+- **High entropy**: Cryptographically secure random generation
 
 ## Database Schema
 
