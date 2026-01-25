@@ -90,6 +90,13 @@ export default function AccountCard({ id, email, password, region, currency, onD
     setIsFetchingCode(true);
     const fetchingToastId = showInfo('Fetching verification code...');
 
+    // Client-side timeout (15 seconds) - prevents infinite spinning
+    const timeoutId = setTimeout(() => {
+      setIsFetchingCode(false);
+      removeToast(fetchingToastId);
+      showError('Request timed out. No verification code found. Please try again later.');
+    }, 15000); // 15 second client timeout
+
     try {
       const response = await fetch('/api/fetch-code', {
         method: 'POST',
@@ -98,6 +105,9 @@ export default function AccountCard({ id, email, password, region, currency, onD
         },
         body: JSON.stringify({ accountId: id }),
       });
+
+      // Clear timeout since we got a response
+      clearTimeout(timeoutId);
 
       const data = await response.json();
 
@@ -125,6 +135,8 @@ export default function AccountCard({ id, email, password, region, currency, onD
         showError(data.error || 'Failed to fetch verification code');
       }
     } catch (err) {
+      // Clear timeout on error
+      clearTimeout(timeoutId);
       console.error('Error fetching code:', err);
       // Remove the "Fetching..." toast on error too
       removeToast(fetchingToastId);
