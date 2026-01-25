@@ -1,62 +1,22 @@
 /* API Documentation Styles */
 .api-docs-container {
-  display: flex;
-  gap: 3rem;
   margin-top: 2rem;
-  max-width: 1400px;
-}
-
-.api-docs-sidebar {
-  width: 240px;
-  flex-shrink: 0;
-  position: sticky;
-  top: 2rem;
-  align-self: flex-start;
-  max-height: calc(100vh - 4rem);
-  overflow-y: auto;
-}
-
-.api-docs-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-}
-
-.api-docs-nav-link {
-  padding: 0.625rem 0.875rem;
-  color: rgba(255, 255, 255, 0.7);
-  text-decoration: none;
-  font-size: 0.875rem;
-  font-family: var(--font-poppins);
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  display: block;
-}
-
-.api-docs-nav-link:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.api-docs-nav-link-sub {
-  padding-left: 1.5rem;
-  font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.6);
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .api-docs-content {
-  flex: 1;
-  min-width: 0;
+  width: 100%;
 }
 
 .api-docs-intro {
   margin-bottom: 3rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  border-bottom: 2px solid rgba(212, 175, 55, 0.3);
 }
 
 .api-docs-badge {
@@ -97,6 +57,16 @@
 .api-docs-section {
   margin-bottom: 4rem;
   scroll-margin-top: 2rem;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+}
+
+.api-docs-section:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .api-docs-section-title {
@@ -286,9 +256,10 @@
 .api-docs-endpoint {
   margin: 2.5rem 0;
   padding: 2rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
+  border-left: 4px solid rgba(212, 175, 55, 0.5);
 }
 
 .api-docs-endpoint-header {
@@ -377,24 +348,16 @@
 /* Responsive */
 @media (max-width: 1024px) {
   .api-docs-container {
-    flex-direction: column;
-    gap: 2rem;
-  }
-
-  .api-docs-sidebar {
-    width: 100%;
-    position: static;
-    max-height: none;
-  }
-
-  .api-docs-nav {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 0.5rem;
+    max-width: 100%;
+    padding: 0 1rem;
   }
 }
 
 @media (max-width: 768px) {
+  .api-docs-section {
+    padding: 1.5rem;
+  }
+
   .api-docs-section-title {
     font-size: 1.5rem;
   }
@@ -419,5 +382,9 @@
   .api-docs-table th,
   .api-docs-table td {
     padding: 0.75rem;
+  }
+
+  .api-docs-intro {
+    padding: 1.5rem;
   }
 }
