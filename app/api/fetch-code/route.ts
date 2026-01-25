@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 
 // Get backend API URL from environment variable
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'http://3.227.169.47:8081'
-const TIMEOUT_MS = 90000 // 90 seconds total timeout
+const TIMEOUT_MS = 30000 // 30 seconds total timeout
 const POLL_INTERVAL_MS = 2000 // 2 seconds between attempts
 
 interface VerificationCodeResponse {
@@ -180,7 +180,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: 'Verification code not found after 90 seconds',
+        error: 'Verification code not found after 30 seconds',
         attempts: attempt,
       },
       { status: 404 }
