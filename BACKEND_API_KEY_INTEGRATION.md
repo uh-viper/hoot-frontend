@@ -17,7 +17,7 @@ a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8s9T0u1V2w3X4y5Z6a7B8c9D0e1F2g3H4i5J6k7L8m9N0
 ```
 
 - **Length**: Exactly 70 characters
-- **Characters**: Letters (A-Z, a-z), numbers (0-9), dash (-), underscore (_)
+- **Characters**: `a-z A-Z 0-9 _ -`
 - **No prefix**: Just the 70 characters directly
 - **High entropy**: Cryptographically secure random generation
 
@@ -60,7 +60,7 @@ X-API-Key: a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8s9T0u1V2w3X4y5Z6a7B8c9D0e1F2g3H4i
 
 First, validate the format:
 - Must be exactly 70 characters
-- Must contain only allowed characters: A-Z, a-z, 0-9, dash (-), underscore (_)
+- Allowed characters: `a-z A-Z 0-9 _ -`
 - No prefix or special format required
 
 **Example validation (Python):**
@@ -70,9 +70,8 @@ import re
 def validate_api_key_format(api_key: str) -> bool:
     if len(api_key) != 70:
         return False
-    # Allowed characters: letters, numbers, dash, underscore
-    pattern = r'^[A-Za-z0-9\-_]{70}$'
-    return bool(re.match(pattern, api_key))
+    # Allowed: a-z A-Z 0-9 _ -
+    return bool(re.match(r'^[A-Za-z0-9\-_]{70}$', api_key))
 ```
 
 **Example validation (Node.js):**
@@ -81,9 +80,8 @@ function validateApiKeyFormat(apiKey) {
   if (apiKey.length !== 70) {
     return false;
   }
-  // Allowed characters: letters, numbers, dash, underscore
-  const pattern = /^[A-Za-z0-9\-_]{70}$/;
-  return pattern.test(apiKey);
+  // Allowed: a-z A-Z 0-9 _ -
+  return /^[A-Za-z0-9\-_]{70}$/.test(apiKey);
 }
 ```
 
@@ -148,7 +146,7 @@ async def authenticate_api_key(
 ) -> dict:
     api_key = credentials.credentials
     
-    # Validate format (70 characters, letters, numbers, dash, underscore)
+    # Validate format: 70 chars, allowed: a-z A-Z 0-9 _ -
     if len(api_key) != 70 or not re.match(r'^[A-Za-z0-9\-_]{70}$', api_key):
         raise HTTPException(status_code=401, detail="Invalid API key format")
     
@@ -225,7 +223,7 @@ async function authenticateApiKey(req, res, next) {
   
   const apiKey = authHeader.substring(7); // Remove "Bearer "
   
-  // Validate format (70 characters, letters, numbers, dash, underscore)
+  // Validate format: 70 chars, allowed: a-z A-Z 0-9 _ -
   if (apiKey.length !== 70 || !/^[A-Za-z0-9\-_]{70}$/.test(apiKey)) {
     return res.status(401).json({ error: 'Invalid API key format' });
   }
@@ -387,7 +385,7 @@ Your backend needs read access to the `user_keys` table. Options:
 
 ## Summary
 
-1. **Format**: 70 random characters (A-Z, a-z, 0-9, dash (-), underscore (_))
+1. **Format**: 70 random characters (`a-z A-Z 0-9 _ -`)
 2. **Header**: `Authorization: Bearer <api_key>`
 3. **Validation**: Check length (70) and format (letters, numbers, dash, underscore), then query `user_keys` table
 4. **User ID**: Extract `user_id` from the database row
