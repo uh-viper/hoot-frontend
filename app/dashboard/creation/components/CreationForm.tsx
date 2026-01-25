@@ -635,7 +635,7 @@ export default function CreationForm() {
         {/* Country/Currency Combined Dropdown */}
         <div className="form-field form-field-country-currency">
           <label htmlFor="country-currency" className="form-label">
-            Country & Currency <span className="required">*</span>
+            Country & Currency
           </label>
           <div className="country-currency-row">
             <div className="custom-dropdown country-currency-dropdown" ref={countryDropdownRef}>
@@ -827,7 +827,7 @@ export default function CreationForm() {
 
           <div className="accounts-input-wrapper">
             <label htmlFor="bcs-amount" className="form-label">
-              Number of Accounts <span className="required">*</span>
+              Number of Accounts
               {isCheckingCredits && (
                 <span className="material-icons spinning" style={{ 
                   marginLeft: '0.5rem', 
