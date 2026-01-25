@@ -94,7 +94,7 @@ export default function AccountCard({ id, email, password, region, currency, onD
     const timeoutId = setTimeout(() => {
       setIsFetchingCode(false);
       removeToast(fetchingToastId);
-      showError('Request timed out. No verification code found. Please try again later.');
+      showError('No verification code found. Please try again later.');
     }, 5000); // 5 second client timeout
 
     try {
