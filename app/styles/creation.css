@@ -37,8 +37,9 @@
   flex-direction: row !important;
   gap: 1rem;
   align-items: flex-end;
-  width: fit-content;
+  width: 100%;
   flex-wrap: nowrap;
+  position: relative;
 }
 
 .pairs-dropdown-wrapper {
@@ -71,6 +72,19 @@
 .submit-button-wrapper-inline .deployment-button {
   width: 100%;
   height: 48px;
+}
+
+/* Start Deployment Button - Right Corner */
+.form-field-submit-corner {
+  position: absolute;
+  bottom: 2.5rem;
+  right: 2.5rem;
+  width: auto;
+}
+
+.form-field-submit-corner .deployment-button {
+  width: auto;
+  min-width: 300px;
 }
 
 .form-field-full {
@@ -607,8 +621,9 @@
   justify-content: center;
   gap: 0.5rem;
   white-space: nowrap;
-  height: fit-content;
+  height: 48px;
   width: 300px;
+  box-sizing: border-box;
 }
 
 .add-pair-button:hover:not(:disabled) {
