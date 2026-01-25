@@ -14,6 +14,9 @@ CREATE TABLE IF NOT EXISTS public.user_keys (
 CREATE INDEX IF NOT EXISTS idx_user_keys_user_id ON public.user_keys(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_keys_api_key ON public.user_keys(api_key);
 
+-- Drop trigger if it exists (idempotent)
+DROP TRIGGER IF EXISTS update_user_keys_updated_at ON public.user_keys;
+
 -- Create trigger to update updated_at timestamp
 CREATE TRIGGER update_user_keys_updated_at
   BEFORE UPDATE ON public.user_keys
@@ -22,6 +25,12 @@ CREATE TRIGGER update_user_keys_updated_at
 
 -- Enable Row Level Security
 ALTER TABLE public.user_keys ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist (idempotent)
+DROP POLICY IF EXISTS "Users can view their own API keys" ON public.user_keys;
+DROP POLICY IF EXISTS "Users can insert their own API keys" ON public.user_keys;
+DROP POLICY IF EXISTS "Users can update their own API keys" ON public.user_keys;
+DROP POLICY IF EXISTS "Users can delete their own API keys" ON public.user_keys;
 
 -- Create policy: Users can view their own API keys
 CREATE POLICY "Users can view their own API keys"
