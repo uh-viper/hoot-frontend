@@ -16,8 +16,7 @@ export default function ApiKeysManager({}: ApiKeysManagerProps) {
   const [hasKey, setHasKey] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
-  const [newlyGeneratedKey, setNewlyGeneratedKey] = useState<{ id: string; api_key: string; created_at: string } | null>(null)
-  const [showNewKey, setShowNewKey] = useState(false)
+  const [newlyGeneratedKey, setNewlyGeneratedKey] = useState<string | null>(null)
 
   // Fetch API key status on mount
   useEffect(() => {
@@ -56,9 +55,8 @@ export default function ApiKeysManager({}: ApiKeysManagerProps) {
       const data = await response.json()
 
       if (response.ok && data.success) {
-        setNewlyGeneratedKey(data.key)
-        setShowNewKey(true)
-        showSuccess('API key generated successfully! Copy it now - you won\'t be able to see it again.')
+        setNewlyGeneratedKey(data.key.api_key)
+        showSuccess('API key generated successfully!')
         await fetchKeyStatus() // Refresh status
       } else {
         showError(data.error || 'Failed to generate API key')
@@ -75,6 +73,8 @@ export default function ApiKeysManager({}: ApiKeysManagerProps) {
     try {
       await navigator.clipboard.writeText(text)
       showSuccess('Copied to clipboard!')
+      // Hide the key after copying
+      setNewlyGeneratedKey(null)
     } catch (error) {
       console.error('Failed to copy:', error)
       showError('Failed to copy to clipboard')
@@ -83,8 +83,8 @@ export default function ApiKeysManager({}: ApiKeysManagerProps) {
 
   return (
     <div className="settings-api-content">
-      {/* Generate Button */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+        {/* Generate Button */}
         <button
           type="button"
           onClick={handleGenerateKey}
@@ -104,68 +104,68 @@ export default function ApiKeysManager({}: ApiKeysManagerProps) {
             </>
           )}
         </button>
-      </div>
 
-      {/* Show newly generated key (only once) */}
-      {showNewKey && newlyGeneratedKey && (
-        <div className="settings-api-key-display">
-          <div className="settings-api-key-warning">
-            <span className="material-icons">warning</span>
-            <span>Important: Copy this API key now. You won't be able to see it again!</span>
-          </div>
-          <div className="settings-api-key-value">
-            <code>{newlyGeneratedKey.api_key}</code>
+        {/* Show newly generated key to the right */}
+        {newlyGeneratedKey && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.625rem 1rem', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '8px' }}>
+            <code style={{ 
+              fontFamily: 'Courier New, monospace', 
+              fontSize: '0.875rem', 
+              color: '#d4af37',
+              letterSpacing: '0.5px'
+            }}>
+              {newlyGeneratedKey}
+            </code>
             <button
               type="button"
-              onClick={() => copyToClipboard(newlyGeneratedKey.api_key)}
+              onClick={() => copyToClipboard(newlyGeneratedKey)}
               className="settings-api-key-copy"
               title="Copy API key"
+              style={{ padding: '0.375rem' }}
             >
-              <span className="material-icons">content_copy</span>
+              <span className="material-icons" style={{ fontSize: '1rem' }}>content_copy</span>
             </button>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              setShowNewKey(false)
-              setNewlyGeneratedKey(null)
-            }}
-            className="settings-api-key-close"
-          >
-            I've copied it
-          </button>
-        </div>
-      )}
+        )}
 
-      {/* Status Message */}
-      {isLoading ? (
+        {/* Status Message - to the right of button */}
+        {!isLoading && !newlyGeneratedKey && hasKey && (
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '0.5rem',
+            padding: '0.5rem 0.75rem',
+            background: 'rgba(212, 175, 55, 0.1)', 
+            border: '1px solid rgba(212, 175, 55, 0.3)', 
+            borderRadius: '6px',
+            color: 'rgba(212, 175, 55, 0.9)',
+            fontFamily: 'var(--font-poppins)',
+            fontSize: '0.8125rem'
+          }}>
+            <span className="material-icons" style={{ fontSize: '1rem' }}>check_circle</span>
+            <span>API key active</span>
+          </div>
+        )}
+
+        {/* No key message */}
+        {!isLoading && !newlyGeneratedKey && !hasKey && (
+          <div style={{ 
+            color: 'rgba(255, 255, 255, 0.6)', 
+            fontFamily: 'var(--font-poppins)', 
+            fontSize: '0.875rem' 
+          }}>
+            You do not have an API key yet.
+          </div>
+        )}
+      </div>
+
+      {/* Loading state */}
+      {isLoading && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'rgba(255, 255, 255, 0.6)' }}>
           <span className="material-icons spinning">sync</span>
           <span>Loading...</span>
         </div>
-      ) : hasKey && !showNewKey ? (
-        <div style={{ 
-          padding: '1rem', 
-          background: 'rgba(212, 175, 55, 0.1)', 
-          border: '1px solid rgba(212, 175, 55, 0.3)', 
-          borderRadius: '8px',
-          color: 'rgba(212, 175, 55, 0.9)',
-          fontFamily: 'var(--font-poppins)',
-          fontSize: '0.875rem'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <span className="material-icons" style={{ fontSize: '1.125rem' }}>check_circle</span>
-            <strong>API key active</strong>
-          </div>
-          <div style={{ fontSize: '0.8125rem', color: 'rgba(212, 175, 55, 0.7)' }}>
-            Your API key is ready to use. Regenerate to create a new one.
-          </div>
-        </div>
-      ) : !hasKey && !showNewKey ? (
-        <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontFamily: 'var(--font-poppins)', fontSize: '0.875rem' }}>
-          No API key yet. Click "Generate API Key" to create one.
-        </div>
-      ) : null}
+      )}
     </div>
   )
 }

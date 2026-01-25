@@ -92,10 +92,19 @@ export async function POST() {
     }
 
     // Generate cryptographically secure API key
-    // Format: 70 random characters (alphanumeric + special chars for security)
-    // Using base64 encoding for better entropy and character variety
-    const randomData = randomBytes(52) // 52 bytes = ~70 chars in base64
-    const apiKey = randomData.toString('base64').slice(0, 70)
+    // Format: 70 random characters with high entropy
+    // Using a mix of alphanumeric and special characters for maximum security
+    const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_~!@#$%^&*()+=[]{}|;:,.<>?'
+    
+    // Generate 70 random characters using cryptographically secure random bytes
+    const apiKeyArray: string[] = []
+    for (let i = 0; i < 70; i++) {
+      const randomByte = randomBytes(1)[0]
+      const charIndex = randomByte % charset.length
+      apiKeyArray.push(charset[charIndex])
+    }
+    
+    const apiKey = apiKeyArray.join('')
 
     // Insert new key
     const { data: newKey, error } = await supabase
