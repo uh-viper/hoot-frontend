@@ -21,11 +21,30 @@ export default function DomainManagement() {
   const [addingAlias, setAddingAlias] = useState(false)
   const [newAlias, setNewAlias] = useState('')
   const [removingAlias, setRemovingAlias] = useState<string | null>(null)
+  const [aliasesDropdownOpen, setAliasesDropdownOpen] = useState(false)
 
   // Fetch domain on mount
   useEffect(() => {
     fetchDomain()
   }, [])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      if (aliasesDropdownOpen && !target.closest('.aliases-dropdown')) {
+        setAliasesDropdownOpen(false)
+      }
+    }
+
+    if (aliasesDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [aliasesDropdownOpen])
 
 
   const fetchDomain = async () => {
@@ -178,10 +197,10 @@ export default function DomainManagement() {
         Microsoft Domain Settings
       </h3>
       
-      {/* Root Domain Setting */}
-      <div className="domain-add-form" style={{ marginBottom: '2rem' }}>
+      {/* Root Domain Setting with Aliases Dropdown */}
+      <div className="domain-add-form">
         <form onSubmit={handleSetRootDomain}>
-          <div style={{ marginBottom: '0.5rem' }}>
+          <div>
             <label htmlFor="root-domain-input" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 600 }}>
               Microsoft Account
             </label>
@@ -205,6 +224,137 @@ export default function DomainManagement() {
                   }}
                 />
               </div>
+              
+              {/* Aliases Dropdown */}
+              {domain && (
+                <div className="aliases-dropdown" style={{ position: 'relative' }}>
+                  <button
+                    type="button"
+                    onClick={() => setAliasesDropdownOpen(!aliasesDropdownOpen)}
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      color: '#fff',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      fontSize: '1rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                    }}
+                  >
+                    <span>Aliases ({domain.aliases?.length || 0})</span>
+                    <span className="material-icons" style={{ fontSize: '1.25rem' }}>
+                      {aliasesDropdownOpen ? 'expand_less' : 'expand_more'}
+                    </span>
+                  </button>
+                  
+                  {aliasesDropdownOpen && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      right: 0,
+                      marginTop: '0.5rem',
+                      background: 'rgba(20, 20, 20, 0.98)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: '8px',
+                      padding: '1rem',
+                      minWidth: '300px',
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+                      zIndex: 1000,
+                    }}>
+                      {/* Existing Aliases */}
+                      {domain.aliases && domain.aliases.length > 0 ? (
+                        <div style={{ marginBottom: '1rem' }}>
+                          {domain.aliases.map((alias) => (
+                            <div
+                              key={alias}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '0.5rem',
+                                marginBottom: '0.25rem',
+                                borderRadius: '4px',
+                                background: 'rgba(255, 255, 255, 0.03)',
+                              }}
+                            >
+                              <span style={{ color: '#d4af37', fontSize: '0.875rem' }}>{alias}</span>
+                              <button
+                                onClick={() => handleRemoveAlias(alias)}
+                                disabled={removingAlias === alias}
+                                style={{
+                                  background: 'transparent',
+                                  border: 'none',
+                                  color: '#f44336',
+                                  cursor: removingAlias === alias ? 'not-allowed' : 'pointer',
+                                  padding: '0.25rem',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                }}
+                                title="Remove"
+                              >
+                                <span className="material-icons" style={{ fontSize: '1rem' }}>
+                                  close
+                                </span>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div style={{ padding: '0.5rem', color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.875rem', marginBottom: '1rem' }}>
+                          No aliases
+                        </div>
+                      )}
+
+                      {/* Add Alias Form */}
+                      <div style={{ display: 'flex', gap: '0.5rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                        <input
+                          type="text"
+                          value={newAlias}
+                          onChange={(e) => setNewAlias(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              handleAddAlias()
+                            }
+                          }}
+                          placeholder="Add alias"
+                          style={{
+                            flex: 1,
+                            padding: '0.5rem 0.75rem',
+                            borderRadius: '6px',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            color: '#fff',
+                            fontSize: '0.875rem',
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddAlias}
+                          disabled={addingAlias || !newAlias.trim()}
+                          style={{
+                            padding: '0.5rem 1rem',
+                            borderRadius: '6px',
+                            border: 'none',
+                            background: (newAlias.trim() && !addingAlias) ? '#d4af37' : 'rgba(212, 175, 55, 0.3)',
+                            color: (newAlias.trim() && !addingAlias) ? '#000' : 'rgba(212, 175, 55, 0.5)',
+                            fontWeight: 500,
+                            cursor: (newAlias.trim() && !addingAlias) ? 'pointer' : 'not-allowed',
+                            fontSize: '0.875rem',
+                          }}
+                        >
+                          {addingAlias ? 'Adding...' : 'Add'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <button
                 type="submit"
                 disabled={isUpdatingRoot || !newRootDomain.trim()}
@@ -219,111 +369,12 @@ export default function DomainManagement() {
                   fontSize: '1rem',
                 }}
               >
-                {isUpdatingRoot ? 'Setting...' : domain ? 'Update Root Domain' : 'Set Root Domain'}
+                {isUpdatingRoot ? 'Setting...' : domain ? 'Update' : 'Set'}
               </button>
             </div>
           </div>
         </form>
       </div>
-
-      {domain && (
-        <>
-          {/* Aliases Section */}
-          <div style={{ 
-            background: 'rgba(255, 255, 255, 0.03)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '12px',
-            padding: '1.5rem',
-          }}>
-            <h4 style={{ fontSize: '1rem', fontWeight: 600, color: '#fff', marginBottom: '1rem' }}>
-              Aliases
-            </h4>
-            
-            {/* Existing Aliases */}
-            {domain.aliases && domain.aliases.length > 0 && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
-                {domain.aliases.map((alias) => (
-                  <div
-                    key={alias}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      padding: '0.4rem 0.6rem',
-                      background: 'rgba(212, 175, 55, 0.1)',
-                      border: '1px solid rgba(212, 175, 55, 0.2)',
-                      borderRadius: '6px',
-                      fontSize: '0.875rem',
-                    }}
-                  >
-                    <span style={{ color: '#d4af37' }}>{alias}</span>
-                    <button
-                      onClick={() => handleRemoveAlias(alias)}
-                      disabled={removingAlias === alias}
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        color: '#f44336',
-                        cursor: removingAlias === alias ? 'not-allowed' : 'pointer',
-                        padding: '0',
-                        display: 'flex',
-                        alignItems: 'center',
-                        lineHeight: 1,
-                      }}
-                      title="Remove"
-                    >
-                      <span className="material-icons" style={{ fontSize: '0.875rem' }}>
-                        close
-                      </span>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Add Alias Form */}
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <input
-                type="text"
-                value={newAlias}
-                onChange={(e) => setNewAlias(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    handleAddAlias()
-                  }
-                }}
-                placeholder="Add alias"
-                style={{
-                  flex: 1,
-                  padding: '0.5rem 0.75rem',
-                  borderRadius: '6px',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  color: '#fff',
-                  fontSize: '0.875rem',
-                }}
-              />
-              <button
-                onClick={handleAddAlias}
-                disabled={addingAlias || !newAlias.trim()}
-                style={{
-                  padding: '0.5rem 1rem',
-                  borderRadius: '6px',
-                  border: 'none',
-                  background: (newAlias.trim() && !addingAlias) ? '#d4af37' : 'rgba(212, 175, 55, 0.3)',
-                  color: (newAlias.trim() && !addingAlias) ? '#000' : 'rgba(212, 175, 55, 0.5)',
-                  fontWeight: 500,
-                  cursor: (newAlias.trim() && !addingAlias) ? 'pointer' : 'not-allowed',
-                  fontSize: '0.875rem',
-                }}
-              >
-                {addingAlias ? 'Adding...' : 'Add'}
-              </button>
-            </div>
-          </div>
-        </>
-      )}
     </div>
   )
 }
