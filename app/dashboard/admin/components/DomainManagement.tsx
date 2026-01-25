@@ -371,7 +371,8 @@ export default function DomainManagement() {
                       </div>
                     </div>
                   )}
-                </div>
+                  </div>
+                </>
               )}
             </div>
           </div>
