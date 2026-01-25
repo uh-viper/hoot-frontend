@@ -12,11 +12,8 @@
 
 .api-docs-intro {
   margin-bottom: 3rem;
-  padding: 2rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+  padding-bottom: 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .api-docs-badge {
@@ -57,16 +54,6 @@
 .api-docs-section {
   margin-bottom: 4rem;
   scroll-margin-top: 2rem;
-  padding: 2rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  transition: all 0.3s ease;
-}
-
-.api-docs-section:hover {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .api-docs-section-title {
@@ -255,11 +242,9 @@
 /* Endpoints */
 .api-docs-endpoint {
   margin: 2.5rem 0;
-  padding: 2rem;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  border-left: 4px solid rgba(212, 175, 55, 0.5);
+  padding: 1.5rem 0;
+  border-left: 3px solid rgba(212, 175, 55, 0.5);
+  padding-left: 2rem;
 }
 
 .api-docs-endpoint-header {
@@ -354,10 +339,6 @@
 }
 
 @media (max-width: 768px) {
-  .api-docs-section {
-    padding: 1.5rem;
-  }
-
   .api-docs-section-title {
     font-size: 1.5rem;
   }
@@ -367,7 +348,7 @@
   }
 
   .api-docs-endpoint {
-    padding: 1.5rem;
+    padding-left: 1.5rem;
   }
 
   .api-docs-code {
@@ -382,9 +363,5 @@
   .api-docs-table th,
   .api-docs-table td {
     padding: 0.75rem;
-  }
-
-  .api-docs-intro {
-    padding: 1.5rem;
   }
 }
