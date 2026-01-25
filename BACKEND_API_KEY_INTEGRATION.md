@@ -27,8 +27,7 @@ a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8s9T0u1V2w3X4y5Z6a7B8c9D0e1F2g3H4i5J6k7L8m9N0
 ```sql
 CREATE TABLE public.user_keys (
   id UUID PRIMARY KEY,
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  key_name TEXT NOT NULL,
+  user_id UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
   api_key TEXT NOT NULL UNIQUE,
   last_used_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -47,13 +46,13 @@ CREATE TABLE public.user_keys (
 The API key should be sent in the `Authorization` header:
 
 ```
-Authorization: Bearer hoot_a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456
+Authorization: Bearer a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8s9T0u1V2w3X4y5Z6a7B8c9D0e1F2g3H4i5J6k7L8m9N0
 ```
 
 Or as a custom header (if preferred):
 
 ```
-X-API-Key: hoot_a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456
+X-API-Key: a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8s9T0u1V2w3X4y5Z6a7B8c9D0e1F2g3H4i5J6k7L8m9N0
 ```
 
 ### 2. **Validate API Key Format**
@@ -96,7 +95,6 @@ Query the `user_keys` table to find the API key and get the associated `user_id`
 SELECT 
   id,
   user_id,
-  key_name,
   last_used_at,
   created_at
 FROM public.user_keys
@@ -180,8 +178,7 @@ async def authenticate_api_key(
         
         return {
             "user_id": row["user_id"],
-            "key_id": row["id"],
-            "key_name": row["key_name"]
+            "key_id": row["id"]
         }
     finally:
         await conn.close()
@@ -227,14 +224,14 @@ async function authenticateApiKey(req, res, next) {
   
   const apiKey = authHeader.substring(7); // Remove "Bearer "
   
-  // Validate format
-  if (!/^hoot_[a-f0-9]{64}$/i.test(apiKey)) {
+  // Validate format (70 characters, base64)
+  if (apiKey.length !== 70 || !/^[A-Za-z0-9+/]{70}$/.test(apiKey)) {
     return res.status(401).json({ error: 'Invalid API key format' });
   }
   
   // Query database
   const result = await pool.query(
-    'SELECT id, user_id, key_name, last_used_at, created_at FROM public.user_keys WHERE api_key = $1',
+    'SELECT id, user_id, last_used_at, created_at FROM public.user_keys WHERE api_key = $1',
     [apiKey]
   );
   
@@ -251,8 +248,7 @@ async function authenticateApiKey(req, res, next) {
   // Attach user info to request
   req.user = {
     user_id: result.rows[0].user_id,
-    key_id: result.rows[0].id,
-    key_name: result.rows[0].key_name
+    key_id: result.rows[0].id
   };
   
   next();
@@ -328,7 +324,7 @@ Log API key usage:
 - Log successful authentications with `user_id`
 - Log failed authentication attempts (but don't expose why they failed)
 - Monitor for suspicious patterns
-- **Never log the full API key** - only log the first few characters (e.g., `hoot_a1b2...`)
+- **Never log the full API key** - only log the first few characters (e.g., `a1B2c3...`)
 
 ### 6. **Key Rotation**
 Users can regenerate their API key from the Settings page (deletes old, creates new). Your backend should handle deleted keys gracefully (return 401).
@@ -375,7 +371,7 @@ curl -X DELETE "https://your-api.com/api/accounts/account-uuid" \
 ### Using Postman
 
 1. Set Authorization type to "Bearer Token"
-2. Enter the API key (including `hoot_` prefix)
+2. Enter the 70-character API key
 3. Make requests to your endpoints
 
 ## Database Access
