@@ -643,7 +643,7 @@ export default function CreationForm() {
               onClick={() => {
                 setIsPairsDropdownOpen(!isPairsDropdownOpen);
                 setIsCountryOpen(false);
-                setIsCurrencyOpen(false);
+                setShowCurrencySelection(false);
               }}
             >
               <span className="material-icons">list</span>
