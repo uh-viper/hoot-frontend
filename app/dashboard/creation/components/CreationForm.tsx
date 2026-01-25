@@ -761,7 +761,7 @@ export default function CreationForm() {
         </div>
 
         {/* Number of Accounts with Pairs Dropdown */}
-        <div className="form-field form-field-accounts-row">
+        <div className="form-field-accounts-row">
           {/* Pairs Dropdown - Left of Accounts */}
           <div className="pairs-dropdown-wrapper">
             <label className="form-label">

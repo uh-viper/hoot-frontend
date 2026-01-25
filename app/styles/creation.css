@@ -32,7 +32,8 @@
 }
 
 .form-field-accounts-row {
-  display: flex;
+  display: flex !important;
+  flex-direction: row !important;
   gap: 1rem;
   align-items: flex-end;
   width: fit-content;
@@ -43,6 +44,7 @@
   flex-direction: column;
   gap: 0.75rem;
   width: 300px;
+  flex-shrink: 0;
 }
 
 .pairs-dropdown-wrapper .custom-dropdown {
@@ -54,6 +56,7 @@
   flex-direction: column;
   gap: 0.75rem;
   width: 300px;
+  flex-shrink: 0;
 }
 
 .form-field-submit-bottom-right {
@@ -77,6 +80,10 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+.form-field-accounts-row.form-field {
+  flex-direction: row !important;
 }
 
 .form-field-submit {
