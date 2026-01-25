@@ -2,11 +2,13 @@
 .api-docs-container {
   margin-top: 2rem;
   max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .api-docs-content {
   width: 100%;
-  text-align: left;
+  text-align: center;
 }
 
 .api-docs-intro {
@@ -63,6 +65,7 @@
   margin: 0 0 1.5rem 0;
   padding-bottom: 1rem;
   border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+  text-align: center;
 }
 
 .api-docs-subtitle {
@@ -71,6 +74,7 @@
   color: #ffffff;
   font-family: var(--font-poppins);
   margin: 2rem 0 1rem 0;
+  text-align: center;
 }
 
 .api-docs-text {
@@ -79,6 +83,7 @@
   color: rgba(255, 255, 255, 0.8);
   font-family: var(--font-poppins);
   margin: 1rem 0;
+  text-align: center;
 }
 
 .api-docs-text code {
@@ -91,11 +96,13 @@
 }
 
 .api-docs-list {
-  margin: 1rem 0;
+  margin: 1rem auto;
   padding-left: 1.5rem;
   color: rgba(255, 255, 255, 0.8);
   font-family: var(--font-poppins);
   line-height: 1.8;
+  display: inline-block;
+  text-align: left;
 }
 
 .api-docs-list li {
@@ -118,11 +125,12 @@
 
 /* Code Blocks */
 .api-docs-code-block {
-  margin: 1.5rem 0;
+  margin: 1.5rem auto;
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   overflow: hidden;
+  max-width: 900px;
 }
 
 .api-docs-code-header {
@@ -186,8 +194,11 @@
 
 /* Tables */
 .api-docs-table-wrapper {
-  margin: 1.5rem 0;
+  margin: 1.5rem auto;
   overflow-x: auto;
+  max-width: 900px;
+  display: flex;
+  justify-content: center;
 }
 
 .api-docs-table {
@@ -240,10 +251,12 @@
 
 /* Endpoints */
 .api-docs-endpoint {
-  margin: 2.5rem 0;
+  margin: 2.5rem auto;
   padding: 1.5rem 0;
   border-left: 3px solid rgba(212, 175, 55, 0.5);
   padding-left: 2rem;
+  max-width: 900px;
+  text-align: left;
 }
 
 .api-docs-endpoint-header {
