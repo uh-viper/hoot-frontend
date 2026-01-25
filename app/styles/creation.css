@@ -25,26 +25,42 @@
 }
 
 .form-field-country-currency {
-  width: 100%;
+  width: fit-content;
+}
+
+.country-currency-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  width: fit-content;
+}
+
+.country-currency-dropdown {
+  width: 300px;
 }
 
 .form-field-accounts-submit {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 1.5rem;
-  align-items: end;
-  width: 100%;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  width: fit-content;
 }
 
 .accounts-input-wrapper {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  width: 300px;
 }
 
 .submit-button-wrapper {
   display: flex;
   align-items: flex-end;
+  width: 300px;
+}
+
+.submit-button-wrapper .deployment-button {
+  width: 100%;
 }
 
 .form-field-full {
@@ -512,16 +528,7 @@
   color: rgba(244, 67, 54, 0.9);
 }
 
-/* Country/Currency Combined */
-.country-currency-combined {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-end;
-}
-
-.country-currency-combined .custom-dropdown {
-  flex: 1;
-}
+/* Country/Currency Combined - removed, using country-currency-row instead */
 
 /* Dropdown Header with Back Button */
 .dropdown-header-back {
@@ -584,6 +591,7 @@
   gap: 0.5rem;
   white-space: nowrap;
   height: fit-content;
+  width: 300px;
 }
 
 .add-pair-button:hover:not(:disabled) {

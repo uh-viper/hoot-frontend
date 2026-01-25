@@ -486,13 +486,11 @@ export default function CreationForm() {
       )
     : countries;
 
-  // Get currencies available for the selected country's region
+  // Get all available currencies (not just region-specific)
   const getAvailableCurrencies = (): string[] => {
-    if (!selectedCountry) return [];
-    // Get all currencies from countries in the same region
-    const regionCountries = countries.filter(c => c.region === selectedCountry.region);
-    const currencies = [...new Set(regionCountries.map(c => c.currency))].sort();
-    return currencies;
+    // Return all currencies from all countries
+    const allCurrencies = [...new Set(countries.map(c => c.currency))].sort();
+    return allCurrencies;
   };
 
   const handleBcsInputChange = (value: string) => {
@@ -699,8 +697,8 @@ export default function CreationForm() {
           <label htmlFor="country-currency" className="form-label">
             Country & Currency <span className="required">*</span>
           </label>
-          <div className="country-currency-combined">
-            <div className="custom-dropdown" ref={countryDropdownRef}>
+          <div className="country-currency-row">
+            <div className="custom-dropdown country-currency-dropdown" ref={countryDropdownRef}>
               <button
                 type="button"
                 className={`dropdown-toggle ${isCountryOpen ? 'open' : ''}`}
@@ -776,17 +774,33 @@ export default function CreationForm() {
                           {selectedCountry?.name} ({selectedCountry?.code})
                         </div>
                       </div>
+                      <div className="dropdown-search">
+                        <span className="material-icons">search</span>
+                        <input
+                          type="text"
+                          placeholder="Search currencies..."
+                          value={countrySearchTerm}
+                          onChange={(e) => setCountrySearchTerm(e.target.value)}
+                          className="dropdown-search-input"
+                          autoFocus
+                        />
+                      </div>
                       <div className="dropdown-list">
-                        {getAvailableCurrencies().map(currency => (
-                          <button
-                            key={currency}
-                            type="button"
-                            className={`dropdown-item ${selectedCurrency === currency ? 'selected' : ''}`}
-                            onClick={() => handleCurrencySelect(currency)}
-                          >
-                            {currency}
-                          </button>
-                        ))}
+                        {getAvailableCurrencies()
+                          .filter(currency => 
+                            !countrySearchTerm || 
+                            currency.toLowerCase().includes(countrySearchTerm.toLowerCase())
+                          )
+                          .map(currency => (
+                            <button
+                              key={currency}
+                              type="button"
+                              className={`dropdown-item ${selectedCurrency === currency ? 'selected' : ''}`}
+                              onClick={() => handleCurrencySelect(currency)}
+                            >
+                              {currency}
+                            </button>
+                          ))}
                       </div>
                     </>
                   )}
