@@ -294,8 +294,9 @@
 .settings-api-content {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
   align-items: flex-start;
+  width: 100%;
 }
 
 .settings-api-badge {
@@ -315,6 +316,191 @@
 .settings-api-badge .material-icons {
   font-size: 1.125rem;
   color: #d4af37;
+}
+
+/* New API Key Display */
+.settings-api-key-display {
+  width: 100%;
+  padding: 1.5rem;
+  background: rgba(212, 175, 55, 0.1);
+  border: 2px solid rgba(212, 175, 55, 0.4);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.settings-api-key-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #d4af37;
+  font-weight: 600;
+  font-family: var(--font-poppins);
+  font-size: 0.9375rem;
+}
+
+.settings-api-key-warning .material-icons {
+  font-size: 1.25rem;
+  color: #d4af37;
+}
+
+.settings-api-key-value {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+}
+
+.settings-api-key-value code {
+  flex: 1;
+  color: #d4af37;
+  font-size: 0.875rem;
+  word-break: break-all;
+  font-family: 'Courier New', monospace;
+}
+
+.settings-api-key-copy {
+  background: rgba(212, 175, 55, 0.2);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 6px;
+  padding: 0.5rem;
+  color: #d4af37;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.settings-api-key-copy:hover {
+  background: rgba(212, 175, 55, 0.3);
+  border-color: rgba(212, 175, 55, 0.6);
+}
+
+.settings-api-key-copy .material-icons {
+  font-size: 1.125rem;
+  color: #d4af37;
+}
+
+.settings-api-key-close {
+  align-self: flex-end;
+  padding: 0.625rem 1.25rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: var(--font-poppins);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.settings-api-key-close:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* API Keys List */
+.settings-api-keys-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.settings-api-key-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.settings-api-key-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.settings-api-key-item-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.settings-api-key-item-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.settings-api-key-item-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  font-family: var(--font-poppins);
+}
+
+.settings-api-key-item-id {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: 'Courier New', monospace;
+}
+
+.settings-api-key-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.settings-api-key-item-date {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: var(--font-poppins);
+}
+
+.settings-api-key-item-unused {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-style: italic;
+  font-family: var(--font-poppins);
+}
+
+.settings-api-key-delete {
+  background: rgba(220, 53, 69, 0.15);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  border-radius: 8px;
+  padding: 0.625rem;
+  color: #dc3545;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.settings-api-key-delete:hover {
+  background: rgba(220, 53, 69, 0.25);
+  border-color: rgba(220, 53, 69, 0.5);
+}
+
+.settings-api-key-delete .material-icons {
+  font-size: 1.125rem;
+  color: #dc3545;
 }
 
 /* Responsive Design */

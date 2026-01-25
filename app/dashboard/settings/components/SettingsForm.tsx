@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useToast } from '../../../contexts/ToastContext'
 import { updateProfile, updatePassword, updateEmail } from '../actions/settings'
+import ApiKeysManager from './ApiKeysManager'
 
 interface SettingsFormProps {
   initialName: string
@@ -411,12 +412,7 @@ export default function SettingsForm({ initialName, initialEmail, initialDiscord
           <h2 className="settings-section-title">API Access</h2>
         </div>
 
-        <div className="settings-api-content">
-          <div className="settings-api-badge">
-            <span className="material-icons">schedule</span>
-            <span>Coming Soon</span>
-          </div>
-        </div>
+        <ApiKeysManager />
       </div>
     </div>
   )
