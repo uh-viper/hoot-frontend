@@ -98,6 +98,7 @@ export default function CreationForm() {
   });
   const [isCountryOpen, setIsCountryOpen] = useState(false);
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
+  const [isPairsDropdownOpen, setIsPairsDropdownOpen] = useState(false);
   const [countrySearchTerm, setCountrySearchTerm] = useState('');
   const [currencySearchTerm, setCurrencySearchTerm] = useState('');
   const [currentCredits, setCurrentCredits] = useState<number | null>(null);
@@ -123,6 +124,7 @@ export default function CreationForm() {
   });
   const countryDropdownRef = useRef<HTMLDivElement>(null);
   const currencyDropdownRef = useRef<HTMLDivElement>(null);
+  const pairsDropdownRef = useRef<HTMLDivElement>(null);
 
   // Verify restored job state on mount
   useEffect(() => {
@@ -418,6 +420,9 @@ export default function CreationForm() {
         setIsCurrencyOpen(false);
         setCurrencySearchTerm('');
       }
+      if (pairsDropdownRef.current && !pairsDropdownRef.current.contains(event.target as Node)) {
+        setIsPairsDropdownOpen(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -429,6 +434,10 @@ export default function CreationForm() {
     setSelectedCurrency(country.currency); // Auto-set currency
     setIsCountryOpen(false);
     setCountrySearchTerm('');
+    // Open currency dropdown after country is selected
+    setTimeout(() => {
+      setIsCurrencyOpen(true);
+    }, 100);
   };
 
   const handleCurrencySelect = (currency: string) => {
@@ -627,7 +636,183 @@ export default function CreationForm() {
   return (
     <div className="creation-form-container">
       <form onSubmit={handleSubmit} className="creation-form">
-        {/* Account Count */}
+        {/* Pairs Dropdown - Top Right */}
+        <div className="form-field form-field-pairs-dropdown">
+          <div className="custom-dropdown" ref={pairsDropdownRef}>
+            <button
+              type="button"
+              className={`dropdown-toggle pairs-dropdown-toggle ${isPairsDropdownOpen ? 'open' : ''}`}
+              onClick={() => {
+                setIsPairsDropdownOpen(!isPairsDropdownOpen);
+                setIsCountryOpen(false);
+                setIsCurrencyOpen(false);
+              }}
+            >
+              <span className="material-icons">list</span>
+              <span>Selected Pairs ({regionCurrencyPairs.length})</span>
+              <span className="material-icons">{isPairsDropdownOpen ? 'expand_less' : 'expand_more'}</span>
+            </button>
+            {isPairsDropdownOpen && (
+              <div className="dropdown-menu pairs-dropdown-menu">
+                <div className="pairs-dropdown-header">
+                  <span>Region / Currency Pairs</span>
+                  <span className="pairs-count">{regionCurrencyPairs.length} pair(s)</span>
+                </div>
+                <div className="pairs-dropdown-list">
+                  {regionCurrencyPairs.length === 0 ? (
+                    <div className="pairs-empty">No pairs added yet</div>
+                  ) : (
+                    regionCurrencyPairs.map((pair, index) => (
+                      <div key={index} className="pair-dropdown-item">
+                        <span className="pair-dropdown-text">
+                          {getCountryName(pair.region)} / {pair.currency}
+                        </span>
+                        {regionCurrencyPairs.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleRemovePair(index);
+                              if (regionCurrencyPairs.length === 1) {
+                                setIsPairsDropdownOpen(false);
+                              }
+                            }}
+                            className="pair-dropdown-remove"
+                            disabled={isPending || isPolling}
+                          >
+                            <span className="material-icons">close</span>
+                          </button>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+                {regionCurrencyPairs.length > 0 && (
+                  <div className="pairs-dropdown-hint">
+                    Accounts will be distributed evenly across these pairs
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Country/Currency Combined Dropdown */}
+        <div className="form-field form-field-country-currency">
+          <label htmlFor="country-currency" className="form-label">
+            Country & Currency <span className="required">*</span>
+          </label>
+          <div className="country-currency-combined">
+            <div className="custom-dropdown" ref={countryDropdownRef}>
+              <button
+                type="button"
+                className={`dropdown-toggle ${isCountryOpen ? 'open' : ''}`}
+                onClick={() => {
+                  setIsCountryOpen(!isCountryOpen);
+                  setIsCurrencyOpen(false);
+                  setIsPairsDropdownOpen(false);
+                }}
+                disabled={isPending || isPolling}
+              >
+                <span>{selectedCountry ? `${selectedCountry.name} (${selectedCountry.code})` : 'Select Country'}</span>
+                <span className="material-icons">{isCountryOpen ? 'expand_less' : 'expand_more'}</span>
+              </button>
+              {isCountryOpen && (
+                <div className="dropdown-menu">
+                  <div className="dropdown-search">
+                    <span className="material-icons">search</span>
+                    <input
+                      type="text"
+                      placeholder="Search countries..."
+                      value={countrySearchTerm}
+                      onChange={(e) => setCountrySearchTerm(e.target.value)}
+                      className="dropdown-search-input"
+                      autoFocus
+                    />
+                  </div>
+                  <div className="dropdown-list">
+                    {regions.map(region => {
+                      const regionCountries = filteredCountries.filter(c => c.region === region);
+                      if (regionCountries.length === 0) return null;
+                      return (
+                        <div key={region} className="dropdown-group">
+                          <div className="dropdown-group-header">{region}</div>
+                          {regionCountries.map(country => (
+                            <button
+                              key={country.code}
+                              type="button"
+                              className={`dropdown-item ${selectedCountry?.code === country.code ? 'selected' : ''}`}
+                              onClick={() => handleCountrySelect(country)}
+                            >
+                              <span>{country.name}</span>
+                              <span className="dropdown-item-code">{country.code}</span>
+                            </button>
+                          ))}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {selectedCountry && (
+              <div className="custom-dropdown" ref={currencyDropdownRef}>
+                <button
+                  type="button"
+                  className={`dropdown-toggle ${isCurrencyOpen ? 'open' : ''}`}
+                  onClick={() => {
+                    setIsCurrencyOpen(!isCurrencyOpen);
+                    setIsCountryOpen(false);
+                    setIsPairsDropdownOpen(false);
+                  }}
+                  disabled={isPending || isPolling}
+                >
+                  <span>{selectedCurrency || 'Select Currency'}</span>
+                  <span className="material-icons">{isCurrencyOpen ? 'expand_less' : 'expand_more'}</span>
+                </button>
+                {isCurrencyOpen && (
+                  <div className="dropdown-menu">
+                    <div className="dropdown-search">
+                      <span className="material-icons">search</span>
+                      <input
+                        type="text"
+                        placeholder="Search currencies..."
+                        value={currencySearchTerm}
+                        onChange={(e) => setCurrencySearchTerm(e.target.value)}
+                        className="dropdown-search-input"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="dropdown-list">
+                      {filteredCurrencies.map(currency => (
+                        <button
+                          key={currency}
+                          type="button"
+                          className={`dropdown-item ${selectedCurrency === currency ? 'selected' : ''}`}
+                          onClick={() => handleCurrencySelect(currency)}
+                        >
+                          {currency}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            <button
+              type="button"
+              onClick={handleAddPair}
+              className="add-pair-button"
+              disabled={!selectedCountry || !selectedCurrency || isPending || isPolling}
+            >
+              <span className="material-icons">add</span>
+              <span>Add</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Number of Accounts */}
         <div className="form-field">
           <label htmlFor="bcs-amount" className="form-label">
             Number of Accounts <span className="required">*</span>
@@ -652,152 +837,6 @@ export default function CreationForm() {
             max="100"
           />
         </div>
-
-        {/* Country Dropdown */}
-        <div className="form-field">
-          <label htmlFor="country" className="form-label">
-            Country <span className="required">*</span>
-          </label>
-          <div className="custom-dropdown" ref={countryDropdownRef}>
-            <button
-              type="button"
-              className={`dropdown-toggle ${isCountryOpen ? 'open' : ''}`}
-              onClick={() => {
-                setIsCountryOpen(!isCountryOpen);
-                setIsCurrencyOpen(false);
-              }}
-            >
-              <span>{selectedCountry ? `${selectedCountry.name} (${selectedCountry.code})` : 'Select Country'}</span>
-              <span className="material-icons">{isCountryOpen ? 'expand_less' : 'expand_more'}</span>
-            </button>
-            {isCountryOpen && (
-              <div className="dropdown-menu">
-                <div className="dropdown-search">
-                  <span className="material-icons">search</span>
-                  <input
-                    type="text"
-                    placeholder="Search countries..."
-                    value={countrySearchTerm}
-                    onChange={(e) => setCountrySearchTerm(e.target.value)}
-                    className="dropdown-search-input"
-                    autoFocus
-                  />
-                </div>
-                <div className="dropdown-list">
-                  {regions.map(region => {
-                    const regionCountries = filteredCountries.filter(c => c.region === region);
-                    if (regionCountries.length === 0) return null;
-                    return (
-                      <div key={region} className="dropdown-group">
-                        <div className="dropdown-group-header">{region}</div>
-                        {regionCountries.map(country => (
-                          <button
-                            key={country.code}
-                            type="button"
-                            className={`dropdown-item ${selectedCountry?.code === country.code ? 'selected' : ''}`}
-                            onClick={() => handleCountrySelect(country)}
-                          >
-                            <span>{country.name}</span>
-                            <span className="dropdown-item-code">{country.code}</span>
-                          </button>
-                        ))}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Currency Dropdown */}
-        <div className="form-field">
-          <label htmlFor="currency" className="form-label">
-            Currency <span className="required">*</span>
-          </label>
-          <div className="custom-dropdown" ref={currencyDropdownRef}>
-            <button
-              type="button"
-              className={`dropdown-toggle ${isCurrencyOpen ? 'open' : ''}`}
-              onClick={() => {
-                setIsCurrencyOpen(!isCurrencyOpen);
-                setIsCountryOpen(false);
-              }}
-            >
-              <span>{selectedCurrency || 'Select Currency'}</span>
-              <span className="material-icons">{isCurrencyOpen ? 'expand_less' : 'expand_more'}</span>
-            </button>
-            {isCurrencyOpen && (
-              <div className="dropdown-menu">
-                <div className="dropdown-search">
-                  <span className="material-icons">search</span>
-                  <input
-                    type="text"
-                    placeholder="Search currencies..."
-                    value={currencySearchTerm}
-                    onChange={(e) => setCurrencySearchTerm(e.target.value)}
-                    className="dropdown-search-input"
-                    autoFocus
-                  />
-                </div>
-                <div className="dropdown-list">
-                  {filteredCurrencies.map(currency => (
-                    <button
-                      key={currency}
-                      type="button"
-                      className={`dropdown-item ${selectedCurrency === currency ? 'selected' : ''}`}
-                      onClick={() => handleCurrencySelect(currency)}
-                    >
-                      {currency}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Add Pair Button */}
-        <div className="form-field">
-          <button
-            type="button"
-            onClick={handleAddPair}
-            className="add-pair-button"
-            disabled={!selectedCountry || !selectedCurrency || isPending || isPolling}
-          >
-            <span className="material-icons">add</span>
-            <span>Add Region/Currency</span>
-          </button>
-        </div>
-
-        {/* Selected Pairs */}
-        {regionCurrencyPairs.length > 0 && (
-          <div className="form-field form-field-full">
-            <label className="form-label">Selected Pairs</label>
-            <div className="pairs-list">
-              {regionCurrencyPairs.map((pair, index) => (
-                <div key={index} className="pair-chip">
-                  <span className="pair-text">
-                    {getCountryName(pair.region)} / {pair.currency}
-                  </span>
-                  {regionCurrencyPairs.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemovePair(index)}
-                      className="pair-remove"
-                      disabled={isPending || isPolling}
-                    >
-                      <span className="material-icons">close</span>
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-            <span className="form-hint">
-              Accounts will be distributed evenly across selected pairs
-            </span>
-          </div>
-        )}
 
         {/* Submit Button */}
         <div className="form-field form-field-submit">
