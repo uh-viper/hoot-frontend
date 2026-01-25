@@ -8,7 +8,7 @@ interface RouteContext {
   }>
 }
 
-// PATCH /api/admin/domains/[domainId] - Update domain status
+// PATCH /api/admin/domains/[domainId] - Update domain (status or root domain)
 export async function PATCH(request: NextRequest, { params }: RouteContext) {
   const adminCheck = await validateAdmin()
   if ('error' in adminCheck) {
@@ -20,40 +20,74 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
 
   try {
     const body = await request.json()
-    const { status } = body
-
-    if (!status || !['pending', 'active'].includes(status)) {
-      return NextResponse.json({ error: 'Invalid status. Must be pending or active' }, { status: 400 })
-    }
+    const { status, domain, aliases } = body
 
     // Check if domain exists
-    const { data: domain, error: domainError } = await supabase
+    const { data: existingDomain, error: domainError } = await supabase
       .from('domains')
-      .select('id, domain_name')
+      .select('id, domain_name, aliases')
       .eq('id', domainId)
       .single()
 
-    if (domainError || !domain) {
+    if (domainError || !existingDomain) {
       return NextResponse.json({ error: 'Domain not found' }, { status: 404 })
     }
 
-    // Update status
-    const { error: updateError } = await supabase
+    const updateData: any = {
+      updated_at: new Date().toISOString(),
+    }
+
+    // Update status if provided
+    if (status && ['pending', 'active'].includes(status)) {
+      updateData.status = status
+    }
+
+    // Update root domain if provided
+    if (domain && typeof domain === 'string') {
+      // Validate .onmicrosoft.com domain format
+      const domainRegex = /^[a-z0-9]+(-[a-z0-9]+)*\.onmicrosoft\.com$/i
+      if (!domainRegex.test(domain.trim())) {
+        return NextResponse.json({ error: 'Domain must be in format: example.onmicrosoft.com' }, { status: 400 })
+      }
+      updateData.domain_name = domain.trim().toLowerCase()
+    }
+
+    // Update aliases if provided
+    if (aliases && Array.isArray(aliases)) {
+      // Validate aliases
+      for (const alias of aliases) {
+        if (typeof alias !== 'string' || !/^[a-z0-9_-]+$/i.test(alias)) {
+          return NextResponse.json({ error: 'Invalid alias format. Aliases can only contain letters, numbers, hyphens, and underscores' }, { status: 400 })
+        }
+      }
+      updateData.aliases = JSON.stringify(aliases)
+    }
+
+    // Update domain
+    const { data: updatedDomain, error: updateError } = await supabase
       .from('domains')
-      .update({
-        status,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq('id', domainId)
+      .select()
+      .single()
 
     if (updateError) {
-      console.error('Error updating domain status:', updateError)
-      return NextResponse.json({ error: 'Failed to update domain status' }, { status: 500 })
+      console.error('Error updating domain:', updateError)
+      return NextResponse.json({ error: 'Failed to update domain' }, { status: 500 })
+    }
+
+    // Parse aliases for response
+    const domainWithAliases = {
+      ...updatedDomain,
+      aliases: updatedDomain.aliases 
+        ? (typeof updatedDomain.aliases === 'string' ? JSON.parse(updatedDomain.aliases) : updatedDomain.aliases)
+        : []
     }
 
     return NextResponse.json({
       success: true,
-      message: `Domain status updated to ${status}`,
+      domain: domainWithAliases,
+      message: status ? `Domain status updated to ${status}` : 'Domain updated successfully',
     })
   } catch (err: any) {
     console.error('Unexpected error:', err)

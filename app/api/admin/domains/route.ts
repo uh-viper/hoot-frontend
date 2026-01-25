@@ -35,7 +35,7 @@ export async function GET() {
   }
 }
 
-// POST /api/admin/domains - Add a new domain
+// POST /api/admin/domains - Set the root domain (only one allowed)
 export async function POST(request: NextRequest) {
   const adminCheck = await validateAdmin()
   if ('error' in adminCheck) {
@@ -58,15 +58,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Domain must be in format: example.onmicrosoft.com' }, { status: 400 })
     }
 
-    // Check if domain already exists
-    const { data: existing } = await supabase
+    // Check if a domain already exists (only one allowed)
+    const { data: existingDomains } = await supabase
       .from('domains')
       .select('id')
-      .eq('domain_name', domain.trim().toLowerCase())
-      .single()
 
-    if (existing) {
-      return NextResponse.json({ error: 'Domain already exists' }, { status: 409 })
+    if (existingDomains && existingDomains.length > 0) {
+      return NextResponse.json({ error: 'Root domain already set. Use PATCH to update it.' }, { status: 409 })
     }
 
     // Validate aliases if provided
@@ -101,7 +99,7 @@ export async function POST(request: NextRequest) {
       aliases: aliasesArray
     }
 
-    return NextResponse.json({ domain: domainWithAliases, message: 'Domain added successfully' })
+    return NextResponse.json({ domain: domainWithAliases, message: 'Root domain set successfully' })
   } catch (err) {
     console.error('Unexpected error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
