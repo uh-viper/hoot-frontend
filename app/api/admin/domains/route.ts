@@ -75,12 +75,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Insert new domain with aliases stored as JSON (automatically set to active)
+    // Insert new domain with aliases stored as JSONB array (automatically set to active)
     const { data: newDomain, error } = await supabase
       .from('domains')
       .insert({
         domain_name: domain.trim().toLowerCase(),
-        aliases: aliasesArray.length > 0 ? JSON.stringify(aliasesArray) : JSON.stringify([]),
+        aliases: aliasesArray, // Pass array directly - Supabase JSONB will handle it
         registrar: 'microsoft',
         status: 'active', // Automatically set to active
         created_by: user.id,

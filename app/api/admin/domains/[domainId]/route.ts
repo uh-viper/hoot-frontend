@@ -60,7 +60,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
           return NextResponse.json({ error: 'Invalid alias format. Aliases can only contain letters, numbers, hyphens, and underscores' }, { status: 400 })
         }
       }
-      updateData.aliases = JSON.stringify(aliases)
+      updateData.aliases = aliases // Pass array directly - Supabase JSONB will handle it
     }
 
     // Update domain

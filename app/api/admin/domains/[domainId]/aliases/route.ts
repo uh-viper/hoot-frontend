@@ -52,10 +52,10 @@ export async function POST(
     // Add new alias
     const updatedAliases = [...currentAliases, alias.trim().toLowerCase()]
 
-    // Update domain
+    // Update domain (pass array directly for JSONB)
     const { data: updatedDomain, error: updateError } = await supabase
       .from('domains')
-      .update({ aliases: JSON.stringify(updatedAliases) })
+      .update({ aliases: updatedAliases }) // Pass array directly - Supabase JSONB will handle it
       .eq('id', domainId)
       .select()
       .single()
@@ -118,10 +118,10 @@ export async function DELETE(
     // Remove alias
     const updatedAliases = currentAliases.filter((a: string) => a !== alias.trim().toLowerCase())
 
-    // Update domain
+    // Update domain (pass array directly for JSONB)
     const { data: updatedDomain, error: updateError } = await supabase
       .from('domains')
-      .update({ aliases: JSON.stringify(updatedAliases) })
+      .update({ aliases: updatedAliases }) // Pass array directly - Supabase JSONB will handle it
       .eq('id', domainId)
       .select()
       .single()
