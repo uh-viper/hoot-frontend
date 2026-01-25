@@ -294,10 +294,6 @@ export default function ApiDocsClient() {
 }`}
             </ApiCodeBlock>
 
-            <div className="api-docs-warning">
-              <span className="material-icons">warning</span>
-              <p><strong>Warning:</strong> Deleting an account is permanent and cannot be undone. Make sure you have a backup of the account credentials if needed.</p>
-            </div>
             <p className="api-docs-text"><strong>Rate Limit:</strong> 100 requests/minute</p>
           </div>
         </section>
