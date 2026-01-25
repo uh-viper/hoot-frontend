@@ -5,14 +5,9 @@ import { useToast } from '@/app/contexts/ToastContext'
 
 interface Domain {
   id: string
-  domain_name: string
-  registrar: string
+  domain_name: string // Root domain like "hootserv.onmicrosoft.com"
+  aliases: string[] // Aliases like ["hoot", "autn"]
   status: 'pending' | 'active' | 'error'
-  cloudflare_zone_id: string | null
-  cloudflare_nameservers: string[] | null
-  porkbun_nameservers: string[] | null
-  dns_records: any[]
-  notes: string | null
   created_at: string
   updated_at: string
 }
@@ -22,12 +17,14 @@ export default function DomainManagement() {
   const [domains, setDomains] = useState<Domain[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isAdding, setIsAdding] = useState(false)
-  const [newDomain, setNewDomain] = useState('')
-  const [isConfiguring, setIsConfiguring] = useState<Set<string>>(new Set())
+  const [newRootDomain, setNewRootDomain] = useState('')
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
   const [isUpdatingStatus, setIsUpdatingStatus] = useState<string | null>(null)
   const [deleteModal, setDeleteModal] = useState<{ domainId: string; domainName: string } | null>(null)
   const [openStatusDropdown, setOpenStatusDropdown] = useState<string | null>(null)
+  const [addingAlias, setAddingAlias] = useState<string | null>(null)
+  const [newAlias, setNewAlias] = useState('')
+  const [removingAlias, setRemovingAlias] = useState<string | null>(null)
 
   // Fetch domains on mount
   useEffect(() => {
@@ -66,21 +63,31 @@ export default function DomainManagement() {
     }
   }
 
-  const handleAddDomain = async (e: React.FormEvent) => {
+  const handleAddRootDomain = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newDomain.trim()) {
-      showError('Please enter a domain name')
+    if (!newRootDomain.trim()) {
+      showError('Please enter a root domain')
+      return
+    }
+
+    // Validate .onmicrosoft.com format
+    const domainRegex = /^[a-z0-9]+(-[a-z0-9]+)*\.onmicrosoft\.com$/i
+    if (!domainRegex.test(newRootDomain.trim())) {
+      showError('Domain must be in format: example.onmicrosoft.com')
       return
     }
 
     setIsAdding(true)
-    const addingToastId = showInfo('Adding domain...')
+    const addingToastId = showInfo('Adding root domain...')
 
     try {
       const response = await fetch('/api/admin/domains', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ domain: newDomain.trim() }),
+        body: JSON.stringify({ 
+          domain: newRootDomain.trim().toLowerCase(),
+          aliases: [] // Start with empty aliases
+        }),
       })
 
       const data = await response.json()
@@ -89,8 +96,8 @@ export default function DomainManagement() {
         throw new Error(data.error || 'Failed to add domain')
       }
 
-      showSuccess('Domain added successfully')
-      setNewDomain('')
+      showSuccess('Root domain added successfully')
+      setNewRootDomain('')
       fetchDomains()
     } catch (err: any) {
       showError(err.message || 'Failed to add domain')
@@ -99,36 +106,64 @@ export default function DomainManagement() {
     }
   }
 
-  const handleConfigureDomain = async (domainId: string) => {
-    const domain = domains.find(d => d.id === domainId)
-    const domainName = domain?.domain_name || 'domain'
-    
-    // Add to configuring set
-    setIsConfiguring(prev => new Set(prev).add(domainId))
-    const configuringToastId = showInfo(`Configuring domain ${domainName}...`)
+  const handleAddAlias = async (domainId: string) => {
+    if (!newAlias.trim()) {
+      showError('Please enter an alias')
+      return
+    }
 
+    // Validate alias format (alphanumeric, hyphens, underscores)
+    const aliasRegex = /^[a-z0-9_-]+$/i
+    if (!aliasRegex.test(newAlias.trim())) {
+      showError('Alias can only contain letters, numbers, hyphens, and underscores')
+      return
+    }
+
+    setAddingAlias(domainId)
     try {
-      const response = await fetch(`/api/admin/domains/${domainId}/configure`, {
+      const response = await fetch(`/api/admin/domains/${domainId}/aliases`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ alias: newAlias.trim().toLowerCase() }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to configure domain')
+        throw new Error(data.error || 'Failed to add alias')
       }
 
-      showSuccess(`Successfully configured ${domainName}`)
+      showSuccess(`Alias "${newAlias.trim()}" added successfully`)
+      setNewAlias('')
+      setAddingAlias(null)
       fetchDomains()
     } catch (err: any) {
-      showError(err.message || `Failed to configure ${domainName}`)
-    } finally {
-      // Remove from configuring set
-      setIsConfiguring(prev => {
-        const newSet = new Set(prev)
-        newSet.delete(domainId)
-        return newSet
+      showError(err.message || 'Failed to add alias')
+      setAddingAlias(null)
+    }
+  }
+
+  const handleRemoveAlias = async (domainId: string, alias: string) => {
+    setRemovingAlias(`${domainId}-${alias}`)
+    try {
+      const response = await fetch(`/api/admin/domains/${domainId}/aliases`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ alias }),
       })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to remove alias')
+      }
+
+      showSuccess(`Alias "${alias}" removed successfully`)
+      fetchDomains()
+    } catch (err: any) {
+      showError(err.message || 'Failed to remove alias')
+    } finally {
+      setRemovingAlias(null)
     }
   }
 
@@ -277,23 +312,23 @@ export default function DomainManagement() {
     <div className="domain-management">
       <h3 className="management-section-title">
         <span className="material-icons">domain</span>
-        Domain Management ({domains.length})
+        Microsoft Domain Management ({domains.length})
       </h3>
       
-      {/* Add Domain Form */}
+      {/* Add Root Domain Form */}
       <div className="domain-add-form">
-        <form onSubmit={handleAddDomain}>
+        <form onSubmit={handleAddRootDomain}>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
             <div style={{ flex: 1 }}>
               <label htmlFor="domain-input" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
-                Domain Name
+                Root Domain (e.g., hootserv.onmicrosoft.com)
               </label>
               <input
                 id="domain-input"
                 type="text"
-                value={newDomain}
-                onChange={(e) => setNewDomain(e.target.value)}
-                placeholder="example.com"
+                value={newRootDomain}
+                onChange={(e) => setNewRootDomain(e.target.value)}
+                placeholder="hootserv.onmicrosoft.com"
                 disabled={isAdding}
                 style={{
                   width: '100%',
@@ -308,7 +343,7 @@ export default function DomainManagement() {
             </div>
             <button
               type="submit"
-              disabled={isAdding || !newDomain.trim()}
+              disabled={isAdding || !newRootDomain.trim()}
               style={{
                 padding: '0.75rem 1.5rem',
                 borderRadius: '8px',
@@ -320,7 +355,7 @@ export default function DomainManagement() {
                 fontSize: '1rem',
               }}
             >
-              {isAdding ? 'Adding...' : 'Add Domain'}
+              {isAdding ? 'Adding...' : 'Add Root Domain'}
             </button>
           </div>
         </form>
@@ -337,29 +372,25 @@ export default function DomainManagement() {
           </div>
         ) : (
           <div className="admin-table-container domain-list-scrollable">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Domain</th>
-                  <th>Status</th>
-                  <th>Registrar</th>
-                  <th>Cloudflare Zone</th>
-                  <th>Nameservers</th>
-                  <th>Added</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {domains.map((domain) => (
-                  <tr key={domain.id}>
-                    <td>
-                      <strong>{domain.domain_name || 'N/A'}</strong>
-                    </td>
-                    <td>
+            {domains.map((domain) => (
+              <div
+                key={domain.id}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '12px',
+                  padding: '1.5rem',
+                  marginBottom: '1rem',
+                }}
+              >
+                {/* Domain Header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+                      <strong style={{ fontSize: '1.1rem', color: '#fff' }}>{domain.domain_name}</strong>
                       <div className="status-dropdown">
                         <button
                           className="status-dropdown-toggle"
-                          data-domain-id={domain.id}
                           onClick={() => setOpenStatusDropdown(openStatusDropdown === domain.id ? null : domain.id)}
                           disabled={isUpdatingStatus === domain.id}
                         >
@@ -380,89 +411,143 @@ export default function DomainManagement() {
                           />
                         )}
                       </div>
-                    </td>
-                    <td>{domain.registrar || 'N/A'}</td>
-                    <td>
-                      {domain.cloudflare_zone_id ? (
-                        <span style={{ fontSize: '0.875rem', opacity: 0.8 }}>
-                          {domain.cloudflare_zone_id.slice(0, 8)}...
+                    </div>
+                    <div style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.6)', marginTop: '0.25rem' }}>
+                      Root domain passed to backend API: <code style={{ color: '#d4af37' }}>{domain.domain_name}</code>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteClick(domain.id, domain.domain_name)}
+                    disabled={isDeleting === domain.id}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      borderRadius: '6px',
+                      border: 'none',
+                      background: isDeleting === domain.id ? 'rgba(244, 67, 54, 0.5)' : 'rgba(244, 67, 54, 0.2)',
+                      color: '#f44336',
+                      fontWeight: 500,
+                      cursor: isDeleting === domain.id ? 'not-allowed' : 'pointer',
+                      fontSize: '0.875rem',
+                    }}
+                  >
+                    {isDeleting === domain.id ? (
+                      <span className="spinner" style={{ display: 'inline-block', width: '16px', height: '16px', verticalAlign: 'middle' }}></span>
+                    ) : (
+                      <>
+                        <span className="material-icons" style={{ fontSize: '1rem', verticalAlign: 'middle' }}>
+                          delete
                         </span>
-                      ) : (
-                        <span style={{ opacity: 0.5 }}>Not configured</span>
-                      )}
-                    </td>
-                    <td>
-                      {domain.cloudflare_nameservers && domain.cloudflare_nameservers.length > 0 ? (
-                        <div style={{ fontSize: '0.875rem' }}>
-                          {domain.cloudflare_nameservers.slice(0, 2).map((ns, i) => (
-                            <div key={i}>{ns}</div>
-                          ))}
-                          {domain.cloudflare_nameservers.length > 2 && (
-                            <div style={{ opacity: 0.6, fontSize: '0.75rem' }}>
-                              +{domain.cloudflare_nameservers.length - 2} more
-                            </div>
-                          )}
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Aliases Section */}
+                <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                    <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: '#fff', margin: 0 }}>
+                      Aliases ({domain.aliases?.length || 0})
+                    </h4>
+                  </div>
+                  
+                  {/* Existing Aliases */}
+                  {domain.aliases && domain.aliases.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+                      {domain.aliases.map((alias) => (
+                        <div
+                          key={alias}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.5rem 0.75rem',
+                            background: 'rgba(212, 175, 55, 0.1)',
+                            border: '1px solid rgba(212, 175, 55, 0.2)',
+                            borderRadius: '6px',
+                            fontSize: '0.875rem',
+                          }}
+                        >
+                          <code style={{ color: '#d4af37' }}>{alias}@{domain.domain_name}</code>
+                          <button
+                            onClick={() => handleRemoveAlias(domain.id, alias)}
+                            disabled={removingAlias === `${domain.id}-${alias}`}
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              color: '#f44336',
+                              cursor: removingAlias === `${domain.id}-${alias}` ? 'not-allowed' : 'pointer',
+                              padding: '0.25rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                            }}
+                            title="Remove alias"
+                          >
+                            <span className="material-icons" style={{ fontSize: '1rem' }}>
+                              close
+                            </span>
+                          </button>
                         </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Add Alias Form */}
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <input
+                      type="text"
+                      value={addingAlias === domain.id ? newAlias : ''}
+                      onChange={(e) => {
+                        setNewAlias(e.target.value)
+                        setAddingAlias(domain.id)
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          handleAddAlias(domain.id)
+                        }
+                        if (e.key === 'Escape') {
+                          setAddingAlias(null)
+                          setNewAlias('')
+                        }
+                      }}
+                      placeholder="Enter alias (e.g., hoot, autn)"
+                      style={{
+                        flex: 1,
+                        padding: '0.5rem 0.75rem',
+                        borderRadius: '6px',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        color: '#fff',
+                        fontSize: '0.875rem',
+                      }}
+                    />
+                    <button
+                      onClick={() => handleAddAlias(domain.id)}
+                      disabled={addingAlias !== domain.id || !newAlias.trim() || addingAlias === domain.id && removingAlias !== null}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        borderRadius: '6px',
+                        border: 'none',
+                        background: (addingAlias === domain.id && newAlias.trim()) ? '#d4af37' : 'rgba(212, 175, 55, 0.3)',
+                        color: (addingAlias === domain.id && newAlias.trim()) ? '#000' : 'rgba(212, 175, 55, 0.5)',
+                        fontWeight: 500,
+                        cursor: (addingAlias === domain.id && newAlias.trim()) ? 'pointer' : 'not-allowed',
+                        fontSize: '0.875rem',
+                      }}
+                    >
+                      {addingAlias === domain.id && removingAlias === `${domain.id}-${newAlias}` ? (
+                        <span className="spinner" style={{ display: 'inline-block', width: '16px', height: '16px' }}></span>
                       ) : (
-                        <span style={{ opacity: 0.5 }}>Not set</span>
+                        'Add Alias'
                       )}
-                    </td>
-                    <td>{domain.created_at ? formatDate(domain.created_at) : 'N/A'}</td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                        <button
-                          onClick={() => handleConfigureDomain(domain.id)}
-                          disabled={isConfiguring.has(domain.id) || isDeleting === domain.id}
-                          style={{
-                            padding: '0.5rem 1rem',
-                            borderRadius: '6px',
-                            border: 'none',
-                            background:
-                              isConfiguring.has(domain.id)
-                                ? 'rgba(212, 175, 55, 0.5)'
-                                : '#d4af37',
-                            color: '#000',
-                            fontWeight: 500,
-                            cursor: isConfiguring.has(domain.id) || isDeleting === domain.id ? 'not-allowed' : 'pointer',
-                            fontSize: '0.875rem',
-                          }}
-                        >
-                          {isConfiguring.has(domain.id) ? (
-                            <span className="spinner" style={{ display: 'inline-block', width: '16px', height: '16px', verticalAlign: 'middle' }}></span>
-                          ) : (
-                            'Configure'
-                          )}
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(domain.id, domain.domain_name)}
-                          disabled={isConfiguring.has(domain.id) || isDeleting === domain.id}
-                          style={{
-                            padding: '0.5rem 1rem',
-                            borderRadius: '6px',
-                            border: 'none',
-                            background: isDeleting === domain.id ? 'rgba(244, 67, 54, 0.5)' : 'rgba(244, 67, 54, 0.2)',
-                            color: '#f44336',
-                            fontWeight: 500,
-                            cursor: isConfiguring.has(domain.id) || isDeleting === domain.id ? 'not-allowed' : 'pointer',
-                            fontSize: '0.875rem',
-                          }}
-                        >
-                          {isDeleting === domain.id ? (
-                            <span className="spinner" style={{ display: 'inline-block', width: '16px', height: '16px', verticalAlign: 'middle' }}></span>
-                          ) : (
-                            <>
-                              <span className="material-icons" style={{ fontSize: '1rem', verticalAlign: 'middle' }}>
-                                delete
-                              </span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </button>
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.5)', marginTop: '0.5rem' }}>
+                    Accounts will be created as: <code style={{ color: '#d4af37' }}>{domain.aliases?.[0] || 'alias'}+random_id@{domain.domain_name}</code>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -520,7 +605,7 @@ export default function DomainManagement() {
               </h3>
               <p style={{ color: 'rgba(255, 255, 255, 0.7)', lineHeight: '1.6' }}>
                 Are you sure you want to delete <strong style={{ color: '#fff' }}>{deleteModal.domainName}</strong>?
-                This action cannot be undone.
+                This will also delete all associated aliases. This action cannot be undone.
               </p>
             </div>
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>

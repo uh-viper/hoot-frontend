@@ -22,7 +22,13 @@ export async function GET() {
       return NextResponse.json({ error: 'Failed to fetch domains' }, { status: 500 })
     }
 
-    return NextResponse.json({ domains: domains || [] })
+    // Parse aliases from JSON if they exist
+    const domainsWithAliases = (domains || []).map(domain => ({
+      ...domain,
+      aliases: domain.aliases ? (typeof domain.aliases === 'string' ? JSON.parse(domain.aliases) : domain.aliases) : []
+    }))
+
+    return NextResponse.json({ domains: domainsWithAliases })
   } catch (err) {
     console.error('Unexpected error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -40,16 +46,16 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { domain } = body
+    const { domain, aliases } = body
 
     if (!domain || typeof domain !== 'string') {
       return NextResponse.json({ error: 'Domain name is required' }, { status: 400 })
     }
 
-    // Basic domain validation
-    const domainRegex = /^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$/i
+    // Validate .onmicrosoft.com domain format
+    const domainRegex = /^[a-z0-9]+(-[a-z0-9]+)*\.onmicrosoft\.com$/i
     if (!domainRegex.test(domain.trim())) {
-      return NextResponse.json({ error: 'Invalid domain format' }, { status: 400 })
+      return NextResponse.json({ error: 'Domain must be in format: example.onmicrosoft.com' }, { status: 400 })
     }
 
     // Check if domain already exists
@@ -63,12 +69,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Domain already exists' }, { status: 409 })
     }
 
-    // Insert new domain
+    // Validate aliases if provided
+    const aliasesArray = Array.isArray(aliases) ? aliases : []
+    for (const alias of aliasesArray) {
+      if (typeof alias !== 'string' || !/^[a-z0-9_-]+$/i.test(alias)) {
+        return NextResponse.json({ error: 'Invalid alias format. Aliases can only contain letters, numbers, hyphens, and underscores' }, { status: 400 })
+      }
+    }
+
+    // Insert new domain with aliases stored as JSON
     const { data: newDomain, error } = await supabase
       .from('domains')
       .insert({
         domain_name: domain.trim().toLowerCase(),
-        registrar: 'porkbun',
+        aliases: aliasesArray.length > 0 ? JSON.stringify(aliasesArray) : JSON.stringify([]),
+        registrar: 'microsoft',
         status: 'pending',
         created_by: user.id,
       })
@@ -80,7 +95,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to add domain' }, { status: 500 })
     }
 
-    return NextResponse.json({ domain: newDomain, message: 'Domain added successfully' })
+    // Parse aliases for response
+    const domainWithAliases = {
+      ...newDomain,
+      aliases: aliasesArray
+    }
+
+    return NextResponse.json({ domain: domainWithAliases, message: 'Domain added successfully' })
   } catch (err) {
     console.error('Unexpected error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
