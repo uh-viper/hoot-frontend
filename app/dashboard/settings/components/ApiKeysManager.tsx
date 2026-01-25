@@ -125,14 +125,6 @@ export default function ApiKeysManager({}: ApiKeysManagerProps) {
             >
               <span className="material-icons" style={{ fontSize: '1rem' }}>content_copy</span>
             </button>
-            <span style={{ 
-              fontSize: '0.8125rem', 
-              color: 'rgba(255, 255, 255, 0.7)',
-              fontFamily: 'var(--font-poppins)',
-              whiteSpace: 'nowrap'
-            }}>
-              Copy this now. You won't see it again.
-            </span>
           </div>
         )}
 
