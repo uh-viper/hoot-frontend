@@ -632,66 +632,6 @@ export default function CreationForm() {
   return (
     <div className="creation-form-container">
       <form onSubmit={handleSubmit} className="creation-form">
-        {/* Pairs Dropdown - Top Right */}
-        <div className="form-field form-field-pairs-dropdown">
-          <div className="custom-dropdown" ref={pairsDropdownRef}>
-            <button
-              type="button"
-              className={`dropdown-toggle pairs-dropdown-toggle ${isPairsDropdownOpen ? 'open' : ''}`}
-              onClick={() => {
-                setIsPairsDropdownOpen(!isPairsDropdownOpen);
-                setIsCountryOpen(false);
-                setShowCurrencySelection(false);
-              }}
-            >
-              <span className="material-icons">list</span>
-              <span>Selected Pairs ({regionCurrencyPairs.length})</span>
-              <span className="material-icons">{isPairsDropdownOpen ? 'expand_less' : 'expand_more'}</span>
-            </button>
-            {isPairsDropdownOpen && (
-              <div className="dropdown-menu pairs-dropdown-menu">
-                <div className="pairs-dropdown-header">
-                  <span>Region / Currency Pairs</span>
-                  <span className="pairs-count">{regionCurrencyPairs.length} pair(s)</span>
-                </div>
-                <div className="pairs-dropdown-list">
-                  {regionCurrencyPairs.length === 0 ? (
-                    <div className="pairs-empty">No pairs added yet</div>
-                  ) : (
-                    regionCurrencyPairs.map((pair, index) => (
-                      <div key={index} className="pair-dropdown-item">
-                        <span className="pair-dropdown-text">
-                          {getCountryName(pair.region)} / {pair.currency}
-                        </span>
-                        {regionCurrencyPairs.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              handleRemovePair(index);
-                              if (regionCurrencyPairs.length === 1) {
-                                setIsPairsDropdownOpen(false);
-                              }
-                            }}
-                            className="pair-dropdown-remove"
-                            disabled={isPending || isPolling}
-                          >
-                            <span className="material-icons">close</span>
-                          </button>
-                        )}
-                      </div>
-                    ))
-                  )}
-                </div>
-                {regionCurrencyPairs.length > 0 && (
-                  <div className="pairs-dropdown-hint">
-                    Accounts will be distributed evenly across these pairs
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
         {/* Country/Currency Combined Dropdown */}
         <div className="form-field form-field-country-currency">
           <label htmlFor="country-currency" className="form-label">
@@ -820,8 +760,68 @@ export default function CreationForm() {
           </div>
         </div>
 
-        {/* Number of Accounts and Submit Button */}
-        <div className="form-field form-field-accounts-submit">
+        {/* Number of Accounts with Pairs Dropdown */}
+        <div className="form-field form-field-accounts-row">
+          {/* Pairs Dropdown - Left of Accounts */}
+          <div className="form-field-pairs-dropdown">
+            <div className="custom-dropdown" ref={pairsDropdownRef}>
+              <button
+                type="button"
+                className={`dropdown-toggle pairs-dropdown-toggle ${isPairsDropdownOpen ? 'open' : ''}`}
+                onClick={() => {
+                  setIsPairsDropdownOpen(!isPairsDropdownOpen);
+                  setIsCountryOpen(false);
+                  setShowCurrencySelection(false);
+                }}
+              >
+                <span className="material-icons">list</span>
+                <span>Selected Pairs ({regionCurrencyPairs.length})</span>
+                <span className="material-icons">{isPairsDropdownOpen ? 'expand_less' : 'expand_more'}</span>
+              </button>
+              {isPairsDropdownOpen && (
+                <div className="dropdown-menu pairs-dropdown-menu">
+                  <div className="pairs-dropdown-header">
+                    <span>Region / Currency Pairs</span>
+                    <span className="pairs-count">{regionCurrencyPairs.length} pair(s)</span>
+                  </div>
+                  <div className="pairs-dropdown-list">
+                    {regionCurrencyPairs.length === 0 ? (
+                      <div className="pairs-empty">No pairs added yet</div>
+                    ) : (
+                      regionCurrencyPairs.map((pair, index) => (
+                        <div key={index} className="pair-dropdown-item">
+                          <span className="pair-dropdown-text">
+                            {getCountryName(pair.region)} / {pair.currency}
+                          </span>
+                          {regionCurrencyPairs.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleRemovePair(index);
+                                if (regionCurrencyPairs.length === 1) {
+                                  setIsPairsDropdownOpen(false);
+                                }
+                              }}
+                              className="pair-dropdown-remove"
+                              disabled={isPending || isPolling}
+                            >
+                              <span className="material-icons">close</span>
+                            </button>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  {regionCurrencyPairs.length > 0 && (
+                    <div className="pairs-dropdown-hint">
+                      Accounts will be distributed evenly across these pairs
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="accounts-input-wrapper">
             <label htmlFor="bcs-amount" className="form-label">
               Number of Accounts <span className="required">*</span>
@@ -846,37 +846,38 @@ export default function CreationForm() {
               max="100"
             />
           </div>
-          
-          <div className="submit-button-wrapper">
-            <button
-              type="submit"
-              className="deployment-button"
-              disabled={!canDeploy || isDeploying}
-              onClick={(e) => {
-                if (isDeploying) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }
-              }}
-            >
-              {isPending || isPolling ? (
-                <>
-                  <span className="material-icons spinning">sync</span>
-                  {isPolling ? 'Deployment in Progress...' : 'Starting Deployment...'}
-                </>
-              ) : !creditsLoaded || isCheckingCredits ? (
-                <>
-                  <span className="material-icons spinning">sync</span>
-                  Loading...
-                </>
-              ) : (
-                <>
-                  <span className="material-icons">rocket_launch</span>
-                  {hasEnoughCredits ? 'Start Deployment' : 'Insufficient Credits'}
-                </>
-              )}
-            </button>
-          </div>
+        </div>
+
+        {/* Submit Button - Bottom Right */}
+        <div className="form-field form-field-submit-bottom-right">
+          <button
+            type="submit"
+            className="deployment-button"
+            disabled={!canDeploy || isDeploying}
+            onClick={(e) => {
+              if (isDeploying) {
+                e.preventDefault();
+                e.stopPropagation();
+              }
+            }}
+          >
+            {isPending || isPolling ? (
+              <>
+                <span className="material-icons spinning">sync</span>
+                {isPolling ? 'Deployment in Progress...' : 'Starting Deployment...'}
+              </>
+            ) : !creditsLoaded || isCheckingCredits ? (
+              <>
+                <span className="material-icons spinning">sync</span>
+                Loading...
+              </>
+            ) : (
+              <>
+                <span className="material-icons">rocket_launch</span>
+                {hasEnoughCredits ? 'Start Deployment' : 'Insufficient Credits'}
+              </>
+            )}
+          </button>
         </div>
       </form>
     </div>
