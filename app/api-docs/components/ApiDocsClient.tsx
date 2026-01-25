@@ -61,13 +61,6 @@ export default function ApiDocsClient() {
             All API requests must include your API key in the <code>Authorization</code> header using the Bearer token format.
           </p>
 
-          <h3 className="api-docs-subtitle">API Key Format</h3>
-          <ul className="api-docs-list">
-            <li><strong>Length:</strong> Exactly 70 characters</li>
-            <li><strong>Allowed characters:</strong> <code>a-z</code>, <code>A-Z</code>, <code>0-9</code>, <code>_</code> (underscore), <code>-</code> (dash)</li>
-            <li><strong>Example:</strong> <code>a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8s9T0u1V2w3X4y5Z6a7B8c9D0e1F2g3H4i5J6k7L8m9N0</code></li>
-          </ul>
-
           <h3 className="api-docs-subtitle">Request Format</h3>
           <ApiCodeBlock language="http">
 {`Authorization: Bearer <your-70-character-api-key>`}
@@ -182,60 +175,12 @@ export default function ApiDocsClient() {
             </table>
           </div>
 
-          <h3 className="api-docs-subtitle">Error Response Format</h3>
-          <p className="api-docs-text">All errors follow this structure:</p>
-          <ApiCodeBlock language="json">
-{`{
-  "success": false,
-  "error": "Error message describing what went wrong"
-}`}
-          </ApiCodeBlock>
-
-          <h3 className="api-docs-subtitle">Common Errors</h3>
-          <div className="api-docs-error-examples">
-            <div>
-              <p><strong>Missing API Key:</strong></p>
-              <ApiCodeBlock language="json">
-{`{
-  "error": "Missing or invalid Authorization header"
-}`}
-              </ApiCodeBlock>
-            </div>
-            <div>
-              <p><strong>Invalid API Key Format:</strong></p>
-              <ApiCodeBlock language="json">
-{`{
-  "error": "Invalid API key format"
-}`}
-              </ApiCodeBlock>
-            </div>
-            <div>
-              <p><strong>Resource Not Found:</strong></p>
-              <ApiCodeBlock language="json">
-{`{
-  "success": false,
-  "error": "Account not found"
-}`}
-              </ApiCodeBlock>
-            </div>
-            <div>
-              <p><strong>Missing Required Parameter:</strong></p>
-              <ApiCodeBlock language="json">
-{`{
-  "success": false,
-  "error": "Email parameter required"
-}`}
-              </ApiCodeBlock>
-            </div>
-          </div>
         </section>
 
         <section id="endpoints" className="api-docs-section">
           <h2 className="api-docs-section-title">Endpoints</h2>
-        </section>
 
-        <section id="accounts" className="api-docs-section">
-          <h2 className="api-docs-section-title">Accounts</h2>
+          <h3 className="api-docs-subtitle">Accounts</h3>
 
           <div className="api-docs-endpoint">
             <div className="api-docs-endpoint-header">
@@ -490,16 +435,6 @@ export default function ApiDocsClient() {
           </div>
         </section>
 
-        <section className="api-docs-section">
-          <h2 className="api-docs-section-title">Support</h2>
-          <p className="api-docs-text">
-            For API support, please contact:
-          </p>
-          <ul className="api-docs-list">
-            <li><strong>Email:</strong> support@hootservices.com</li>
-            <li><strong>Documentation:</strong> This page</li>
-          </ul>
-        </section>
       </div>
     </div>
   )

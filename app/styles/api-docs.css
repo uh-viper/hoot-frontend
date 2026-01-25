@@ -2,12 +2,11 @@
 .api-docs-container {
   margin-top: 2rem;
   max-width: 1000px;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 .api-docs-content {
   width: 100%;
+  text-align: left;
 }
 
 .api-docs-intro {
