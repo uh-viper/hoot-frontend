@@ -864,35 +864,6 @@ export default function CreationForm() {
             </button>
           </div>
         </div>
-          <button
-            type="submit"
-            className="deployment-button"
-            disabled={!canDeploy || isDeploying}
-            onClick={(e) => {
-              if (isDeploying) {
-                e.preventDefault();
-                e.stopPropagation();
-              }
-            }}
-          >
-            {isPending || isPolling ? (
-              <>
-                <span className="material-icons spinning">sync</span>
-                {isPolling ? 'Deployment in Progress...' : 'Starting Deployment...'}
-              </>
-            ) : !creditsLoaded || isCheckingCredits ? (
-              <>
-                <span className="material-icons spinning">sync</span>
-                Loading...
-              </>
-            ) : (
-              <>
-                <span className="material-icons">rocket_launch</span>
-                {hasEnoughCredits ? 'Start Deployment' : 'Insufficient Credits'}
-              </>
-            )}
-          </button>
-        </div>
       </form>
     </div>
   );
