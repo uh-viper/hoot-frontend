@@ -225,31 +225,50 @@ export default function DomainManagement() {
                 />
               </div>
               
+              <button
+                type="submit"
+                disabled={isUpdatingRoot || !newRootDomain.trim()}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: isUpdatingRoot ? 'rgba(212, 175, 55, 0.5)' : '#d4af37',
+                  color: '#000',
+                  fontWeight: 600,
+                  cursor: isUpdatingRoot ? 'not-allowed' : 'pointer',
+                  fontSize: '1rem',
+                }}
+              >
+                {isUpdatingRoot ? 'Setting...' : domain ? 'Update' : 'Set'}
+              </button>
+
               {/* Aliases Dropdown */}
               {domain && (
-                <div className="aliases-dropdown" style={{ position: 'relative' }}>
-                  <button
-                    type="button"
-                    onClick={() => setAliasesDropdownOpen(!aliasesDropdownOpen)}
-                    style={{
-                      padding: '0.75rem 1.5rem',
-                      borderRadius: '8px',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      color: '#fff',
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                      fontSize: '1rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                    }}
-                  >
-                    <span>Aliases ({domain.aliases?.length || 0})</span>
-                    <span className="material-icons" style={{ fontSize: '1.25rem' }}>
-                      {aliasesDropdownOpen ? 'expand_less' : 'expand_more'}
-                    </span>
-                  </button>
+                <>
+                  <span style={{ color: 'rgba(255, 255, 255, 0.3)', fontSize: '1.25rem', alignSelf: 'center' }}>|</span>
+                  <div className="aliases-dropdown" style={{ position: 'relative' }}>
+                    <button
+                      type="button"
+                      onClick={() => setAliasesDropdownOpen(!aliasesDropdownOpen)}
+                      style={{
+                        padding: '0.75rem 1.5rem',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        color: '#fff',
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        fontSize: '1rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                      }}
+                    >
+                      <span>Aliases ({domain.aliases?.length || 0})</span>
+                      <span className="material-icons" style={{ fontSize: '1.25rem' }}>
+                        {aliasesDropdownOpen ? 'expand_less' : 'expand_more'}
+                      </span>
+                    </button>
                   
                   {aliasesDropdownOpen && (
                     <div style={{
@@ -354,23 +373,6 @@ export default function DomainManagement() {
                   )}
                 </div>
               )}
-
-              <button
-                type="submit"
-                disabled={isUpdatingRoot || !newRootDomain.trim()}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  borderRadius: '8px',
-                  border: 'none',
-                  background: isUpdatingRoot ? 'rgba(212, 175, 55, 0.5)' : '#d4af37',
-                  color: '#000',
-                  fontWeight: 600,
-                  cursor: isUpdatingRoot ? 'not-allowed' : 'pointer',
-                  fontSize: '1rem',
-                }}
-              >
-                {isUpdatingRoot ? 'Setting...' : domain ? 'Update' : 'Set'}
-              </button>
             </div>
           </div>
         </form>
