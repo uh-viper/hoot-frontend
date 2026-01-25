@@ -149,8 +149,8 @@ async def authenticate_api_key(
 ) -> dict:
     api_key = credentials.credentials
     
-    # Validate format
-    if not api_key.startswith("hoot_") or len(api_key) != 69:
+    # Validate format (70 characters, base64)
+    if len(api_key) != 70 or not re.match(r'^[A-Za-z0-9+/]{70}$', api_key):
         raise HTTPException(status_code=401, detail="Invalid API key format")
     
     # Query database
@@ -158,7 +158,7 @@ async def authenticate_api_key(
     try:
         row = await conn.fetchrow(
             """
-            SELECT id, user_id, key_name, last_used_at, created_at
+            SELECT id, user_id, last_used_at, created_at
             FROM public.user_keys
             WHERE api_key = $1
             """,
