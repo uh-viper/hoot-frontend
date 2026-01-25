@@ -97,10 +97,9 @@ export default function CreationForm() {
     return [{ region: 'US', currency: 'USD' }];
   });
   const [isCountryOpen, setIsCountryOpen] = useState(false);
-  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
   const [isPairsDropdownOpen, setIsPairsDropdownOpen] = useState(false);
   const [countrySearchTerm, setCountrySearchTerm] = useState('');
-  const [currencySearchTerm, setCurrencySearchTerm] = useState('');
+  const [showCurrencySelection, setShowCurrencySelection] = useState(false);
   const [currentCredits, setCurrentCredits] = useState<number | null>(null);
   const [isCheckingCredits, setIsCheckingCredits] = useState(false);
   
@@ -123,7 +122,6 @@ export default function CreationForm() {
     }
   });
   const countryDropdownRef = useRef<HTMLDivElement>(null);
-  const currencyDropdownRef = useRef<HTMLDivElement>(null);
   const pairsDropdownRef = useRef<HTMLDivElement>(null);
 
   // Verify restored job state on mount
@@ -415,10 +413,7 @@ export default function CreationForm() {
       if (countryDropdownRef.current && !countryDropdownRef.current.contains(event.target as Node)) {
         setIsCountryOpen(false);
         setCountrySearchTerm('');
-      }
-      if (currencyDropdownRef.current && !currencyDropdownRef.current.contains(event.target as Node)) {
-        setIsCurrencyOpen(false);
-        setCurrencySearchTerm('');
+        setShowCurrencySelection(false);
       }
       if (pairsDropdownRef.current && !pairsDropdownRef.current.contains(event.target as Node)) {
         setIsPairsDropdownOpen(false);
@@ -431,19 +426,21 @@ export default function CreationForm() {
 
   const handleCountrySelect = (country: Country) => {
     setSelectedCountry(country);
-    setSelectedCurrency(country.currency); // Auto-set currency
-    setIsCountryOpen(false);
+    setSelectedCurrency(country.currency); // Auto-set default currency
     setCountrySearchTerm('');
-    // Open currency dropdown after country is selected
-    setTimeout(() => {
-      setIsCurrencyOpen(true);
-    }, 100);
+    // Show currency selection within the same dropdown
+    setShowCurrencySelection(true);
   };
 
   const handleCurrencySelect = (currency: string) => {
     setSelectedCurrency(currency);
-    setIsCurrencyOpen(false);
-    setCurrencySearchTerm('');
+    setIsCountryOpen(false);
+    setShowCurrencySelection(false);
+  };
+
+  const handleBackToCountries = () => {
+    setShowCurrencySelection(false);
+    setCountrySearchTerm('');
   };
 
   const handleAddPair = () => {
@@ -489,13 +486,14 @@ export default function CreationForm() {
       )
     : countries;
 
-  const allCurrencies = [...new Set(countries.map(c => c.currency))].sort();
-  
-  const filteredCurrencies = currencySearchTerm
-    ? allCurrencies.filter(currency =>
-        currency.toLowerCase().includes(currencySearchTerm.toLowerCase())
-      )
-    : allCurrencies;
+  // Get currencies available for the selected country's region
+  const getAvailableCurrencies = (): string[] => {
+    if (!selectedCountry) return [];
+    // Get all currencies from countries in the same region
+    const regionCountries = countries.filter(c => c.region === selectedCountry.region);
+    const currencies = [...new Set(regionCountries.map(c => c.currency))].sort();
+    return currencies;
+  };
 
   const handleBcsInputChange = (value: string) => {
     setBcsInputValue(value);
@@ -708,97 +706,93 @@ export default function CreationForm() {
                 className={`dropdown-toggle ${isCountryOpen ? 'open' : ''}`}
                 onClick={() => {
                   setIsCountryOpen(!isCountryOpen);
-                  setIsCurrencyOpen(false);
                   setIsPairsDropdownOpen(false);
+                  if (!isCountryOpen) {
+                    setShowCurrencySelection(false);
+                    setCountrySearchTerm('');
+                  }
                 }}
                 disabled={isPending || isPolling}
               >
-                <span>{selectedCountry ? `${selectedCountry.name} (${selectedCountry.code})` : 'Select Country'}</span>
+                <span>
+                  {selectedCountry && selectedCurrency 
+                    ? `${selectedCountry.name} (${selectedCountry.code}) / ${selectedCurrency}`
+                    : selectedCountry
+                    ? `${selectedCountry.name} (${selectedCountry.code})`
+                    : 'Select Country'}
+                </span>
                 <span className="material-icons">{isCountryOpen ? 'expand_less' : 'expand_more'}</span>
               </button>
               {isCountryOpen && (
                 <div className="dropdown-menu">
-                  <div className="dropdown-search">
-                    <span className="material-icons">search</span>
-                    <input
-                      type="text"
-                      placeholder="Search countries..."
-                      value={countrySearchTerm}
-                      onChange={(e) => setCountrySearchTerm(e.target.value)}
-                      className="dropdown-search-input"
-                      autoFocus
-                    />
-                  </div>
-                  <div className="dropdown-list">
-                    {regions.map(region => {
-                      const regionCountries = filteredCountries.filter(c => c.region === region);
-                      if (regionCountries.length === 0) return null;
-                      return (
-                        <div key={region} className="dropdown-group">
-                          <div className="dropdown-group-header">{region}</div>
-                          {regionCountries.map(country => (
-                            <button
-                              key={country.code}
-                              type="button"
-                              className={`dropdown-item ${selectedCountry?.code === country.code ? 'selected' : ''}`}
-                              onClick={() => handleCountrySelect(country)}
-                            >
-                              <span>{country.name}</span>
-                              <span className="dropdown-item-code">{country.code}</span>
-                            </button>
-                          ))}
+                  {!showCurrencySelection ? (
+                    <>
+                      <div className="dropdown-search">
+                        <span className="material-icons">search</span>
+                        <input
+                          type="text"
+                          placeholder="Search countries..."
+                          value={countrySearchTerm}
+                          onChange={(e) => setCountrySearchTerm(e.target.value)}
+                          className="dropdown-search-input"
+                          autoFocus
+                        />
+                      </div>
+                      <div className="dropdown-list">
+                        {regions.map(region => {
+                          const regionCountries = filteredCountries.filter(c => c.region === region);
+                          if (regionCountries.length === 0) return null;
+                          return (
+                            <div key={region} className="dropdown-group">
+                              <div className="dropdown-group-header">{region}</div>
+                              {regionCountries.map(country => (
+                                <button
+                                  key={country.code}
+                                  type="button"
+                                  className={`dropdown-item ${selectedCountry?.code === country.code ? 'selected' : ''}`}
+                                  onClick={() => handleCountrySelect(country)}
+                                >
+                                  <span>{country.name}</span>
+                                  <span className="dropdown-item-code">{country.code}</span>
+                                </button>
+                              ))}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="dropdown-header-back">
+                        <button
+                          type="button"
+                          onClick={handleBackToCountries}
+                          className="back-button"
+                        >
+                          <span className="material-icons">arrow_back</span>
+                          <span>Back to Countries</span>
+                        </button>
+                        <div className="selected-country-display">
+                          {selectedCountry?.name} ({selectedCountry?.code})
                         </div>
-                      );
-                    })}
-                  </div>
+                      </div>
+                      <div className="dropdown-list">
+                        {getAvailableCurrencies().map(currency => (
+                          <button
+                            key={currency}
+                            type="button"
+                            className={`dropdown-item ${selectedCurrency === currency ? 'selected' : ''}`}
+                            onClick={() => handleCurrencySelect(currency)}
+                          >
+                            {currency}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>
-            
-            {selectedCountry && (
-              <div className="custom-dropdown" ref={currencyDropdownRef}>
-                <button
-                  type="button"
-                  className={`dropdown-toggle ${isCurrencyOpen ? 'open' : ''}`}
-                  onClick={() => {
-                    setIsCurrencyOpen(!isCurrencyOpen);
-                    setIsCountryOpen(false);
-                    setIsPairsDropdownOpen(false);
-                  }}
-                  disabled={isPending || isPolling}
-                >
-                  <span>{selectedCurrency || 'Select Currency'}</span>
-                  <span className="material-icons">{isCurrencyOpen ? 'expand_less' : 'expand_more'}</span>
-                </button>
-                {isCurrencyOpen && (
-                  <div className="dropdown-menu">
-                    <div className="dropdown-search">
-                      <span className="material-icons">search</span>
-                      <input
-                        type="text"
-                        placeholder="Search currencies..."
-                        value={currencySearchTerm}
-                        onChange={(e) => setCurrencySearchTerm(e.target.value)}
-                        className="dropdown-search-input"
-                        autoFocus
-                      />
-                    </div>
-                    <div className="dropdown-list">
-                      {filteredCurrencies.map(currency => (
-                        <button
-                          key={currency}
-                          type="button"
-                          className={`dropdown-item ${selectedCurrency === currency ? 'selected' : ''}`}
-                          onClick={() => handleCurrencySelect(currency)}
-                        >
-                          {currency}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
             
             <button
               type="button"
@@ -812,34 +806,64 @@ export default function CreationForm() {
           </div>
         </div>
 
-        {/* Number of Accounts */}
-        <div className="form-field">
-          <label htmlFor="bcs-amount" className="form-label">
-            Number of Accounts <span className="required">*</span>
-            {isCheckingCredits && (
-              <span className="material-icons spinning" style={{ 
-                marginLeft: '0.5rem', 
-                fontSize: '1rem', 
-                verticalAlign: 'middle' 
-              }}>sync</span>
-            )}
-          </label>
-          <input
-            type="number"
-            id="bcs-amount"
-            value={bcsInputValue}
-            onChange={(e) => handleBcsInputChange(e.target.value)}
-            onBlur={handleBcsBlur}
-            className="bcs-input-simple"
-            placeholder="Enter amount (5-100)"
-            disabled={isPending || isPolling}
-            min="5"
-            max="100"
-          />
+        {/* Number of Accounts and Submit Button */}
+        <div className="form-field form-field-accounts-submit">
+          <div className="accounts-input-wrapper">
+            <label htmlFor="bcs-amount" className="form-label">
+              Number of Accounts <span className="required">*</span>
+              {isCheckingCredits && (
+                <span className="material-icons spinning" style={{ 
+                  marginLeft: '0.5rem', 
+                  fontSize: '1rem', 
+                  verticalAlign: 'middle' 
+                }}>sync</span>
+              )}
+            </label>
+            <input
+              type="number"
+              id="bcs-amount"
+              value={bcsInputValue}
+              onChange={(e) => handleBcsInputChange(e.target.value)}
+              onBlur={handleBcsBlur}
+              className="bcs-input-simple"
+              placeholder="Enter amount (5-100)"
+              disabled={isPending || isPolling}
+              min="5"
+              max="100"
+            />
+          </div>
+          
+          <div className="submit-button-wrapper">
+            <button
+              type="submit"
+              className="deployment-button"
+              disabled={!canDeploy || isDeploying}
+              onClick={(e) => {
+                if (isDeploying) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+              }}
+            >
+              {isPending || isPolling ? (
+                <>
+                  <span className="material-icons spinning">sync</span>
+                  {isPolling ? 'Deployment in Progress...' : 'Starting Deployment...'}
+                </>
+              ) : !creditsLoaded || isCheckingCredits ? (
+                <>
+                  <span className="material-icons spinning">sync</span>
+                  Loading...
+                </>
+              ) : (
+                <>
+                  <span className="material-icons">rocket_launch</span>
+                  {hasEnoughCredits ? 'Start Deployment' : 'Insufficient Credits'}
+                </>
+              )}
+            </button>
+          </div>
         </div>
-
-        {/* Submit Button */}
-        <div className="form-field form-field-submit">
           <button
             type="submit"
             className="deployment-button"

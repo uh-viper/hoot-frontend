@@ -8,29 +8,47 @@
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
-  padding: 2.5rem;
-  display: grid;
-  grid-template-columns: 1fr 1fr auto;
-  gap: 2rem;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
   width: 100%;
-  align-items: end;
   position: relative;
 }
 
 .form-field-pairs-dropdown {
   position: absolute;
-  top: 2.5rem;
-  right: 2.5rem;
+  top: 1.5rem;
+  right: 1.5rem;
   width: auto;
   min-width: 200px;
 }
 
 .form-field-country-currency {
-  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.form-field-accounts-submit {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1.5rem;
+  align-items: end;
+  width: 100%;
+}
+
+.accounts-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.submit-button-wrapper {
+  display: flex;
+  align-items: flex-end;
 }
 
 .form-field-full {
-  grid-column: 1 / -1;
+  width: 100%;
 }
 
 .form-field {
@@ -503,6 +521,49 @@
 
 .country-currency-combined .custom-dropdown {
   flex: 1;
+}
+
+/* Dropdown Header with Back Button */
+.dropdown-header-back {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: var(--font-poppins);
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  width: fit-content;
+}
+
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.back-button .material-icons {
+  font-size: 1.25rem;
+}
+
+.selected-country-display {
+  font-family: var(--font-poppins);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(212, 175, 55, 0.9);
+  padding-left: 0.5rem;
 }
 
 /* Add Pair Button */
