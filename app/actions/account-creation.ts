@@ -54,11 +54,10 @@ export async function checkCredits(accounts: number): Promise<CheckCreditsResult
 
 /**
  * Create a new accounts job and deduct credits
+ * @param accountConfigs - Array of account configs with region/currency per account
  */
 export async function createJob(
-  accounts: number,
-  region: string,
-  currency: string
+  accountConfigs: Array<{ region: string; currency?: string }>
 ): Promise<{ success: boolean; jobId?: string; error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -163,8 +162,8 @@ export async function createJob(
     // - Account saving to user_accounts table
     // - Stats updates (requested, successful, failures)
     // All happens server-side, even if user closes the tab
-    console.log('[createJob] Creating job with:', { accounts, region, currency })
-    const jobResponse = await createAccountsJob(accounts, region, currency, accessToken)
+    console.log('[createJob] Creating job with:', { accountConfigs })
+    const jobResponse = await createAccountsJob(accountConfigs, undefined, undefined, accessToken)
     console.log('[createJob] Job created successfully:', jobResponse)
 
     revalidatePath('/dashboard')

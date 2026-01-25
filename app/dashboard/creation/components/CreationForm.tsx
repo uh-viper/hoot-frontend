@@ -13,6 +13,11 @@ interface Country {
   region: string;
 }
 
+interface AccountConfig {
+  region: string;
+  currency: string;
+}
+
 const countries: Country[] = [
   // North America
   { code: 'US', name: 'United States', currency: 'USD', region: 'North America' },
@@ -73,20 +78,28 @@ const countries: Country[] = [
 
 const regions = ['North America', 'South America', 'Europe', 'Asia', 'Middle East', 'Africa', 'Oceania'];
 
+// Get default currency for a country code
+const getDefaultCurrency = (countryCode: string): string => {
+  const country = countries.find(c => c.code === countryCode);
+  return country?.currency || 'USD';
+};
+
 export default function CreationForm() {
   const { showError, showSuccess } = useToast();
   const { addMessage, setActive, clearMessages } = useConsole();
   const [isPending, startTransition] = useTransition();
-  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
-  const [selectedCurrency, setSelectedCurrency] = useState<string>('');
-  const [bcsAmount, setBcsAmount] = useState<number>(5);
-  const [bcsInputValue, setBcsInputValue] = useState<string>('5');
-  const [isCountryOpen, setIsCountryOpen] = useState(false);
-  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
-  const [countrySearchTerm, setCountrySearchTerm] = useState('');
-  const [currencySearchTerm, setCurrencySearchTerm] = useState('');
+  const [accountConfigs, setAccountConfigs] = useState<AccountConfig[]>(() => {
+    // Initialize with 5 accounts, all US/USD
+    return Array(5).fill(null).map(() => ({ region: 'US', currency: 'USD' }));
+  });
+  const [isCountryOpen, setIsCountryOpen] = useState<number | null>(null);
+  const [isCurrencyOpen, setIsCurrencyOpen] = useState<number | null>(null);
+  const [countrySearchTerm, setCountrySearchTerm] = useState<{ [key: number]: string }>({});
+  const [currencySearchTerm, setCurrencySearchTerm] = useState<{ [key: number]: string }>({});
   const [currentCredits, setCurrentCredits] = useState<number | null>(null);
   const [isCheckingCredits, setIsCheckingCredits] = useState(false);
+  const [bcsInputValue, setBcsInputValue] = useState<string>('5');
+  
   // Restore job state from localStorage when component mounts
   const [currentJobId, setCurrentJobId] = useState<string | null>(() => {
     if (typeof window === 'undefined') return null;
@@ -105,24 +118,20 @@ export default function CreationForm() {
       return false;
     }
   });
-  const countryDropdownRef = useRef<HTMLDivElement>(null);
-  const currencyDropdownRef = useRef<HTMLDivElement>(null);
+  const dropdownRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
 
-  // Verify restored job state on mount - clear if job is completed/failed
-  // This runs silently in the background - no console messages
+  // Verify restored job state on mount
   useEffect(() => {
     const verifyRestoredState = async () => {
       if (!currentJobId || !isPolling) return;
       
-      // Check if this was restored from localStorage
       const storedJobId = typeof window !== 'undefined' ? localStorage.getItem('hoot_current_job_id') : null;
-      if (storedJobId !== currentJobId) return; // Not restored, skip verification
+      if (storedJobId !== currentJobId) return;
       
       try {
         const result = await fetchJobStatus(currentJobId);
         if (result.success && result.status) {
           const status = result.status;
-          // If job is completed/failed, silently clear state
           if (status.status === 'completed' || status.status === 'failed') {
             setIsPolling(false);
             setActive(false);
@@ -133,7 +142,6 @@ export default function CreationForm() {
             }
           }
         } else {
-          // Job not found or error - silently clear state
           setIsPolling(false);
           setActive(false);
           setCurrentJobId(null);
@@ -143,8 +151,6 @@ export default function CreationForm() {
           }
         }
       } catch (error) {
-        // If verification fails (auth error, network error, etc), silently clear state
-        // Since we can't verify, assume job is done to prevent infinite polling
         setIsPolling(false);
         setActive(false);
         setCurrentJobId(null);
@@ -153,7 +159,7 @@ export default function CreationForm() {
             localStorage.removeItem('hoot_current_job_id');
             localStorage.removeItem('hoot_is_polling');
           } catch (e) {
-            // Silent - don't log background verification errors
+            // Silent
           }
         }
       }
@@ -161,20 +167,21 @@ export default function CreationForm() {
 
     verifyRestoredState();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run once on mount
+  }, []);
 
-  // Check credits when form values change
+  // Check credits when account count changes
   useEffect(() => {
-    if (bcsAmount >= 5 && bcsAmount <= 100) {
+    const count = accountConfigs.length;
+    if (count >= 5 && count <= 100) {
       setIsCheckingCredits(true);
-      checkCredits(bcsAmount).then((result) => {
+      checkCredits(count).then((result) => {
         setCurrentCredits(result.currentCredits);
         setIsCheckingCredits(false);
       }).catch(() => {
         setIsCheckingCredits(false);
       });
     }
-  }, [bcsAmount]);
+  }, [accountConfigs.length]);
 
   // Poll job status when jobId is set
   useEffect(() => {
@@ -182,11 +189,10 @@ export default function CreationForm() {
       return;
     }
 
-    // Restore active state in console if we're polling
     setActive(true);
 
-    const POLL_INTERVAL = 10000; // 10 seconds
-    const MAX_POLL_TIME = 10 * 60 * 1000; // 10 minutes max
+    const POLL_INTERVAL = 10000;
+    const MAX_POLL_TIME = 10 * 60 * 1000;
     const startTime = Date.now();
     let lastProgress: { 
       created: number; 
@@ -206,7 +212,6 @@ export default function CreationForm() {
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
     let isCancelled = false;
 
-    // Save job state to localStorage
     if (typeof window !== 'undefined') {
       try {
         localStorage.setItem('hoot_current_job_id', currentJobId);
@@ -239,7 +244,6 @@ export default function CreationForm() {
     const pollOnce = async () => {
       if (isCancelled) return;
 
-      // Check timeout
       if (Date.now() - startTime > MAX_POLL_TIME) {
         addMessage('error', 'Job polling timeout after 10 minutes.');
         clearJobState();
@@ -254,21 +258,18 @@ export default function CreationForm() {
         if (!result.success || !result.status) {
           const err = result.error || '';
           
-          // Job not found - stop polling
           if (err.toLowerCase().includes('not found')) {
             addMessage('error', 'Job no longer exists.');
             clearJobState();
             return;
           }
           
-          // Rate limit - wait longer
           if (err.toLowerCase().includes('rate limit')) {
             addMessage('warning', 'Rate limited. Waiting 60 seconds...');
             scheduleNextPoll(60000);
             return;
           }
           
-          // Other error - keep polling
           addMessage('warning', `Error: ${err}. Retrying...`);
           scheduleNextPoll();
           return;
@@ -276,72 +277,51 @@ export default function CreationForm() {
 
         const status = result.status;
 
-        // Track accounts array to detect new accounts in real-time
         const currentAccountCount = status.accounts?.length || 0;
         if (currentAccountCount > lastProgress.accountCount) {
-          // New accounts were added - show "Account Created" for each new one
           const newAccountCount = currentAccountCount - lastProgress.accountCount;
           for (let i = 0; i < newAccountCount; i++) {
             addMessage('success', 'Account Created');
           }
-          
-          // Backend automatically updates stats - no frontend action needed
-          
           lastProgress.accountCount = currentAccountCount;
         }
 
-        // Track failures array to detect new failures in real-time
         const currentFailureCount = status.failures?.length || 0;
         if (currentFailureCount > lastProgress.failureCount && status.failures) {
-          // New failures were added - show error messages for each new one
           const newFailureCount = currentFailureCount - lastProgress.failureCount;
           const failuresToShow = status.failures.slice(lastProgress.failureCount);
           failuresToShow.forEach((failure) => {
             const errorCode = failure.code || 'E099';
             addMessage('error', `Account Failed - Error Code: ${errorCode}`);
           });
-          
-          // Backend automatically updates stats - no frontend action needed
-          
           lastProgress.failureCount = currentFailureCount;
         }
 
-        // Update progress counts (for real-time progress display)
         if (status.total_created !== lastProgress.created || status.total_requested !== lastProgress.requested) {
           lastProgress.created = status.total_created;
           lastProgress.requested = status.total_requested;
         }
 
-        // Job completed
         if (status.status === 'completed') {
-          // Prevent duplicate completion logging
           if (lastProgress.completionLogged) {
             scheduleNextPoll();
             return;
           }
           
-          // Mark as logged to prevent duplicates
           lastProgress.completionLogged = true;
           
-          // Calculate final counts
           const finalAccountCount = status.accounts?.length || status.total_created || 0;
           const finalFailureCount = status.total_failed || (status.total_requested - status.total_created);
           
-          // Backend automatically updates stats when job completes - no frontend action needed
-          
           if (status.total_created === 0) {
-            // Use error_message from API response if available, otherwise fallback
             const errorMsg = status.error_message || status.error || 'No accounts created. Please contact support.';
             addMessage('error', errorMsg);
-            
             clearJobState();
             return;
           }
           
-          // Job completion message
           addMessage('success', `Job Completed - ${status.total_created}/${status.total_requested} created.`);
           
-          // Display credit deduction info from backend (only once)
           if (status.credits) {
             if (status.credits.deducted) {
               const creditMsg = status.credits.new_balance !== undefined
@@ -349,10 +329,8 @@ export default function CreationForm() {
                 : `${status.credits.amount} credits deducted`;
               addMessage('success', creditMsg);
               
-              // Trigger sidebar credits refresh, dashboard stats refresh, and vault accounts refresh
               window.dispatchEvent(new CustomEvent('credits-updated'));
               window.dispatchEvent(new CustomEvent('stats-updated'));
-              window.dispatchEvent(new CustomEvent('accounts-updated'));
               window.dispatchEvent(new CustomEvent('accounts-updated'));
             } else {
               addMessage('warning', `⚠ Credit deduction failed: ${status.credits.error || 'Unknown error'}`);
@@ -362,7 +340,6 @@ export default function CreationForm() {
             }
           }
           
-          // Backend automatically saves accounts to vault - just confirm
           if (status.total_created > 0) {
             addMessage('success', `${status.total_created} account(s) saved to vault!`);
             showSuccess(`Created and saved ${status.total_created} business center accounts!`);
@@ -372,18 +349,14 @@ export default function CreationForm() {
           return;
         }
 
-        // Job failed
         if (status.status === 'failed') {
           addMessage('error', status.error || 'Job failed');
           clearJobState();
           return;
         }
 
-        // Job running/pending - show heartbeat message every 10 seconds
-        // Also show real-time progress if available
         const now = Date.now();
         if (now - (lastProgress.lastLogTime || 0) >= 10000) {
-          // Show progress if we have real-time updates
           const totalFailed = status.total_failed || 0;
           if (status.total_created > 0 || totalFailed > 0) {
             const totalProcessed = status.total_created + totalFailed;
@@ -419,7 +392,6 @@ export default function CreationForm() {
       }
     };
 
-    // Start first poll after initial delay
     timeoutId = setTimeout(pollOnce, POLL_INTERVAL);
 
     return () => {
@@ -432,122 +404,140 @@ export default function CreationForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentJobId, isPolling]);
 
-  // Note: Polling cleanup is handled in the polling useEffect's return function
-
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (countryDropdownRef.current && !countryDropdownRef.current.contains(event.target as Node)) {
-        setIsCountryOpen(false);
-        setCountrySearchTerm('');
-      }
-      if (currencyDropdownRef.current && !currencyDropdownRef.current.contains(event.target as Node)) {
-        setIsCurrencyOpen(false);
-        setCurrencySearchTerm('');
-      }
+      Object.keys(dropdownRefs.current).forEach((key) => {
+        const ref = dropdownRefs.current[parseInt(key)];
+        if (ref && !ref.contains(event.target as Node)) {
+          const index = parseInt(key);
+          if (isCountryOpen === index) {
+            setIsCountryOpen(null);
+            setCountrySearchTerm(prev => ({ ...prev, [index]: '' }));
+          }
+          if (isCurrencyOpen === index) {
+            setIsCurrencyOpen(null);
+            setCurrencySearchTerm(prev => ({ ...prev, [index]: '' }));
+          }
+        }
+      });
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [isCountryOpen, isCurrencyOpen]);
 
-  const handleCountrySelect = (country: Country) => {
-    setSelectedCountry(country);
-    // Auto-populate currency with country's default currency
-    setSelectedCurrency(country.currency);
-    setIsCountryOpen(false);
-    setCountrySearchTerm('');
+  const handleCountrySelect = (index: number, country: Country) => {
+    const updated = [...accountConfigs];
+    updated[index] = {
+      region: country.code,
+      currency: country.currency, // Auto-set currency
+    };
+    setAccountConfigs(updated);
+    setIsCountryOpen(null);
+    setCountrySearchTerm(prev => ({ ...prev, [index]: '' }));
   };
 
-  const handleCurrencySelect = (currency: string) => {
-    setSelectedCurrency(currency);
-    setIsCurrencyOpen(false);
-    setCurrencySearchTerm('');
+  const handleCurrencySelect = (index: number, currency: string) => {
+    const updated = [...accountConfigs];
+    updated[index] = { ...updated[index], currency };
+    setAccountConfigs(updated);
+    setIsCurrencyOpen(null);
+    setCurrencySearchTerm(prev => ({ ...prev, [index]: '' }));
   };
-
-  const filteredCountries = countrySearchTerm
-    ? countries.filter(country =>
-        country.name.toLowerCase().includes(countrySearchTerm.toLowerCase()) ||
-        country.code.toLowerCase().includes(countrySearchTerm.toLowerCase())
-      )
-    : countries;
-
-  // All available currencies from all countries
-  const allCurrencies = [...new Set(countries.map(c => c.currency))].sort();
-  
-  const filteredCurrencies = currencySearchTerm
-    ? allCurrencies.filter(currency =>
-        currency.toLowerCase().includes(currencySearchTerm.toLowerCase())
-      )
-    : allCurrencies;
 
   const handleBcsInputChange = (value: string) => {
-    // Allow empty or any input while typing (no validation, no errors)
     setBcsInputValue(value);
-    
-    // Update bcsAmount for button state, but only if it's a valid number
     const numValue = parseInt(value);
     if (!isNaN(numValue) && numValue >= 5 && numValue <= 100) {
-      setBcsAmount(numValue);
+      // Update account configs array
+      const newCount = numValue;
+      const currentCount = accountConfigs.length;
+      
+      if (newCount > currentCount) {
+        // Add new accounts with default US/USD
+        const newConfigs = Array(newCount - currentCount).fill(null).map(() => ({ region: 'US', currency: 'USD' }));
+        setAccountConfigs([...accountConfigs, ...newConfigs]);
+      } else if (newCount < currentCount) {
+        // Remove accounts from end
+        setAccountConfigs(accountConfigs.slice(0, newCount));
+      }
     }
   };
 
   const handleBcsBlur = () => {
-    // Validate and clamp only when user finishes typing (on blur)
     const numValue = parseInt(bcsInputValue) || 0;
     
     if (numValue < 5 || numValue === 0 || bcsInputValue === '' || isNaN(numValue)) {
-      setBcsAmount(5);
       setBcsInputValue('5');
+      setAccountConfigs(Array(5).fill(null).map(() => ({ region: 'US', currency: 'USD' })));
       showError('Business Centers must be at least 5.');
     } else if (numValue > 100) {
-      setBcsAmount(100);
       setBcsInputValue('100');
+      setAccountConfigs(Array(100).fill(null).map(() => ({ region: 'US', currency: 'USD' })));
       showError('Business Centers can\'t be more than 100.');
     } else {
-      setBcsAmount(numValue);
       setBcsInputValue(numValue.toString());
+      // Ensure array matches count
+      const currentCount = accountConfigs.length;
+      if (numValue > currentCount) {
+        const newConfigs = Array(numValue - currentCount).fill(null).map(() => ({ region: 'US', currency: 'USD' }));
+        setAccountConfigs([...accountConfigs, ...newConfigs]);
+      } else if (numValue < currentCount) {
+        setAccountConfigs(accountConfigs.slice(0, numValue));
+      }
     }
+  };
+
+  const filteredCountries = (index: number) => {
+    const search = countrySearchTerm[index] || '';
+    if (!search) return countries;
+    return countries.filter(country =>
+      country.name.toLowerCase().includes(search.toLowerCase()) ||
+      country.code.toLowerCase().includes(search.toLowerCase())
+    );
+  };
+
+  const allCurrencies = [...new Set(countries.map(c => c.currency))].sort();
+  
+  const filteredCurrencies = (index: number) => {
+    const search = currencySearchTerm[index] || '';
+    if (!search) return allCurrencies;
+    return allCurrencies.filter(currency =>
+      currency.toLowerCase().includes(search.toLowerCase())
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Prevent double submission
     if (isPending || isPolling) {
       return;
     }
     
-    // Validate BCS on submit
     const numValue = parseInt(bcsInputValue) || 0;
-    let validBcsAmount = numValue;
     
     if (numValue < 5) {
-      validBcsAmount = 5;
-      setBcsAmount(5);
       setBcsInputValue('5');
+      setAccountConfigs(Array(5).fill(null).map(() => ({ region: 'US', currency: 'USD' })));
       showError('Business Centers must be at least 5.');
       return;
     } else if (numValue > 100) {
-      validBcsAmount = 100;
-      setBcsAmount(100);
       setBcsInputValue('100');
+      setAccountConfigs(Array(100).fill(null).map(() => ({ region: 'US', currency: 'USD' })));
       showError('Business Centers can\'t be more than 100.');
-      return;
-    } else if (numValue === 0) {
-      validBcsAmount = 5;
-      setBcsAmount(5);
-      setBcsInputValue('5');
-      showError('Business Centers must be at least 5.');
-      return;
-    }
-    
-    if (!selectedCountry || !selectedCurrency || validBcsAmount < 5 || validBcsAmount > 100) {
       return;
     }
 
-    // Check credits before proceeding
-    const creditsCheck = await checkCredits(validBcsAmount);
+    // Validate all configs have region
+    const invalidConfigs = accountConfigs.filter(config => !config.region);
+    if (invalidConfigs.length > 0) {
+      showError('Please select a region for all accounts.');
+      return;
+    }
+
+    // Check credits
+    const creditsCheck = await checkCredits(accountConfigs.length);
     if (!creditsCheck.hasEnough) {
       showError(`Insufficient credits. You have ${creditsCheck.currentCredits} credits, but need ${creditsCheck.requiredCredits}.`);
       return;
@@ -555,19 +545,15 @@ export default function CreationForm() {
 
     // Start deployment
     startTransition(async () => {
-      // Clear previous logs when starting a new deployment
       clearMessages();
       setActive(true);
       addMessage('info', 'Initializing deployment...');
-      addMessage('info', `Country: ${selectedCountry.name} (${selectedCountry.code})`);
-      addMessage('info', `Currency: ${selectedCurrency}`);
-      addMessage('info', `Business Centers: ${validBcsAmount}`);
+      addMessage('info', `Business Centers: ${accountConfigs.length}`);
       addMessage('info', `Credits will be deducted when accounts are created.`);
 
       try {
-        // Create job via API
         addMessage('info', 'Creating job...');
-        const result = await createJob(validBcsAmount, selectedCountry.code, selectedCurrency);
+        const result = await createJob(accountConfigs);
 
         if (!result.success) {
           addMessage('error', result.error || 'Failed to create job');
@@ -587,11 +573,9 @@ export default function CreationForm() {
         addMessage('info', `Job ID: ${result.jobId}`);
         addMessage('info', 'Starting account creation process...');
 
-        // Start polling for job status
         setCurrentJobId(result.jobId);
         setIsPolling(true);
         
-        // Save to localStorage
         if (typeof window !== 'undefined') {
           try {
             localStorage.setItem('hoot_current_job_id', result.jobId);
@@ -608,126 +592,24 @@ export default function CreationForm() {
     });
   };
 
-  // Calculate if user has enough credits
-  // Only show "Insufficient Credits" if we've loaded credits and they're insufficient
   const creditsLoaded = currentCredits !== null;
-  const hasEnoughCredits = creditsLoaded && currentCredits >= bcsAmount;
-  const canDeploy = !isPending && !isPolling && hasEnoughCredits && selectedCountry && selectedCurrency && bcsAmount >= 5 && bcsAmount <= 100;
-  
-  // Prevent form submission if already deploying
+  const hasEnoughCredits = creditsLoaded && currentCredits >= accountConfigs.length;
+  const canDeploy = !isPending && !isPolling && hasEnoughCredits && accountConfigs.length >= 5 && accountConfigs.length <= 100 && accountConfigs.every(c => c.region);
   const isDeploying = isPending || isPolling;
+
+  // Get country name for display
+  const getCountryName = (code: string) => {
+    const country = countries.find(c => c.code === code);
+    return country ? `${country.name} (${code})` : code;
+  };
 
   return (
     <div className="creation-form-container">
       <form onSubmit={handleSubmit} className="creation-form">
-        {/* Country Dropdown */}
-        <div className="form-field">
-          <label htmlFor="country" className="form-label">
-            Country <span className="required">*</span>
-          </label>
-          <div className="custom-dropdown" ref={countryDropdownRef}>
-            <button
-              type="button"
-              className={`dropdown-toggle ${isCountryOpen ? 'open' : ''}`}
-              onClick={() => {
-                setIsCountryOpen(!isCountryOpen);
-                setIsCurrencyOpen(false);
-              }}
-            >
-              <span>{selectedCountry ? `${selectedCountry.name} (${selectedCountry.code})` : 'Select Country'}</span>
-              <span className="material-icons">{isCountryOpen ? 'expand_less' : 'expand_more'}</span>
-            </button>
-            {isCountryOpen && (
-              <div className="dropdown-menu">
-                <div className="dropdown-search">
-                  <span className="material-icons">search</span>
-                  <input
-                    type="text"
-                    placeholder="Search countries..."
-                    value={countrySearchTerm}
-                    onChange={(e) => setCountrySearchTerm(e.target.value)}
-                    className="dropdown-search-input"
-                    autoFocus
-                  />
-                </div>
-                <div className="dropdown-list">
-                  {regions.map(region => {
-                    const regionCountries = filteredCountries.filter(c => c.region === region);
-                    if (regionCountries.length === 0) return null;
-                    return (
-                      <div key={region} className="dropdown-group">
-                        <div className="dropdown-group-header">{region}</div>
-                        {regionCountries.map(country => (
-                          <button
-                            key={country.code}
-                            type="button"
-                            className={`dropdown-item ${selectedCountry?.code === country.code ? 'selected' : ''}`}
-                            onClick={() => handleCountrySelect(country)}
-                          >
-                            <span>{country.name}</span>
-                            <span className="dropdown-item-code">{country.code}</span>
-                          </button>
-                        ))}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Currency Dropdown */}
-        <div className="form-field">
-          <label htmlFor="currency" className="form-label">
-            Currency <span className="required">*</span>
-          </label>
-          <div className="custom-dropdown" ref={currencyDropdownRef}>
-            <button
-              type="button"
-              className={`dropdown-toggle ${isCurrencyOpen ? 'open' : ''}`}
-              onClick={() => {
-                setIsCurrencyOpen(!isCurrencyOpen);
-                setIsCountryOpen(false);
-              }}
-            >
-              <span>{selectedCurrency || 'Select Currency'}</span>
-              <span className="material-icons">{isCurrencyOpen ? 'expand_less' : 'expand_more'}</span>
-            </button>
-            {isCurrencyOpen && (
-              <div className="dropdown-menu">
-                <div className="dropdown-search">
-                  <span className="material-icons">search</span>
-                  <input
-                    type="text"
-                    placeholder="Search currencies..."
-                    value={currencySearchTerm}
-                    onChange={(e) => setCurrencySearchTerm(e.target.value)}
-                    className="dropdown-search-input"
-                    autoFocus
-                  />
-                </div>
-                <div className="dropdown-list">
-                  {filteredCurrencies.map(currency => (
-                    <button
-                      key={currency}
-                      type="button"
-                      className={`dropdown-item ${selectedCurrency === currency ? 'selected' : ''}`}
-                      onClick={() => handleCurrencySelect(currency)}
-                    >
-                      {currency}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* BCS Amount */}
-        <div className="form-field">
+        {/* Account Count */}
+        <div className="form-field form-field-full">
           <label htmlFor="bcs-amount" className="form-label">
-            Business Centers <span className="required">*</span>
+            Number of Accounts <span className="required">*</span>
             {isCheckingCredits && (
               <span className="material-icons spinning" style={{ 
                 marginLeft: '0.5rem', 
@@ -740,24 +622,134 @@ export default function CreationForm() {
             type="number"
             id="bcs-amount"
             value={bcsInputValue}
-            onChange={(e) => {
-              handleBcsInputChange(e.target.value);
-            }}
+            onChange={(e) => handleBcsInputChange(e.target.value)}
             onBlur={handleBcsBlur}
             className="bcs-input-simple"
             placeholder="Enter amount (5-100)"
             disabled={isPending || isPolling}
+            min="5"
+            max="100"
           />
+          <span className="form-hint">Minimum 5, Maximum 100</span>
+        </div>
+
+        {/* Account Configurations */}
+        <div className="form-field form-field-full">
+          <label className="form-label">
+            Account Configurations <span className="required">*</span>
+          </label>
+          <div className="account-configs-list">
+            {accountConfigs.map((config, index) => (
+              <div key={index} className="account-config-item">
+                <div className="account-config-number">#{index + 1}</div>
+                
+                {/* Country Dropdown */}
+                <div className="custom-dropdown" ref={(el) => { dropdownRefs.current[index] = el; }}>
+                  <button
+                    type="button"
+                    className={`dropdown-toggle ${isCountryOpen === index ? 'open' : ''}`}
+                    onClick={() => {
+                      setIsCountryOpen(isCountryOpen === index ? null : index);
+                      setIsCurrencyOpen(null);
+                    }}
+                    disabled={isPending || isPolling}
+                  >
+                    <span>{getCountryName(config.region)}</span>
+                    <span className="material-icons">{isCountryOpen === index ? 'expand_less' : 'expand_more'}</span>
+                  </button>
+                  {isCountryOpen === index && (
+                    <div className="dropdown-menu">
+                      <div className="dropdown-search">
+                        <span className="material-icons">search</span>
+                        <input
+                          type="text"
+                          placeholder="Search countries..."
+                          value={countrySearchTerm[index] || ''}
+                          onChange={(e) => setCountrySearchTerm(prev => ({ ...prev, [index]: e.target.value }))}
+                          className="dropdown-search-input"
+                          autoFocus
+                        />
+                      </div>
+                      <div className="dropdown-list">
+                        {regions.map(region => {
+                          const regionCountries = filteredCountries(index).filter(c => c.region === region);
+                          if (regionCountries.length === 0) return null;
+                          return (
+                            <div key={region} className="dropdown-group">
+                              <div className="dropdown-group-header">{region}</div>
+                              {regionCountries.map(country => (
+                                <button
+                                  key={country.code}
+                                  type="button"
+                                  className={`dropdown-item ${config.region === country.code ? 'selected' : ''}`}
+                                  onClick={() => handleCountrySelect(index, country)}
+                                >
+                                  <span>{country.name}</span>
+                                  <span className="dropdown-item-code">{country.code}</span>
+                                </button>
+                              ))}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Currency Dropdown */}
+                <div className="custom-dropdown">
+                  <button
+                    type="button"
+                    className={`dropdown-toggle ${isCurrencyOpen === index ? 'open' : ''}`}
+                    onClick={() => {
+                      setIsCurrencyOpen(isCurrencyOpen === index ? null : index);
+                      setIsCountryOpen(null);
+                    }}
+                    disabled={isPending || isPolling}
+                  >
+                    <span>{config.currency || 'Select Currency'}</span>
+                    <span className="material-icons">{isCurrencyOpen === index ? 'expand_less' : 'expand_more'}</span>
+                  </button>
+                  {isCurrencyOpen === index && (
+                    <div className="dropdown-menu">
+                      <div className="dropdown-search">
+                        <span className="material-icons">search</span>
+                        <input
+                          type="text"
+                          placeholder="Search currencies..."
+                          value={currencySearchTerm[index] || ''}
+                          onChange={(e) => setCurrencySearchTerm(prev => ({ ...prev, [index]: e.target.value }))}
+                          className="dropdown-search-input"
+                          autoFocus
+                        />
+                      </div>
+                      <div className="dropdown-list">
+                        {filteredCurrencies(index).map(currency => (
+                          <button
+                            key={currency}
+                            type="button"
+                            className={`dropdown-item ${config.currency === currency ? 'selected' : ''}`}
+                            onClick={() => handleCurrencySelect(index, currency)}
+                          >
+                            {currency}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Submit Button */}
-        <div className="form-field form-field-submit">
+        <div className="form-field form-field-submit form-field-full">
           <button
             type="submit"
             className="deployment-button"
             disabled={!canDeploy || isDeploying}
             onClick={(e) => {
-              // Extra protection - prevent if already deploying
               if (isDeploying) {
                 e.preventDefault();
                 e.stopPropagation();

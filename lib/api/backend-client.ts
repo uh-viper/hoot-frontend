@@ -18,10 +18,15 @@
 // API_BASE_URL can be public (just the domain)
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'https://api.hootservices.com';
 
-export interface CreateJobRequest {
-  accounts: number;
+export interface AccountConfig {
   region: string;
-  currency: string;
+  currency?: string; // Optional - defaults to region's default currency
+}
+
+export interface CreateJobRequest {
+  accounts: AccountConfig[] | number; // Array for new format, number for legacy
+  region?: string; // Only for legacy format
+  currency?: string; // Only for legacy format
 }
 
 export interface CreateJobResponse {
@@ -70,26 +75,40 @@ export interface Region {
 
 /**
  * Create a new accounts job
- * @param accounts - Number of accounts to create
- * @param region - Region code (e.g., 'US')
- * @param currency - Currency code (e.g., 'USD')
+ * @param accountConfigs - Array of account configs (new format) OR number of accounts (legacy)
+ * @param region - Region code (legacy format only)
+ * @param currency - Currency code (legacy format only)
  * @param token - JWT token from Supabase Auth session
  */
 export async function createAccountsJob(
-  accounts: number,
-  region: string,
-  currency: string,
-  token: string
+  accountConfigs: AccountConfig[] | number,
+  region?: string,
+  currency?: string,
+  token?: string
 ): Promise<CreateJobResponse> {
   if (!token) {
     throw new Error('Authentication required - JWT token is missing');
   }
 
-  const payload = {
-    accounts,
-    region,
-    currency,
-  };
+  // Determine payload format
+  let payload: CreateJobRequest;
+  
+  if (typeof accountConfigs === 'number') {
+    // Legacy format
+    if (!region || !currency) {
+      throw new Error('Region and currency are required for legacy format');
+    }
+    payload = {
+      accounts: accountConfigs,
+      region,
+      currency,
+    };
+  } else {
+    // New format - array of configs
+    payload = {
+      accounts: accountConfigs,
+    };
+  }
   
   // Validate token format (should be a JWT)
   if (!token || typeof token !== 'string' || token.split('.').length !== 3) {
