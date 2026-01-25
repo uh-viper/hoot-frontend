@@ -75,14 +75,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Insert new domain with aliases stored as JSON
+    // Insert new domain with aliases stored as JSON (automatically set to active)
     const { data: newDomain, error } = await supabase
       .from('domains')
       .insert({
         domain_name: domain.trim().toLowerCase(),
         aliases: aliasesArray.length > 0 ? JSON.stringify(aliasesArray) : JSON.stringify([]),
         registrar: 'microsoft',
-        status: 'pending',
+        status: 'active', // Automatically set to active
         created_by: user.id,
       })
       .select()

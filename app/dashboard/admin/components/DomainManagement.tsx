@@ -18,34 +18,15 @@ export default function DomainManagement() {
   const [isLoading, setIsLoading] = useState(true)
   const [isUpdatingRoot, setIsUpdatingRoot] = useState(false)
   const [newRootDomain, setNewRootDomain] = useState('')
-  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
   const [addingAlias, setAddingAlias] = useState(false)
   const [newAlias, setNewAlias] = useState('')
   const [removingAlias, setRemovingAlias] = useState<string | null>(null)
-  const [openStatusDropdown, setOpenStatusDropdown] = useState(false)
 
   // Fetch domain on mount
   useEffect(() => {
     fetchDomain()
   }, [])
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement
-      if (openStatusDropdown && !target.closest('.status-dropdown')) {
-        setOpenStatusDropdown(false)
-      }
-    }
-
-    if (openStatusDropdown) {
-      document.addEventListener('mousedown', handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [openStatusDropdown])
 
   const fetchDomain = async () => {
     try {
@@ -92,7 +73,8 @@ export default function DomainManagement() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           domain: newRootDomain.trim().toLowerCase(),
-          aliases: domain?.aliases || []
+          aliases: domain?.aliases || [],
+          status: 'active' // Automatically set to active
         }),
       })
 
@@ -179,34 +161,6 @@ export default function DomainManagement() {
     }
   }
 
-  const handleStatusChange = async (newStatus: 'pending' | 'active') => {
-    if (!domain) return
-
-    setIsUpdatingStatus(true)
-    try {
-      const response = await fetch(`/api/admin/domains/${domain.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: newStatus }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to update status')
-      }
-
-      showSuccess(`Domain status updated to ${newStatus}`)
-      setOpenStatusDropdown(false)
-      fetchDomain()
-    } catch (err: any) {
-      showError(err.message || 'Failed to update status')
-    } finally {
-      setIsUpdatingStatus(false)
-    }
-  }
 
   if (isLoading) {
     return (
@@ -268,74 +222,12 @@ export default function DomainManagement() {
                 {isUpdatingRoot ? 'Setting...' : domain ? 'Update Root Domain' : 'Set Root Domain'}
               </button>
             </div>
-            <div style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.5)', marginTop: '0.5rem' }}>
-              This is your Microsoft tenant domain. It cannot be changed once accounts are created.
-            </div>
           </div>
         </form>
       </div>
 
       {domain && (
         <>
-          {/* Status and Info */}
-          <div style={{ 
-            background: 'rgba(255, 255, 255, 0.03)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '12px',
-            padding: '1.5rem',
-            marginBottom: '1.5rem',
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <div>
-                <div style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.6)', marginBottom: '0.25rem' }}>
-                  Current Root Domain
-                </div>
-                <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', fontFamily: 'monospace' }}>
-                  {domain.domain_name}
-                </div>
-              </div>
-              <div className="status-dropdown">
-                <button
-                  className="status-dropdown-toggle"
-                  onClick={() => setOpenStatusDropdown(!openStatusDropdown)}
-                  disabled={isUpdatingStatus}
-                >
-                  {domain.status === 'active' ? 'Active' : 'Pending'}
-                  <span className="material-icons" style={{ fontSize: '1rem', marginLeft: '0.5rem' }}>
-                    {openStatusDropdown ? 'expand_less' : 'expand_more'}
-                  </span>
-                </button>
-                {openStatusDropdown && (
-                  <div className="status-dropdown-menu">
-                    {domain.status !== 'pending' && (
-                      <button
-                        className="status-dropdown-item"
-                        onClick={() => handleStatusChange('pending')}
-                        disabled={isUpdatingStatus}
-                      >
-                        <span className="material-icons" style={{ fontSize: '1rem' }}>schedule</span>
-                        Pending
-                      </button>
-                    )}
-                    {domain.status !== 'active' && (
-                      <button
-                        className="status-dropdown-item"
-                        onClick={() => handleStatusChange('active')}
-                        disabled={isUpdatingStatus}
-                      >
-                        <span className="material-icons" style={{ fontSize: '1rem' }}>check_circle</span>
-                        Active
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-            <div style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.6)', paddingTop: '1rem', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
-              Backend API receives: <code style={{ color: '#d4af37' }}>{domain.domain_name}</code> with aliases: <code style={{ color: '#d4af37' }}>{JSON.stringify(domain.aliases || [])}</code>
-            </div>
-          </div>
-
           {/* Aliases Section */}
           <div style={{ 
             background: 'rgba(255, 255, 255, 0.03)',
