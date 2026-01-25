@@ -765,7 +765,7 @@ export default function CreationForm() {
           {/* Pairs Dropdown - Left of Accounts */}
           <div className="pairs-dropdown-wrapper">
             <label className="form-label">
-              Selected Pairs <span className="required">*</span>
+              Selected Pairs
             </label>
             <div className="custom-dropdown" ref={pairsDropdownRef}>
               <button
@@ -849,38 +849,38 @@ export default function CreationForm() {
               max="100"
             />
           </div>
-        </div>
 
-        {/* Submit Button - Bottom Right */}
-        <div className="form-field form-field-submit-bottom-right">
-          <button
-            type="submit"
-            className="deployment-button"
-            disabled={!canDeploy || isDeploying}
-            onClick={(e) => {
-              if (isDeploying) {
-                e.preventDefault();
-                e.stopPropagation();
-              }
-            }}
-          >
-            {isPending || isPolling ? (
-              <>
-                <span className="material-icons spinning">sync</span>
-                {isPolling ? 'Deployment in Progress...' : 'Starting Deployment...'}
-              </>
-            ) : !creditsLoaded || isCheckingCredits ? (
-              <>
-                <span className="material-icons spinning">sync</span>
-                Loading...
-              </>
-            ) : (
-              <>
-                <span className="material-icons">rocket_launch</span>
-                {hasEnoughCredits ? 'Start Deployment' : 'Insufficient Credits'}
-              </>
-            )}
-          </button>
+          {/* Submit Button - Right of Accounts */}
+          <div className="submit-button-wrapper-inline">
+            <button
+              type="submit"
+              className="deployment-button"
+              disabled={!canDeploy || isDeploying}
+              onClick={(e) => {
+                if (isDeploying) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+              }}
+            >
+              {isPending || isPolling ? (
+                <>
+                  <span className="material-icons spinning">sync</span>
+                  {isPolling ? 'Deployment in Progress...' : 'Starting Deployment...'}
+                </>
+              ) : !creditsLoaded || isCheckingCredits ? (
+                <>
+                  <span className="material-icons spinning">sync</span>
+                  Loading...
+                </>
+              ) : (
+                <>
+                  <span className="material-icons">rocket_launch</span>
+                  {hasEnoughCredits ? 'Start Deployment' : 'Insufficient Credits'}
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </form>
     </div>
