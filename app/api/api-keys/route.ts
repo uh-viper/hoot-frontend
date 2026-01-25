@@ -92,9 +92,8 @@ export async function POST() {
     }
 
     // Generate cryptographically secure API key
-    // Format: 70 random characters with high entropy
-    // Using a mix of alphanumeric and special characters for maximum security
-    const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_~!@#$%^&*()+=[]{}|;:,.<>?'
+    // Format: 70 random characters - letters, numbers, dash, underscore only
+    const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
     
     // Generate 70 random characters using cryptographically secure random bytes
     const apiKeyArray: string[] = []
