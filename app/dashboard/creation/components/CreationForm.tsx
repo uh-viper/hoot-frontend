@@ -88,17 +88,20 @@ export default function CreationForm() {
   const { showError, showSuccess } = useToast();
   const { addMessage, setActive, clearMessages } = useConsole();
   const [isPending, startTransition] = useTransition();
-  const [accountConfigs, setAccountConfigs] = useState<AccountConfig[]>(() => {
-    // Initialize with 5 accounts, all US/USD
-    return Array(5).fill(null).map(() => ({ region: 'US', currency: 'USD' }));
+  const [bcsAmount, setBcsAmount] = useState<number>(5);
+  const [bcsInputValue, setBcsInputValue] = useState<string>('5');
+  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
+  const [selectedCurrency, setSelectedCurrency] = useState<string>('');
+  const [regionCurrencyPairs, setRegionCurrencyPairs] = useState<AccountConfig[]>(() => {
+    // Default: one pair (US/USD)
+    return [{ region: 'US', currency: 'USD' }];
   });
-  const [isCountryOpen, setIsCountryOpen] = useState<number | null>(null);
-  const [isCurrencyOpen, setIsCurrencyOpen] = useState<number | null>(null);
-  const [countrySearchTerm, setCountrySearchTerm] = useState<{ [key: number]: string }>({});
-  const [currencySearchTerm, setCurrencySearchTerm] = useState<{ [key: number]: string }>({});
+  const [isCountryOpen, setIsCountryOpen] = useState(false);
+  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
+  const [countrySearchTerm, setCountrySearchTerm] = useState('');
+  const [currencySearchTerm, setCurrencySearchTerm] = useState('');
   const [currentCredits, setCurrentCredits] = useState<number | null>(null);
   const [isCheckingCredits, setIsCheckingCredits] = useState(false);
-  const [bcsInputValue, setBcsInputValue] = useState<string>('5');
   
   // Restore job state from localStorage when component mounts
   const [currentJobId, setCurrentJobId] = useState<string | null>(() => {
@@ -118,7 +121,8 @@ export default function CreationForm() {
       return false;
     }
   });
-  const dropdownRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
+  const countryDropdownRef = useRef<HTMLDivElement>(null);
+  const currencyDropdownRef = useRef<HTMLDivElement>(null);
 
   // Verify restored job state on mount
   useEffect(() => {
@@ -171,17 +175,16 @@ export default function CreationForm() {
 
   // Check credits when account count changes
   useEffect(() => {
-    const count = accountConfigs.length;
-    if (count >= 5 && count <= 100) {
+    if (bcsAmount >= 5 && bcsAmount <= 100) {
       setIsCheckingCredits(true);
-      checkCredits(count).then((result) => {
+      checkCredits(bcsAmount).then((result) => {
         setCurrentCredits(result.currentCredits);
         setIsCheckingCredits(false);
       }).catch(() => {
         setIsCheckingCredits(false);
       });
     }
-  }, [accountConfigs.length]);
+  }, [bcsAmount]);
 
   // Poll job status when jobId is set
   useEffect(() => {
@@ -407,61 +410,89 @@ export default function CreationForm() {
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      Object.keys(dropdownRefs.current).forEach((key) => {
-        const ref = dropdownRefs.current[parseInt(key)];
-        if (ref && !ref.contains(event.target as Node)) {
-          const index = parseInt(key);
-          if (isCountryOpen === index) {
-            setIsCountryOpen(null);
-            setCountrySearchTerm(prev => ({ ...prev, [index]: '' }));
-          }
-          if (isCurrencyOpen === index) {
-            setIsCurrencyOpen(null);
-            setCurrencySearchTerm(prev => ({ ...prev, [index]: '' }));
-          }
-        }
-      });
+      if (countryDropdownRef.current && !countryDropdownRef.current.contains(event.target as Node)) {
+        setIsCountryOpen(false);
+        setCountrySearchTerm('');
+      }
+      if (currencyDropdownRef.current && !currencyDropdownRef.current.contains(event.target as Node)) {
+        setIsCurrencyOpen(false);
+        setCurrencySearchTerm('');
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isCountryOpen, isCurrencyOpen]);
+  }, []);
 
-  const handleCountrySelect = (index: number, country: Country) => {
-    const updated = [...accountConfigs];
-    updated[index] = {
-      region: country.code,
-      currency: country.currency, // Auto-set currency
-    };
-    setAccountConfigs(updated);
-    setIsCountryOpen(null);
-    setCountrySearchTerm(prev => ({ ...prev, [index]: '' }));
+  const handleCountrySelect = (country: Country) => {
+    setSelectedCountry(country);
+    setSelectedCurrency(country.currency); // Auto-set currency
+    setIsCountryOpen(false);
+    setCountrySearchTerm('');
   };
 
-  const handleCurrencySelect = (index: number, currency: string) => {
-    const updated = [...accountConfigs];
-    updated[index] = { ...updated[index], currency };
-    setAccountConfigs(updated);
-    setIsCurrencyOpen(null);
-    setCurrencySearchTerm(prev => ({ ...prev, [index]: '' }));
+  const handleCurrencySelect = (currency: string) => {
+    setSelectedCurrency(currency);
+    setIsCurrencyOpen(false);
+    setCurrencySearchTerm('');
   };
+
+  const handleAddPair = () => {
+    if (!selectedCountry || !selectedCurrency) {
+      showError('Please select both country and currency');
+      return;
+    }
+    
+    // Check if pair already exists
+    const exists = regionCurrencyPairs.some(
+      p => p.region === selectedCountry.code && p.currency === selectedCurrency
+    );
+    
+    if (exists) {
+      showError('This region/currency pair is already added');
+      return;
+    }
+    
+    setRegionCurrencyPairs([...regionCurrencyPairs, {
+      region: selectedCountry.code,
+      currency: selectedCurrency
+    }]);
+    
+    // Reset selections
+    setSelectedCountry(null);
+    setSelectedCurrency('');
+  };
+
+  const handleRemovePair = (index: number) => {
+    const updated = regionCurrencyPairs.filter((_, i) => i !== index);
+    if (updated.length === 0) {
+      // Keep at least one pair (default US/USD)
+      setRegionCurrencyPairs([{ region: 'US', currency: 'USD' }]);
+    } else {
+      setRegionCurrencyPairs(updated);
+    }
+  };
+
+  const filteredCountries = countrySearchTerm
+    ? countries.filter(country =>
+        country.name.toLowerCase().includes(countrySearchTerm.toLowerCase()) ||
+        country.code.toLowerCase().includes(countrySearchTerm.toLowerCase())
+      )
+    : countries;
+
+  const allCurrencies = [...new Set(countries.map(c => c.currency))].sort();
+  
+  const filteredCurrencies = currencySearchTerm
+    ? allCurrencies.filter(currency =>
+        currency.toLowerCase().includes(currencySearchTerm.toLowerCase())
+      )
+    : allCurrencies;
 
   const handleBcsInputChange = (value: string) => {
     setBcsInputValue(value);
     const numValue = parseInt(value);
     if (!isNaN(numValue) && numValue >= 5 && numValue <= 100) {
-      // Update account configs array
-      const newCount = numValue;
-      const currentCount = accountConfigs.length;
-      
-      if (newCount > currentCount) {
-        // Add new accounts with default US/USD
-        const newConfigs = Array(newCount - currentCount).fill(null).map(() => ({ region: 'US', currency: 'USD' }));
-        setAccountConfigs([...accountConfigs, ...newConfigs]);
-      } else if (newCount < currentCount) {
-        // Remove accounts from end
-        setAccountConfigs(accountConfigs.slice(0, newCount));
-      }
+      setBcsAmount(numValue);
     }
   };
 
@@ -469,43 +500,37 @@ export default function CreationForm() {
     const numValue = parseInt(bcsInputValue) || 0;
     
     if (numValue < 5 || numValue === 0 || bcsInputValue === '' || isNaN(numValue)) {
+      setBcsAmount(5);
       setBcsInputValue('5');
-      setAccountConfigs(Array(5).fill(null).map(() => ({ region: 'US', currency: 'USD' })));
       showError('Business Centers must be at least 5.');
     } else if (numValue > 100) {
+      setBcsAmount(100);
       setBcsInputValue('100');
-      setAccountConfigs(Array(100).fill(null).map(() => ({ region: 'US', currency: 'USD' })));
       showError('Business Centers can\'t be more than 100.');
     } else {
+      setBcsAmount(numValue);
       setBcsInputValue(numValue.toString());
-      // Ensure array matches count
-      const currentCount = accountConfigs.length;
-      if (numValue > currentCount) {
-        const newConfigs = Array(numValue - currentCount).fill(null).map(() => ({ region: 'US', currency: 'USD' }));
-        setAccountConfigs([...accountConfigs, ...newConfigs]);
-      } else if (numValue < currentCount) {
-        setAccountConfigs(accountConfigs.slice(0, numValue));
-      }
     }
   };
 
-  const filteredCountries = (index: number) => {
-    const search = countrySearchTerm[index] || '';
-    if (!search) return countries;
-    return countries.filter(country =>
-      country.name.toLowerCase().includes(search.toLowerCase()) ||
-      country.code.toLowerCase().includes(search.toLowerCase())
-    );
-  };
-
-  const allCurrencies = [...new Set(countries.map(c => c.currency))].sort();
-  
-  const filteredCurrencies = (index: number) => {
-    const search = currencySearchTerm[index] || '';
-    if (!search) return allCurrencies;
-    return allCurrencies.filter(currency =>
-      currency.toLowerCase().includes(search.toLowerCase())
-    );
+  // Generate account configs from pairs (distribute evenly)
+  const generateAccountConfigs = (): AccountConfig[] => {
+    if (regionCurrencyPairs.length === 0) {
+      return Array(bcsAmount).fill(null).map(() => ({ region: 'US', currency: 'USD' }));
+    }
+    
+    const configs: AccountConfig[] = [];
+    const accountsPerPair = Math.floor(bcsAmount / regionCurrencyPairs.length);
+    const remainder = bcsAmount % regionCurrencyPairs.length;
+    
+    regionCurrencyPairs.forEach((pair, index) => {
+      const count = accountsPerPair + (index < remainder ? 1 : 0);
+      for (let i = 0; i < count; i++) {
+        configs.push({ ...pair });
+      }
+    });
+    
+    return configs;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -519,25 +544,21 @@ export default function CreationForm() {
     
     if (numValue < 5) {
       setBcsInputValue('5');
-      setAccountConfigs(Array(5).fill(null).map(() => ({ region: 'US', currency: 'USD' })));
+      setBcsAmount(5);
       showError('Business Centers must be at least 5.');
       return;
     } else if (numValue > 100) {
       setBcsInputValue('100');
-      setAccountConfigs(Array(100).fill(null).map(() => ({ region: 'US', currency: 'USD' })));
+      setBcsAmount(100);
       showError('Business Centers can\'t be more than 100.');
       return;
     }
 
-    // Validate all configs have region
-    const invalidConfigs = accountConfigs.filter(config => !config.region);
-    if (invalidConfigs.length > 0) {
-      showError('Please select a region for all accounts.');
-      return;
-    }
+    // Generate account configs from pairs
+    const accountConfigs = generateAccountConfigs();
 
     // Check credits
-    const creditsCheck = await checkCredits(accountConfigs.length);
+    const creditsCheck = await checkCredits(bcsAmount);
     if (!creditsCheck.hasEnough) {
       showError(`Insufficient credits. You have ${creditsCheck.currentCredits} credits, but need ${creditsCheck.requiredCredits}.`);
       return;
@@ -548,7 +569,7 @@ export default function CreationForm() {
       clearMessages();
       setActive(true);
       addMessage('info', 'Initializing deployment...');
-      addMessage('info', `Business Centers: ${accountConfigs.length}`);
+      addMessage('info', `Business Centers: ${bcsAmount}`);
       addMessage('info', `Credits will be deducted when accounts are created.`);
 
       try {
@@ -593,8 +614,8 @@ export default function CreationForm() {
   };
 
   const creditsLoaded = currentCredits !== null;
-  const hasEnoughCredits = creditsLoaded && currentCredits >= accountConfigs.length;
-  const canDeploy = !isPending && !isPolling && hasEnoughCredits && accountConfigs.length >= 5 && accountConfigs.length <= 100 && accountConfigs.every(c => c.region);
+  const hasEnoughCredits = creditsLoaded && currentCredits >= bcsAmount;
+  const canDeploy = !isPending && !isPolling && hasEnoughCredits && bcsAmount >= 5 && bcsAmount <= 100 && regionCurrencyPairs.length > 0;
   const isDeploying = isPending || isPolling;
 
   // Get country name for display
@@ -607,7 +628,7 @@ export default function CreationForm() {
     <div className="creation-form-container">
       <form onSubmit={handleSubmit} className="creation-form">
         {/* Account Count */}
-        <div className="form-field form-field-full">
+        <div className="form-field">
           <label htmlFor="bcs-amount" className="form-label">
             Number of Accounts <span className="required">*</span>
             {isCheckingCredits && (
@@ -630,121 +651,156 @@ export default function CreationForm() {
             min="5"
             max="100"
           />
-          <span className="form-hint">Minimum 5, Maximum 100</span>
         </div>
 
-        {/* Account Configurations */}
-        <div className="form-field form-field-full">
-          <label className="form-label">
-            Account Configurations <span className="required">*</span>
+        {/* Country Dropdown */}
+        <div className="form-field">
+          <label htmlFor="country" className="form-label">
+            Country <span className="required">*</span>
           </label>
-          <div className="account-configs-list">
-            {accountConfigs.map((config, index) => (
-              <div key={index} className="account-config-item">
-                <div className="account-config-number">#{index + 1}</div>
-                
-                {/* Country Dropdown */}
-                <div className="custom-dropdown" ref={(el) => { dropdownRefs.current[index] = el; }}>
-                  <button
-                    type="button"
-                    className={`dropdown-toggle ${isCountryOpen === index ? 'open' : ''}`}
-                    onClick={() => {
-                      setIsCountryOpen(isCountryOpen === index ? null : index);
-                      setIsCurrencyOpen(null);
-                    }}
-                    disabled={isPending || isPolling}
-                  >
-                    <span>{getCountryName(config.region)}</span>
-                    <span className="material-icons">{isCountryOpen === index ? 'expand_less' : 'expand_more'}</span>
-                  </button>
-                  {isCountryOpen === index && (
-                    <div className="dropdown-menu">
-                      <div className="dropdown-search">
-                        <span className="material-icons">search</span>
-                        <input
-                          type="text"
-                          placeholder="Search countries..."
-                          value={countrySearchTerm[index] || ''}
-                          onChange={(e) => setCountrySearchTerm(prev => ({ ...prev, [index]: e.target.value }))}
-                          className="dropdown-search-input"
-                          autoFocus
-                        />
-                      </div>
-                      <div className="dropdown-list">
-                        {regions.map(region => {
-                          const regionCountries = filteredCountries(index).filter(c => c.region === region);
-                          if (regionCountries.length === 0) return null;
-                          return (
-                            <div key={region} className="dropdown-group">
-                              <div className="dropdown-group-header">{region}</div>
-                              {regionCountries.map(country => (
-                                <button
-                                  key={country.code}
-                                  type="button"
-                                  className={`dropdown-item ${config.region === country.code ? 'selected' : ''}`}
-                                  onClick={() => handleCountrySelect(index, country)}
-                                >
-                                  <span>{country.name}</span>
-                                  <span className="dropdown-item-code">{country.code}</span>
-                                </button>
-                              ))}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
+          <div className="custom-dropdown" ref={countryDropdownRef}>
+            <button
+              type="button"
+              className={`dropdown-toggle ${isCountryOpen ? 'open' : ''}`}
+              onClick={() => {
+                setIsCountryOpen(!isCountryOpen);
+                setIsCurrencyOpen(false);
+              }}
+            >
+              <span>{selectedCountry ? `${selectedCountry.name} (${selectedCountry.code})` : 'Select Country'}</span>
+              <span className="material-icons">{isCountryOpen ? 'expand_less' : 'expand_more'}</span>
+            </button>
+            {isCountryOpen && (
+              <div className="dropdown-menu">
+                <div className="dropdown-search">
+                  <span className="material-icons">search</span>
+                  <input
+                    type="text"
+                    placeholder="Search countries..."
+                    value={countrySearchTerm}
+                    onChange={(e) => setCountrySearchTerm(e.target.value)}
+                    className="dropdown-search-input"
+                    autoFocus
+                  />
                 </div>
-
-                {/* Currency Dropdown */}
-                <div className="custom-dropdown">
-                  <button
-                    type="button"
-                    className={`dropdown-toggle ${isCurrencyOpen === index ? 'open' : ''}`}
-                    onClick={() => {
-                      setIsCurrencyOpen(isCurrencyOpen === index ? null : index);
-                      setIsCountryOpen(null);
-                    }}
-                    disabled={isPending || isPolling}
-                  >
-                    <span>{config.currency || 'Select Currency'}</span>
-                    <span className="material-icons">{isCurrencyOpen === index ? 'expand_less' : 'expand_more'}</span>
-                  </button>
-                  {isCurrencyOpen === index && (
-                    <div className="dropdown-menu">
-                      <div className="dropdown-search">
-                        <span className="material-icons">search</span>
-                        <input
-                          type="text"
-                          placeholder="Search currencies..."
-                          value={currencySearchTerm[index] || ''}
-                          onChange={(e) => setCurrencySearchTerm(prev => ({ ...prev, [index]: e.target.value }))}
-                          className="dropdown-search-input"
-                          autoFocus
-                        />
-                      </div>
-                      <div className="dropdown-list">
-                        {filteredCurrencies(index).map(currency => (
+                <div className="dropdown-list">
+                  {regions.map(region => {
+                    const regionCountries = filteredCountries.filter(c => c.region === region);
+                    if (regionCountries.length === 0) return null;
+                    return (
+                      <div key={region} className="dropdown-group">
+                        <div className="dropdown-group-header">{region}</div>
+                        {regionCountries.map(country => (
                           <button
-                            key={currency}
+                            key={country.code}
                             type="button"
-                            className={`dropdown-item ${config.currency === currency ? 'selected' : ''}`}
-                            onClick={() => handleCurrencySelect(index, currency)}
+                            className={`dropdown-item ${selectedCountry?.code === country.code ? 'selected' : ''}`}
+                            onClick={() => handleCountrySelect(country)}
                           >
-                            {currency}
+                            <span>{country.name}</span>
+                            <span className="dropdown-item-code">{country.code}</span>
                           </button>
                         ))}
                       </div>
-                    </div>
-                  )}
+                    );
+                  })}
                 </div>
               </div>
-            ))}
+            )}
           </div>
         </div>
 
+        {/* Currency Dropdown */}
+        <div className="form-field">
+          <label htmlFor="currency" className="form-label">
+            Currency <span className="required">*</span>
+          </label>
+          <div className="custom-dropdown" ref={currencyDropdownRef}>
+            <button
+              type="button"
+              className={`dropdown-toggle ${isCurrencyOpen ? 'open' : ''}`}
+              onClick={() => {
+                setIsCurrencyOpen(!isCurrencyOpen);
+                setIsCountryOpen(false);
+              }}
+            >
+              <span>{selectedCurrency || 'Select Currency'}</span>
+              <span className="material-icons">{isCurrencyOpen ? 'expand_less' : 'expand_more'}</span>
+            </button>
+            {isCurrencyOpen && (
+              <div className="dropdown-menu">
+                <div className="dropdown-search">
+                  <span className="material-icons">search</span>
+                  <input
+                    type="text"
+                    placeholder="Search currencies..."
+                    value={currencySearchTerm}
+                    onChange={(e) => setCurrencySearchTerm(e.target.value)}
+                    className="dropdown-search-input"
+                    autoFocus
+                  />
+                </div>
+                <div className="dropdown-list">
+                  {filteredCurrencies.map(currency => (
+                    <button
+                      key={currency}
+                      type="button"
+                      className={`dropdown-item ${selectedCurrency === currency ? 'selected' : ''}`}
+                      onClick={() => handleCurrencySelect(currency)}
+                    >
+                      {currency}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Add Pair Button */}
+        <div className="form-field">
+          <button
+            type="button"
+            onClick={handleAddPair}
+            className="add-pair-button"
+            disabled={!selectedCountry || !selectedCurrency || isPending || isPolling}
+          >
+            <span className="material-icons">add</span>
+            <span>Add Region/Currency</span>
+          </button>
+        </div>
+
+        {/* Selected Pairs */}
+        {regionCurrencyPairs.length > 0 && (
+          <div className="form-field form-field-full">
+            <label className="form-label">Selected Pairs</label>
+            <div className="pairs-list">
+              {regionCurrencyPairs.map((pair, index) => (
+                <div key={index} className="pair-chip">
+                  <span className="pair-text">
+                    {getCountryName(pair.region)} / {pair.currency}
+                  </span>
+                  {regionCurrencyPairs.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemovePair(index)}
+                      className="pair-remove"
+                      disabled={isPending || isPolling}
+                    >
+                      <span className="material-icons">close</span>
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <span className="form-hint">
+              Accounts will be distributed evenly across selected pairs
+            </span>
+          </div>
+        )}
+
         {/* Submit Button */}
-        <div className="form-field form-field-submit form-field-full">
+        <div className="form-field form-field-submit">
           <button
             type="submit"
             className="deployment-button"
