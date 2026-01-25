@@ -763,18 +763,21 @@ export default function CreationForm() {
         {/* Number of Accounts with Pairs Dropdown */}
         <div className="form-field form-field-accounts-row">
           {/* Pairs Dropdown - Left of Accounts */}
-          <div className="form-field-pairs-dropdown">
+          <div className="pairs-dropdown-wrapper">
+            <label className="form-label">
+              Selected Pairs <span className="required">*</span>
+            </label>
             <div className="custom-dropdown" ref={pairsDropdownRef}>
               <button
                 type="button"
-                className={`dropdown-toggle pairs-dropdown-toggle ${isPairsDropdownOpen ? 'open' : ''}`}
+                className={`dropdown-toggle ${isPairsDropdownOpen ? 'open' : ''}`}
                 onClick={() => {
                   setIsPairsDropdownOpen(!isPairsDropdownOpen);
                   setIsCountryOpen(false);
                   setShowCurrencySelection(false);
                 }}
+                disabled={isPending || isPolling}
               >
-                <span className="material-icons">list</span>
                 <span>Selected Pairs ({regionCurrencyPairs.length})</span>
                 <span className="material-icons">{isPairsDropdownOpen ? 'expand_less' : 'expand_more'}</span>
               </button>
