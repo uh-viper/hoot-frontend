@@ -6,15 +6,19 @@ Users can generate API keys from the Settings page to authenticate with your bac
 
 ## API Key Format
 
-API keys are generated in the format:
+API keys are generated as:
 ```
-hoot_<64 hex characters>
+70 random characters (base64 encoded)
 ```
 
 Example:
 ```
-hoot_a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456
+a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8s9T0u1V2w3X4y5Z6a7B8c9D0e1F2g3H4i5J6k7L8m9N0
 ```
+
+- **Length**: Exactly 70 characters
+- **Characters**: Alphanumeric (A-Z, a-z, 0-9) plus `+` and `/` (base64)
+- **No prefix**: Just the 70 characters directly
 
 ## Database Schema
 
@@ -55,23 +59,30 @@ X-API-Key: hoot_a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456
 ### 2. **Validate API Key Format**
 
 First, validate the format:
-- Must start with `hoot_`
-- Must be followed by exactly 64 hexadecimal characters
-- Total length: 69 characters
+- Must be exactly 70 characters
+- Must contain only base64 characters: A-Z, a-z, 0-9, +, /
+- No prefix or special format required
 
 **Example validation (Python):**
 ```python
 import re
 
 def validate_api_key_format(api_key: str) -> bool:
-    pattern = r'^hoot_[a-f0-9]{64}$'
-    return bool(re.match(pattern, api_key, re.IGNORECASE))
+    if len(api_key) != 70:
+        return False
+    # Base64 characters: A-Z, a-z, 0-9, +, /
+    pattern = r'^[A-Za-z0-9+/]{70}$'
+    return bool(re.match(pattern, api_key))
 ```
 
 **Example validation (Node.js):**
 ```javascript
 function validateApiKeyFormat(apiKey) {
-  const pattern = /^hoot_[a-f0-9]{64}$/i;
+  if (apiKey.length !== 70) {
+    return false;
+  }
+  // Base64 characters: A-Z, a-z, 0-9, +, /
+  const pattern = /^[A-Za-z0-9+/]{70}$/;
   return pattern.test(apiKey);
 }
 ```
@@ -354,11 +365,11 @@ All endpoints should:
 ```bash
 # List accounts
 curl -X GET "https://your-api.com/api/accounts" \
-  -H "Authorization: Bearer hoot_a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456"
+  -H "Authorization: Bearer a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8s9T0u1V2w3X4y5Z6a7B8c9D0e1F2g3H4i5J6k7L8m9N0"
 
 # Delete account
 curl -X DELETE "https://your-api.com/api/accounts/account-uuid" \
-  -H "Authorization: Bearer hoot_a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456"
+  -H "Authorization: Bearer a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8s9T0u1V2w3X4y5Z6a7B8c9D0e1F2g3H4i5J6k7L8m9N0"
 ```
 
 ### Using Postman
@@ -379,9 +390,9 @@ Your backend needs read access to the `user_keys` table. Options:
 
 ## Summary
 
-1. **Format**: `hoot_` + 64 hex characters
+1. **Format**: 70 random base64 characters (A-Z, a-z, 0-9, +, /)
 2. **Header**: `Authorization: Bearer <api_key>`
-3. **Validation**: Check format, then query `user_keys` table
+3. **Validation**: Check length (70) and format (base64), then query `user_keys` table
 4. **User ID**: Extract `user_id` from the database row
 5. **Authorization**: Use `user_id` to verify resource ownership
 6. **Security**: Parameterized queries, rate limiting, HTTPS only, generic errors

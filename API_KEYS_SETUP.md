@@ -56,10 +56,14 @@ After running the migration, verify the table exists:
 
 API keys are generated as:
 ```
-hoot_<64 random hex characters>
+70 random base64 characters
 ```
 
-Example: `hoot_a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456`
+Example: `a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8s9T0u1V2w3X4y5Z6a7B8c9D0e1F2g3H4i5J6k7L8m9N0`
+
+- **Length**: Exactly 70 characters
+- **Characters**: Alphanumeric (A-Z, a-z, 0-9) plus `+` and `/` (base64)
+- **No prefix**: Just the 70 characters directly
 
 ## Backend Integration
 
