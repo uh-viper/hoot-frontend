@@ -183,7 +183,7 @@ export default function DomainManagement() {
         <form onSubmit={handleSetRootDomain}>
           <div style={{ marginBottom: '0.5rem' }}>
             <label htmlFor="root-domain-input" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 600 }}>
-              Root Domain (Fixed - Your Microsoft Tenant Domain)
+              Microsoft Account
             </label>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
               <div style={{ flex: 1 }}>
@@ -236,27 +236,27 @@ export default function DomainManagement() {
             padding: '1.5rem',
           }}>
             <h4 style={{ fontSize: '1rem', fontWeight: 600, color: '#fff', marginBottom: '1rem' }}>
-              Aliases ({domain.aliases?.length || 0})
+              Aliases
             </h4>
             
             {/* Existing Aliases */}
-            {domain.aliases && domain.aliases.length > 0 ? (
+            {domain.aliases && domain.aliases.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
                 {domain.aliases.map((alias) => (
                   <div
                     key={alias}
                     style={{
-                      display: 'flex',
+                      display: 'inline-flex',
                       alignItems: 'center',
                       gap: '0.5rem',
-                      padding: '0.5rem 0.75rem',
+                      padding: '0.4rem 0.6rem',
                       background: 'rgba(212, 175, 55, 0.1)',
                       border: '1px solid rgba(212, 175, 55, 0.2)',
                       borderRadius: '6px',
                       fontSize: '0.875rem',
                     }}
                   >
-                    <code style={{ color: '#d4af37' }}>{alias}@{domain.domain_name}</code>
+                    <span style={{ color: '#d4af37' }}>{alias}</span>
                     <button
                       onClick={() => handleRemoveAlias(alias)}
                       disabled={removingAlias === alias}
@@ -265,27 +265,24 @@ export default function DomainManagement() {
                         border: 'none',
                         color: '#f44336',
                         cursor: removingAlias === alias ? 'not-allowed' : 'pointer',
-                        padding: '0.25rem',
+                        padding: '0',
                         display: 'flex',
                         alignItems: 'center',
+                        lineHeight: 1,
                       }}
-                      title="Remove alias"
+                      title="Remove"
                     >
-                      <span className="material-icons" style={{ fontSize: '1rem' }}>
+                      <span className="material-icons" style={{ fontSize: '0.875rem' }}>
                         close
                       </span>
                     </button>
                   </div>
                 ))}
               </div>
-            ) : (
-              <div style={{ padding: '1rem', textAlign: 'center', color: 'rgba(255, 255, 255, 0.5)', marginBottom: '1rem' }}>
-                No aliases added yet
-              </div>
             )}
 
             {/* Add Alias Form */}
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
               <input
                 type="text"
                 value={newAlias}
@@ -296,7 +293,7 @@ export default function DomainManagement() {
                     handleAddAlias()
                   }
                 }}
-                placeholder="Enter alias (e.g., hoot, autn)"
+                placeholder="Add alias"
                 style={{
                   flex: 1,
                   padding: '0.5rem 0.75rem',
@@ -321,11 +318,8 @@ export default function DomainManagement() {
                   fontSize: '0.875rem',
                 }}
               >
-                {addingAlias ? 'Adding...' : 'Add Alias'}
+                {addingAlias ? 'Adding...' : 'Add'}
               </button>
-            </div>
-            <div style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.5)', marginTop: '0.5rem' }}>
-              Accounts will be created as: <code style={{ color: '#d4af37' }}>{domain.aliases?.[0] || 'alias'}+random_id@{domain.domain_name}</code>
             </div>
           </div>
         </>
