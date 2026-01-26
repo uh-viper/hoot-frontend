@@ -388,6 +388,33 @@
   color: #d4af37;
 }
 
+.settings-api-docs-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+  font-weight: 500;
+  font-family: var(--font-poppins);
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.settings-api-docs-link:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+.settings-api-docs-link .material-icons {
+  font-size: 1.25rem;
+}
+
 .settings-api-key-close {
   align-self: flex-end;
   padding: 0.625rem 1.25rem;
