@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useToast } from '../../../contexts/ToastContext'
 
 interface ApiKeyStatus {
@@ -104,6 +105,15 @@ export default function ApiKeysManager({}: ApiKeysManagerProps) {
             </>
           )}
         </button>
+
+        {/* API Docs Link Button */}
+        <Link
+          href="/api-docs"
+          className="settings-api-docs-link"
+        >
+          <span className="material-icons">description</span>
+          <span>API Documentation</span>
+        </Link>
 
         {/* Show newly generated key to the right */}
         {newlyGeneratedKey && (
