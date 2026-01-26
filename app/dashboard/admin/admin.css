@@ -72,30 +72,30 @@
 }
 
 .admin-grant-all-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
+  justify-content: center;
+  padding: 0.5rem;
   background: rgba(212, 175, 55, 0.1);
   border: 1px solid rgba(212, 175, 55, 0.3);
   border-radius: 10px;
   color: #d4af37;
-  font-size: 0.95rem;
-  font-weight: 500;
-  font-family: var(--font-poppins);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  white-space: nowrap;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
 }
 
 .admin-grant-all-btn:hover {
-  background: rgba(212, 175, 55, 0.15);
-  border-color: rgba(212, 175, 55, 0.4);
+  background: rgba(212, 175, 55, 0.2);
+  border-color: #d4af37;
   transform: translateY(-1px);
 }
 
 .admin-grant-all-btn .material-icons {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
+  color: #d4af37;
 }
 
 .admin-search-input {

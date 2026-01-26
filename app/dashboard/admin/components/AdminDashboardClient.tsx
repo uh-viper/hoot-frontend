@@ -393,8 +393,7 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
               onClick={() => setShowGrantAllModal(true)}
               title="Grant credits to all users"
             >
-              <span className="material-icons">add_circle</span>
-              <span>Grant Credits to All</span>
+              <span className="material-icons">add</span>
             </button>
             <div className="admin-filter-toggle">
               <button
