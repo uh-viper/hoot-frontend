@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { getFilteredStats } from '@/app/actions/admin-stats'
-import { updateUserCredits } from '@/app/actions/admin-credits'
+import { updateUserCredits, grantCreditsToAll } from '@/app/actions/admin-credits'
 import { useToast } from '@/app/contexts/ToastContext'
 import CalendarModal from '../../components/CalendarModal'
 import { 
@@ -92,6 +92,9 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
   const [localUsers, setLocalUsers] = useState<User[]>(users)
   const [deletingUser, setDeletingUser] = useState<{ userId: string; email: string } | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [showGrantAllModal, setShowGrantAllModal] = useState(false)
+  const [grantAllAmount, setGrantAllAmount] = useState('')
+  const [isGrantingAll, setIsGrantingAll] = useState(false)
 
   // Calculate initial revenue from all purchases
   const initialRevenue = allPurchases
@@ -209,6 +212,39 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
       showError('Failed to update credits. Please try again.')
     } finally {
       setIsUpdatingCredits(false)
+    }
+  }
+
+  const handleGrantCreditsToAll = async () => {
+    if (!grantAllAmount) {
+      showError('Please enter an amount')
+      return
+    }
+
+    const amount = parseFloat(grantAllAmount)
+    if (isNaN(amount) || amount <= 0) {
+      showError('Please enter a valid positive amount')
+      return
+    }
+
+    setIsGrantingAll(true)
+    try {
+      const result = await grantCreditsToAll(amount)
+      
+      if (result.success && result.usersUpdated !== undefined) {
+        // Refresh users list to show updated credits
+        window.location.reload() // Simple refresh to get updated data
+        showSuccess(`Successfully granted ${amount} credits to ${result.usersUpdated} users!`)
+        setShowGrantAllModal(false)
+        setGrantAllAmount('')
+      } else {
+        showError(result.error || 'Failed to grant credits')
+      }
+    } catch (error) {
+      console.error('Error granting credits to all:', error)
+      showError('Failed to grant credits. Please try again.')
+    } finally {
+      setIsGrantingAll(false)
     }
   }
 
@@ -352,6 +388,14 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
               onChange={(e) => setSearchTerm(e.target.value)}
               className="admin-search-input"
             />
+            <button
+              className="admin-grant-all-btn"
+              onClick={() => setShowGrantAllModal(true)}
+              title="Grant credits to all users"
+            >
+              <span className="material-icons">add_circle</span>
+              <span>Grant Credits to All</span>
+            </button>
             <div className="admin-filter-toggle">
               <button
                 className={`admin-filter-option ${filterAdmin === 'all' ? 'active' : ''}`}
@@ -840,6 +884,67 @@ export default function AdminDashboardClient({ users, recentPurchases, allPurcha
                 disabled={isDeleting}
               >
                 {isDeleting ? 'Deleting...' : 'Delete User'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Grant Credits to All Modal */}
+      {showGrantAllModal && (
+        <div className="admin-modal-overlay" onClick={() => !isGrantingAll && setShowGrantAllModal(false)}>
+          <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal-header">
+              <h2>Grant Credits to All Users</h2>
+              <button 
+                className="admin-modal-close"
+                onClick={() => setShowGrantAllModal(false)}
+                disabled={isGrantingAll}
+              >
+                <span className="material-icons">close</span>
+              </button>
+            </div>
+            <div className="admin-modal-content">
+              <p className="admin-modal-info">
+                This will grant credits to <strong>all {localUsers.length} users</strong> in the system.
+              </p>
+              <div className="admin-modal-field">
+                <label>
+                  Amount to grant to each user
+                </label>
+                <input
+                  type="number"
+                  value={grantAllAmount}
+                  onChange={(e) => setGrantAllAmount(e.target.value)}
+                  placeholder="e.g., 5"
+                  disabled={isGrantingAll}
+                  min="1"
+                />
+              </div>
+              {grantAllAmount && !isNaN(parseFloat(grantAllAmount)) && parseFloat(grantAllAmount) > 0 && (
+                <p className="admin-modal-preview">
+                  Total credits to be granted: <strong>{(parseFloat(grantAllAmount) * localUsers.length).toLocaleString()}</strong>
+                  <br />
+                  <span style={{ fontSize: '0.875rem', opacity: 0.7 }}>
+                    ({parseFloat(grantAllAmount).toLocaleString()} × {localUsers.length} users)
+                  </span>
+                </p>
+              )}
+            </div>
+            <div className="admin-modal-footer">
+              <button
+                className="admin-modal-cancel"
+                onClick={() => setShowGrantAllModal(false)}
+                disabled={isGrantingAll}
+              >
+                Cancel
+              </button>
+              <button
+                className="admin-modal-submit"
+                onClick={handleGrantCreditsToAll}
+                disabled={isGrantingAll || !grantAllAmount || parseFloat(grantAllAmount) <= 0}
+              >
+                {isGrantingAll ? 'Granting...' : 'Grant Credits to All'}
               </button>
             </div>
           </div>
