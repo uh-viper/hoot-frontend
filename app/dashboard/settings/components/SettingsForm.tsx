@@ -410,6 +410,13 @@ export default function SettingsForm({ initialName, initialEmail, initialDiscord
             <span className="material-icons">key</span>
           </div>
           <h2 className="settings-section-title">API Access</h2>
+          <Link
+            href="/api-docs"
+            className="settings-api-docs-link-header"
+          >
+            <span className="material-icons">description</span>
+            <span>API Documentation</span>
+          </Link>
         </div>
 
         <ApiKeysManager />

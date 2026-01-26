@@ -26,6 +26,7 @@
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  justify-content: space-between;
 }
 
 .settings-section-icon {
@@ -388,31 +389,32 @@
   color: #d4af37;
 }
 
-.settings-api-docs-link {
+.settings-api-docs-link-header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
+  padding: 0.625rem 1rem;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  border-radius: 8px;
   color: rgba(255, 255, 255, 0.9);
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   font-weight: 500;
   font-family: var(--font-poppins);
   text-decoration: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
+  margin-left: auto;
 }
 
-.settings-api-docs-link:hover {
+.settings-api-docs-link-header:hover {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.15);
   color: #ffffff;
 }
 
-.settings-api-docs-link .material-icons {
-  font-size: 1.25rem;
+.settings-api-docs-link-header .material-icons {
+  font-size: 1.125rem;
 }
 
 .settings-api-key-close {

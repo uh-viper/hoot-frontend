@@ -106,15 +106,6 @@ export default function ApiKeysManager({}: ApiKeysManagerProps) {
           )}
         </button>
 
-        {/* API Docs Link Button */}
-        <Link
-          href="/api-docs"
-          className="settings-api-docs-link"
-        >
-          <span className="material-icons">description</span>
-          <span>API Documentation</span>
-        </Link>
-
         {/* Show newly generated key to the right */}
         {newlyGeneratedKey && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.625rem 1rem', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '8px' }}>
