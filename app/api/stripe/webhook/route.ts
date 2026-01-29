@@ -18,45 +18,16 @@ const supabaseAdmin = createClient(
 )
 
 // Get the webhook secret from environment variables
-// For local testing, you can use Stripe CLI: stripe listen --forward-to localhost:3000/api/stripe/webhook
+// For local testing: stripe listen --forward-to localhost:3000/api/stripe/webhook
+// Live: use the signing secret from Stripe Dashboard → Developers → Webhooks → your endpoint
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || ''
 
-export async function POST(request: NextRequest) {
-  console.log('🔔 WEBHOOK RECEIVED - Starting webhook processing...')
-  const body = await request.text()
-  const signature = request.headers.get('stripe-signature')
-
-  if (!signature) {
-    console.error('❌ WEBHOOK ERROR: No signature provided')
-    return NextResponse.json(
-      { error: 'No signature provided' },
-      { status: 400 }
-    )
-  }
-
-  if (!webhookSecret) {
-    console.error('❌ WEBHOOK ERROR: STRIPE_WEBHOOK_SECRET is not set')
-    return NextResponse.json(
-      { error: 'Webhook secret not configured' },
-      { status: 500 }
-    )
-  }
-
-  let event: Stripe.Event
-
+/**
+ * Process webhook event after we've already returned 200 to Stripe.
+ * Runs in background so Stripe does not retry on our processing errors/timeouts.
+ */
+async function processStripeEvent(event: Stripe.Event) {
   try {
-    event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
-    console.log('✅ Webhook signature verified. Event type:', event.type)
-  } catch (err) {
-    console.error('❌ WEBHOOK ERROR: Signature verification failed:', err)
-    return NextResponse.json(
-      { error: 'Webhook signature verification failed' },
-      { status: 400 }
-    )
-  }
-
-  try {
-    // Handle the event
     switch (event.type) {
       case 'checkout.session.completed': {
         console.log('💰 Processing checkout.session.completed event...')
@@ -80,7 +51,7 @@ export async function POST(request: NextRequest) {
 
           if (!userId || !credits) {
             console.error('❌ Missing userId or credits in session metadata:', session.metadata)
-            return NextResponse.json({ received: true })
+            return
           }
 
           // Find the purchase record by checkout session ID
@@ -111,7 +82,7 @@ export async function POST(request: NextRequest) {
 
             if (createError || !purchaseId) {
               console.error('Failed to create purchase record:', createError)
-              return NextResponse.json({ received: true })
+              return
             }
 
             // Add credits to user (purchase was just created)
@@ -271,13 +242,39 @@ export async function POST(request: NextRequest) {
       default:
         console.log(`Unhandled event type: ${event.type}`)
     }
-
-    return NextResponse.json({ received: true })
   } catch (error) {
-    console.error('Error processing webhook:', error)
-    return NextResponse.json(
-      { error: 'Webhook processing failed' },
-      { status: 500 }
-    )
+    // Log only - we already returned 200 to Stripe so they won't retry
+    console.error('Error processing webhook (background):', error)
   }
+}
+
+export async function POST(request: NextRequest) {
+  const body = await request.text()
+  const signature = request.headers.get('stripe-signature')
+
+  if (!signature) {
+    console.error('❌ WEBHOOK: No stripe-signature header')
+    return NextResponse.json({ error: 'No signature provided' }, { status: 400 })
+  }
+
+  if (!webhookSecret) {
+    console.error('❌ WEBHOOK: STRIPE_WEBHOOK_SECRET is not set (set it in production)')
+    return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 500 })
+  }
+
+  let event: Stripe.Event
+  try {
+    event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
+  } catch (err) {
+    console.error('❌ WEBHOOK: Signature verification failed:', err)
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
+  }
+
+  // Return 200 immediately so Stripe considers the event delivered and does not retry.
+  // Process the event in the background; failures are logged for manual follow-up.
+  processStripeEvent(event).catch((err) =>
+    console.error('❌ WEBHOOK background processing error:', err)
+  )
+
+  return NextResponse.json({ received: true }, { status: 200 })
 }
