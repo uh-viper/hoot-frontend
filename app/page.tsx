@@ -63,7 +63,7 @@ export default async function Home() {
             <span className="title-line gold-text">Start Scaling.</span>
           </h1>
           <p className="hero-subtitle">
-            Any region, any currency. As many business centers as you need. Built for those who can't afford to be slowed down.
+            Any region, any currency. As many business centers as you need. Fully autonomous.
           </p>
           <p className="hero-bcs-note">BCS ARE MADE WITH OUTLOOK EMAILS</p>
           <div className="hero-cta-group">
