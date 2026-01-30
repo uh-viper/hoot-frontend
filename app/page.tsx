@@ -65,6 +65,7 @@ export default async function Home() {
           <p className="hero-subtitle">
             Any region, any currency. As many business centers as you need. Built for those who can't afford to be slowed down.
           </p>
+          <p className="hero-bcs-note">BCS ARE MADE WITH OUTLOOK EMAILS</p>
           <div className="hero-cta-group">
             <Link href="/signup" className="hero-cta primary" prefetch={false}>
               Start Now
@@ -72,6 +73,19 @@ export default async function Home() {
             <Link href="/learn-more" className="hero-cta secondary">
               Learn More
             </Link>
+          </div>
+          <div className="hero-video-barrier" />
+          <div className="hero-video-line" />
+          <div className="hero-video-section">
+            <h2 className="hero-video-title">How it Works</h2>
+            <div className="hero-video-embed">
+              <iframe
+                src="https://www.youtube.com/embed/-juSWLRAII4"
+                title="How it Works"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            </div>
           </div>
         </div>
       </section>

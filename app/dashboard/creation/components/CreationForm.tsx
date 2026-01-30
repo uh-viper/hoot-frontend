@@ -93,8 +93,8 @@ export default function CreationForm() {
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
   const [selectedCurrency, setSelectedCurrency] = useState<string>('');
   const [regionCurrencyPairs, setRegionCurrencyPairs] = useState<AccountConfig[]>(() => {
-    // Default: one pair (US/USD)
-    return [{ region: 'US', currency: 'USD' }];
+    // No default pair - user must add at least one to start
+    return [];
   });
   const [isCountryOpen, setIsCountryOpen] = useState(false);
   const [isPairsDropdownOpen, setIsPairsDropdownOpen] = useState(false);
@@ -471,12 +471,7 @@ export default function CreationForm() {
 
   const handleRemovePair = (index: number) => {
     const updated = regionCurrencyPairs.filter((_, i) => i !== index);
-    if (updated.length === 0) {
-      // Keep at least one pair (default US/USD)
-      setRegionCurrencyPairs([{ region: 'US', currency: 'USD' }]);
-    } else {
-      setRegionCurrencyPairs(updated);
-    }
+    setRegionCurrencyPairs(updated);
   };
 
   const filteredCountries = countrySearchTerm
@@ -796,21 +791,19 @@ export default function CreationForm() {
                           <span className="pair-dropdown-text">
                             {getCountryName(pair.region)} / {pair.currency}
                           </span>
-                          {regionCurrencyPairs.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                handleRemovePair(index);
-                                if (regionCurrencyPairs.length === 1) {
-                                  setIsPairsDropdownOpen(false);
-                                }
-                              }}
-                              className="pair-dropdown-remove"
-                              disabled={isPending || isPolling}
-                            >
-                              <span className="material-icons">close</span>
-                            </button>
-                          )}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleRemovePair(index);
+                              if (regionCurrencyPairs.length === 1) {
+                                setIsPairsDropdownOpen(false);
+                              }
+                            }}
+                            className="pair-dropdown-remove"
+                            disabled={isPending || isPolling}
+                          >
+                            <span className="material-icons">close</span>
+                          </button>
                         </div>
                       ))
                     )}
