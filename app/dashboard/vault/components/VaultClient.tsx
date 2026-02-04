@@ -156,9 +156,10 @@ export default function VaultClient({ initialAccounts }: VaultClientProps) {
     <div className="vault-accounts-container">
       <div className="vault-section-box">
         <div className="vault-section-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <h2 className="vault-section-title">Accounts</h2>
-            {accounts.length > 0 && (
+          <h2 className="vault-section-title">Accounts</h2>
+          {accounts.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <span className="vault-account-count">{accounts.length} account{accounts.length !== 1 ? 's' : ''}</span>
               <button
                 type="button"
                 className="vault-delete-all-btn"
@@ -167,10 +168,7 @@ export default function VaultClient({ initialAccounts }: VaultClientProps) {
               >
                 <span className="material-icons">delete</span>
               </button>
-            )}
-          </div>
-          {accounts.length > 0 && (
-            <span className="vault-account-count">{accounts.length} account{accounts.length !== 1 ? 's' : ''}</span>
+            </div>
           )}
         </div>
         
