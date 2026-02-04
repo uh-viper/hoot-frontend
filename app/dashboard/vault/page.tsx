@@ -23,18 +23,6 @@ export default async function VaultPage() {
   // Ensure user has all required database rows
   await initializeUserData(user.id)
 
-  // Fetch initial accounts (client component will fetch fresh on mount)
-  const { createClient } = await import('@/lib/supabase/server')
-  const supabase = await createClient()
-  const { data: accounts } = await supabase
-    .from('user_accounts')
-    .select('id, email, password, region, currency, created_at')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(50) // Just get initial batch, client will fetch all
-
-  const userAccounts = accounts || []
-
   return (
     <div className="dashboard-content">
       <div className="dashboard-header">
@@ -42,7 +30,7 @@ export default async function VaultPage() {
         <p className="dashboard-subtitle">Access and manage your accounts</p>
       </div>
 
-      <VaultClient initialAccounts={userAccounts} />
+      <VaultClient />
     </div>
   )
 }

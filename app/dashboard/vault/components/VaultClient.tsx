@@ -16,13 +16,13 @@ interface Account {
 }
 
 interface VaultClientProps {
-  initialAccounts: Account[];
+  initialAccounts?: Account[];
 }
 
-export default function VaultClient({ initialAccounts }: VaultClientProps) {
+export default function VaultClient({ initialAccounts = [] }: VaultClientProps) {
   const pathname = usePathname();
   const { showError, showSuccess } = useToast();
-  const [accounts, setAccounts] = useState<Account[]>(initialAccounts);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [displayCount, setDisplayCount] = useState(6);
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
