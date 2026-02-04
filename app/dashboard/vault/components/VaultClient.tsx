@@ -23,7 +23,7 @@ export default function VaultClient({ initialAccounts = [] }: VaultClientProps) 
   const pathname = usePathname();
   const { showError, showSuccess } = useToast();
   const [accounts, setAccounts] = useState<Account[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [displayCount, setDisplayCount] = useState(6);
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
@@ -172,7 +172,29 @@ export default function VaultClient({ initialAccounts = [] }: VaultClientProps) 
           )}
         </div>
         
-        {accounts.length === 0 ? (
+        {isLoading ? (
+          <div style={{ 
+            textAlign: 'center', 
+            padding: '4rem 2rem', 
+            background: 'rgba(255, 255, 255, 0.02)',
+            borderRadius: '16px',
+            border: '1px solid rgba(255, 255, 255, 0.05)',
+          }}>
+            <span 
+              className="material-icons" 
+              style={{ 
+                fontSize: '3rem', 
+                opacity: 0.5, 
+                marginBottom: '1rem', 
+                display: 'block',
+                animation: 'spin 1s linear infinite'
+              }}
+            >
+              refresh
+            </span>
+            <p style={{ opacity: 0.7 }}>Loading accounts...</p>
+          </div>
+        ) : accounts.length === 0 ? (
           <div className="vault-empty">
             <span className="material-icons">account_box</span>
             <p>No accounts yet</p>
